@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-06-26T17:17:27.417070",
+  "node_id": "D4",
+  "source_tag": "data_generate",
+  "summary": "syntax_error: SyntaxError at line 13: unterminated string literal (detected at line 13); execution_error: SyntaxError at line 13: unterminated string literal (detected at line 13)",
+  "error_context": {
+    "node": {
+      "id": "D4",
+      "name": "Formation_Matchup_Analysis",
+      "description": "Compare the formation types used by Argentina and Brazil against each other",
+      "task": "Cross-reference the formation types from d1 and d2 to identify common and unique formations used by each team during the same match phases."
+    },
+    "input_nodes": [
+      {
+        "id": "D1",
+        "name": "Argentina_Formation_Distribution",
+        "description": "Calculate the frequency of each formation type used by Argentina",
+        "task": "Group the 'formation_type' column from d1 and count the occurrences of each type."
+      },
+      {
+        "id": "D2",
+        "name": "Brazil_Formation_Distribution",
+        "description": "Calculate the frequency of each formation type used by Brazil",
+        "task": "Group the 'formation_type' column from d2 and count the occurrences of each type."
+      }
+    ],
+    "input_table_paths": {
+      "D1": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D1.csv",
+      "D2": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D2.csv"
+    },
+    "execution_result": {
+      "node_id": "D4",
+      "success": false,
+      "error": "SyntaxError at line 13: unterminated string literal (detected at line 13)",
+      "error_traceback": null,
+      "syntax_check": {
+        "valid": false,
+        "error": "SyntaxError at line 13: unterminated string literal (detected at line 13)",
+        "error_type": "syntax_error"
+      },
+      "validation_issues": [],
+      "columns": [],
+      "row_count": 0,
+      "output_path": null
+    }
+  }
+}

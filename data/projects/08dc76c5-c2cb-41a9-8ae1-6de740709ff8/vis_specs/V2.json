@@ -1,0 +1,43 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Brazil Formation Distribution Bar Chart",
+  "data": {
+    "values": [
+      {
+        "formation_type": "2-3-5",
+        "frequency": 54
+      },
+      {
+        "formation_type": "4-2-4",
+        "frequency": 51
+      },
+      {
+        "formation_type": "4-4-2",
+        "frequency": 48
+      },
+      {
+        "formation_type": "3-4-3",
+        "frequency": 16
+      }
+    ]
+  },
+  "mark": "bar",
+  "encoding": {
+    "x": {
+      "field": "formation_type",
+      "type": "nominal",
+      "axis": {
+        "title": "Formation Type"
+      }
+    },
+    "y": {
+      "field": "frequency",
+      "type": "quantitative",
+      "axis": {
+        "title": "Frequency"
+      }
+    }
+  },
+  "width": 400,
+  "height": 300
+}

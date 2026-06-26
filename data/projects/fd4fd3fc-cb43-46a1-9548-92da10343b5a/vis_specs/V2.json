@@ -1,0 +1,108 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Formation Transition Heatmap",
+  "data": {
+    "values": [
+      {
+        "from_formation": "4-3-3",
+        "to_formation": "4-2-3-1",
+        "count": 12
+      },
+      {
+        "from_formation": "4-3-3",
+        "to_formation": "4-4-2",
+        "count": 8
+      },
+      {
+        "from_formation": "4-3-3",
+        "to_formation": "3-5-2",
+        "count": 5
+      },
+      {
+        "from_formation": "4-2-3-1",
+        "to_formation": "4-3-3",
+        "count": 7
+      },
+      {
+        "from_formation": "4-2-3-1",
+        "to_formation": "4-4-2",
+        "count": 10
+      },
+      {
+        "from_formation": "4-2-3-1",
+        "to_formation": "3-5-2",
+        "count": 3
+      },
+      {
+        "from_formation": "4-4-2",
+        "to_formation": "4-3-3",
+        "count": 9
+      },
+      {
+        "from_formation": "4-4-2",
+        "to_formation": "4-2-3-1",
+        "count": 6
+      },
+      {
+        "from_formation": "4-4-2",
+        "to_formation": "3-5-2",
+        "count": 4
+      },
+      {
+        "from_formation": "3-5-2",
+        "to_formation": "4-3-3",
+        "count": 2
+      },
+      {
+        "from_formation": "3-5-2",
+        "to_formation": "4-2-3-1",
+        "count": 5
+      },
+      {
+        "from_formation": "3-5-2",
+        "to_formation": "4-4-2",
+        "count": 7
+      },
+      {
+        "from_formation": "4-3-3",
+        "to_formation": "4-3-3",
+        "count": 15
+      },
+      {
+        "from_formation": "4-2-3-1",
+        "to_formation": "4-2-3-1",
+        "count": 11
+      },
+      {
+        "from_formation": "4-4-2",
+        "to_formation": "4-4-2",
+        "count": 13
+      },
+      {
+        "from_formation": "3-5-2",
+        "to_formation": "3-5-2",
+        "count": 9
+      }
+    ]
+  },
+  "mark": "rect",
+  "encoding": {
+    "x": {
+      "field": "to_formation",
+      "type": "nominal",
+      "title": "To Formation"
+    },
+    "y": {
+      "field": "from_formation",
+      "type": "nominal",
+      "title": "From Formation"
+    },
+    "color": {
+      "field": "count",
+      "type": "quantitative",
+      "title": "Transition Count"
+    }
+  },
+  "width": 400,
+  "height": 300
+}

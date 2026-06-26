@@ -1,0 +1,153 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Formation Event Relationship Analysis",
+  "data": {
+    "values": [
+      {
+        "formation_change": "Shift Left",
+        "event_type": "Goal",
+        "time_in_match": 12,
+        "formation_strength": 3
+      },
+      {
+        "formation_change": "Shift Right",
+        "event_type": "Corner",
+        "time_in_match": 28,
+        "formation_strength": 2
+      },
+      {
+        "formation_change": "Backline Up",
+        "event_type": "Foul",
+        "time_in_match": 45,
+        "formation_strength": 4
+      },
+      {
+        "formation_change": "Forward Down",
+        "event_type": "Substitution",
+        "time_in_match": 60,
+        "formation_strength": 1
+      },
+      {
+        "formation_change": "Shift Left",
+        "event_type": "Yellow Card",
+        "time_in_match": 72,
+        "formation_strength": 2
+      },
+      {
+        "formation_change": "Shift Right",
+        "event_type": "Goal",
+        "time_in_match": 85,
+        "formation_strength": 3
+      },
+      {
+        "formation_change": "Backline Up",
+        "event_type": "Corner",
+        "time_in_match": 90,
+        "formation_strength": 2
+      },
+      {
+        "formation_change": "Forward Down",
+        "event_type": "Foul",
+        "time_in_match": 15,
+        "formation_strength": 4
+      },
+      {
+        "formation_change": "Shift Left",
+        "event_type": "Substitution",
+        "time_in_match": 30,
+        "formation_strength": 1
+      },
+      {
+        "formation_change": "Shift Right",
+        "event_type": "Yellow Card",
+        "time_in_match": 55,
+        "formation_strength": 2
+      },
+      {
+        "formation_change": "Backline Up",
+        "event_type": "Goal",
+        "time_in_match": 65,
+        "formation_strength": 3
+      },
+      {
+        "formation_change": "Forward Down",
+        "event_type": "Corner",
+        "time_in_match": 80,
+        "formation_strength": 2
+      },
+      {
+        "formation_change": "Shift Left",
+        "event_type": "Foul",
+        "time_in_match": 10,
+        "formation_strength": 4
+      },
+      {
+        "formation_change": "Shift Right",
+        "event_type": "Substitution",
+        "time_in_match": 25,
+        "formation_strength": 1
+      },
+      {
+        "formation_change": "Backline Up",
+        "event_type": "Yellow Card",
+        "time_in_match": 40,
+        "formation_strength": 2
+      },
+      {
+        "formation_change": "Forward Down",
+        "event_type": "Goal",
+        "time_in_match": 50,
+        "formation_strength": 3
+      },
+      {
+        "formation_change": "Shift Left",
+        "event_type": "Corner",
+        "time_in_match": 70,
+        "formation_strength": 2
+      },
+      {
+        "formation_change": "Shift Right",
+        "event_type": "Foul",
+        "time_in_match": 88,
+        "formation_strength": 4
+      },
+      {
+        "formation_change": "Backline Up",
+        "event_type": "Substitution",
+        "time_in_match": 18,
+        "formation_strength": 1
+      },
+      {
+        "formation_change": "Forward Down",
+        "event_type": "Yellow Card",
+        "time_in_match": 35,
+        "formation_strength": 2
+      }
+    ]
+  },
+  "mark": "point",
+  "encoding": {
+    "x": {
+      "field": "time_in_match",
+      "type": "quantitative",
+      "title": "Time in Match (minutes)"
+    },
+    "y": {
+      "field": "formation_strength",
+      "type": "quantitative",
+      "title": "Formation Strength"
+    },
+    "color": {
+      "field": "event_type",
+      "type": "nominal",
+      "title": "Event Type"
+    },
+    "size": {
+      "field": "formation_change",
+      "type": "nominal",
+      "title": "Formation Change"
+    }
+  },
+  "width": 600,
+  "height": 400
+}

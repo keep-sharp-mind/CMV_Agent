@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-06-24T15:48:22.418675",
+  "node_id": "D1",
+  "source_tag": "data_generate",
+  "summary": "execution_error: [Errno 2] No such file or directory: 'path_to_your_file.csv'",
+  "error_context": {
+    "node": {
+      "id": "D1",
+      "name": "FormationTimeIntervals",
+      "description": "Segment the match into time intervals and associate each with formation data",
+      "task": "Group the data by time intervals (e.g., 0-15, 15-30, etc.) and assign formation_type to each interval."
+    },
+    "input_nodes": [],
+    "input_table_paths": {},
+    "execution_result": {
+      "node_id": "D1",
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'path_to_your_file.csv'",
+      "error_traceback": null,
+      "syntax_check": {
+        "valid": true,
+        "error": null,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "columns": [],
+      "row_count": 0,
+      "output_path": null
+    }
+  }
+}

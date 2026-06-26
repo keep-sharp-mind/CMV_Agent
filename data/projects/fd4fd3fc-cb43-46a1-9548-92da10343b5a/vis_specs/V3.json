@@ -1,0 +1,98 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Formation Transition Matrix",
+  "data": {
+    "values": [
+      {
+        "from_formation": "2-3-5",
+        "to_formation": "2-3-5",
+        "count": 42
+      },
+      {
+        "from_formation": "2-3-5",
+        "to_formation": "3-4-3",
+        "count": 1
+      },
+      {
+        "from_formation": "2-3-5",
+        "to_formation": "4-2-4",
+        "count": 8
+      },
+      {
+        "from_formation": "2-3-5",
+        "to_formation": "4-4-2",
+        "count": 2
+      },
+      {
+        "from_formation": "3-4-3",
+        "to_formation": "2-3-5",
+        "count": 1
+      },
+      {
+        "from_formation": "3-4-3",
+        "to_formation": "3-4-3",
+        "count": 11
+      },
+      {
+        "from_formation": "3-4-3",
+        "to_formation": "4-4-2",
+        "count": 4
+      },
+      {
+        "from_formation": "4-2-4",
+        "to_formation": "2-3-5",
+        "count": 8
+      },
+      {
+        "from_formation": "4-2-4",
+        "to_formation": "3-4-3",
+        "count": 2
+      },
+      {
+        "from_formation": "4-2-4",
+        "to_formation": "4-2-4",
+        "count": 41
+      },
+      {
+        "from_formation": "4-4-2",
+        "to_formation": "2-3-5",
+        "count": 3
+      },
+      {
+        "from_formation": "4-4-2",
+        "to_formation": "3-4-3",
+        "count": 2
+      },
+      {
+        "from_formation": "4-4-2",
+        "to_formation": "4-2-4",
+        "count": 1
+      },
+      {
+        "from_formation": "4-4-2",
+        "to_formation": "4-4-2",
+        "count": 42
+      }
+    ]
+  },
+  "mark": "rect",
+  "encoding": {
+    "x": {
+      "field": "to_formation",
+      "type": "nominal",
+      "title": "To Formation"
+    },
+    "y": {
+      "field": "from_formation",
+      "type": "nominal",
+      "title": "From Formation"
+    },
+    "color": {
+      "field": "count",
+      "type": "quantitative",
+      "title": "Transition Count"
+    }
+  },
+  "width": 400,
+  "height": 400
+}

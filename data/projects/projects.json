@@ -1,0 +1,16 @@
+[
+  {
+    "id": "fd4fd3fc-cb43-46a1-9548-92da10343b5a",
+    "name": "test_0",
+    "goal": "分析不同比赛时刻的阵型变化情况",
+    "created_at": "2026-06-24T10:46:53.037442",
+    "updated_at": "2026-06-24T11:27:26.716878"
+  },
+  {
+    "id": "08dc76c5-c2cb-41a9-8ae1-6de740709ff8",
+    "name": "test_soccer",
+    "goal": "compare two teams",
+    "created_at": "2026-06-26T11:01:43.624868",
+    "updated_at": "2026-06-26T11:01:43.624868"
+  }
+]

@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-06-26T17:17:23.760521",
+  "node_id": "D3",
+  "source_tag": "data_generate",
+  "summary": "execution_error: Length mismatch: Expected axis has 6 elements, new values have 5 elements",
+  "error_context": {
+    "node": {
+      "id": "D3",
+      "name": "Formation_Change_Over_Time",
+      "description": "Analyze how formation types change across different time intervals for both teams",
+      "task": "Segment the data by time intervals (e.g., first half, second half, overtime) and calculate the frequency of each formation type within each interval for both teams."
+    },
+    "input_nodes": [
+      {
+        "id": "d1",
+        "name": "Argentina_Formation.data",
+        "description": "Input data table for Argentina's formation data",
+        "source_table": "Argentina_Formation.data"
+      },
+      {
+        "id": "d2",
+        "name": "Brazil_Formation.data",
+        "description": "Input data table for Brazil's formation data",
+        "source_table": "Brazil_Formation.data"
+      }
+    ],
+    "input_table_paths": {
+      "d1": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\databases\\Argentina_Formation.csv",
+      "d2": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\databases\\Brazil_Formation.csv"
+    },
+    "execution_result": {
+      "node_id": "D3",
+      "success": false,
+      "error": "Length mismatch: Expected axis has 6 elements, new values have 5 elements",
+      "error_traceback": null,
+      "syntax_check": {
+        "valid": true,
+        "error": null,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "columns": [],
+      "row_count": 0,
+      "output_path": null
+    }
+  }
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+*.pyc
+__pycache__/
+*.log
+frontend.log
+backend.log
+frontend_err.log
+backend_err.log
+backend/projects/
+backend/agents/__pycache__/

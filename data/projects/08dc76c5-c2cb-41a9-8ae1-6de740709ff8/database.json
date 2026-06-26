@@ -1,0 +1,84 @@
+{
+  "databases": [
+    {
+      "db_name": "Argentina_Formation",
+      "tables": [
+        {
+          "table_name": "data",
+          "columns": [
+            {
+              "column_name": "frame_id",
+              "data_type": "NUMERIC",
+              "is_nullable": true,
+              "is_primary_key": false,
+              "value_range": {
+                "type": "numeric",
+                "min": 0.0,
+                "max": 168.0
+              }
+            },
+            {
+              "column_name": "formation_type",
+              "data_type": "TEXT",
+              "is_nullable": true,
+              "is_primary_key": false,
+              "value_range": {
+                "type": "text",
+                "unique_count": 4,
+                "sample_values": [
+                  "4-4-2",
+                  "2-3-5",
+                  "3-4-3",
+                  "4-2-4"
+                ]
+              }
+            }
+          ],
+          "row_count": 169
+        }
+      ],
+      "file_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\databases\\Argentina_Formation.csv",
+      "uploaded_at": "2026-06-26T11:02:13.504111"
+    },
+    {
+      "db_name": "Brazil_Formation",
+      "tables": [
+        {
+          "table_name": "data",
+          "columns": [
+            {
+              "column_name": "frame_id",
+              "data_type": "NUMERIC",
+              "is_nullable": true,
+              "is_primary_key": false,
+              "value_range": {
+                "type": "numeric",
+                "min": 0.0,
+                "max": 168.0
+              }
+            },
+            {
+              "column_name": "formation_type",
+              "data_type": "TEXT",
+              "is_nullable": true,
+              "is_primary_key": false,
+              "value_range": {
+                "type": "text",
+                "unique_count": 4,
+                "sample_values": [
+                  "3-4-3",
+                  "2-3-5",
+                  "4-2-4",
+                  "4-4-2"
+                ]
+              }
+            }
+          ],
+          "row_count": 169
+        }
+      ],
+      "file_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\databases\\Brazil_Formation.csv",
+      "uploaded_at": "2026-06-26T11:02:13.760965"
+    }
+  ]
+}

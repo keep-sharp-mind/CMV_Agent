@@ -1,0 +1,91 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Formation Change Over Time",
+  "data": {
+    "values": [
+      {
+        "time_interval": 0,
+        "formation_type": "2-3-5"
+      },
+      {
+        "time_interval": 1,
+        "formation_type": "3-4-3"
+      },
+      {
+        "time_interval": 2,
+        "formation_type": "4-2-4"
+      },
+      {
+        "time_interval": 3,
+        "formation_type": "2-3-5"
+      },
+      {
+        "time_interval": 4,
+        "formation_type": "4-4-2"
+      },
+      {
+        "time_interval": 5,
+        "formation_type": "4-4-2"
+      },
+      {
+        "time_interval": 6,
+        "formation_type": "3-4-3"
+      },
+      {
+        "time_interval": 7,
+        "formation_type": "4-4-2"
+      },
+      {
+        "time_interval": 8,
+        "formation_type": "4-4-2"
+      },
+      {
+        "time_interval": 9,
+        "formation_type": "4-2-4"
+      },
+      {
+        "time_interval": 10,
+        "formation_type": "4-4-2"
+      },
+      {
+        "time_interval": 11,
+        "formation_type": "2-3-5"
+      },
+      {
+        "time_interval": 12,
+        "formation_type": "4-2-4"
+      },
+      {
+        "time_interval": 13,
+        "formation_type": "2-3-5"
+      },
+      {
+        "time_interval": 14,
+        "formation_type": "2-3-5"
+      },
+      {
+        "time_interval": 15,
+        "formation_type": "2-3-5"
+      },
+      {
+        "time_interval": 16,
+        "formation_type": "4-2-4"
+      }
+    ]
+  },
+  "mark": "line",
+  "encoding": {
+    "x": {
+      "field": "time_interval",
+      "type": "quantitative",
+      "title": "Time Interval"
+    },
+    "y": {
+      "field": "formation_type",
+      "type": "nominal",
+      "title": "Formation Type"
+    }
+  },
+  "width": 600,
+  "height": 400
+}

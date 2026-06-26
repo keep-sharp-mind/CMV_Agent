@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-06-24T15:28:58.058440",
+  "node_id": "D5",
+  "source_tag": "data_generate",
+  "summary": "execution_error: [Errno 2] No such file or directory: 'file_path_1.csv'",
+  "error_context": {
+    "node": {
+      "id": "D5",
+      "name": "Team Formation Comparison",
+      "description": "Compare the formation strategies of two teams to identify differences and potential tactical influences",
+      "task": "Aggregate formation data for both teams and compare their usage frequencies and transition patterns."
+    },
+    "input_nodes": [],
+    "input_table_paths": {},
+    "execution_result": {
+      "node_id": "D5",
+      "success": false,
+      "error": "[Errno 2] No such file or directory: 'file_path_1.csv'",
+      "error_traceback": null,
+      "syntax_check": {
+        "valid": true,
+        "error": null,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "columns": [],
+      "row_count": 0,
+      "output_path": null
+    }
+  }
+}

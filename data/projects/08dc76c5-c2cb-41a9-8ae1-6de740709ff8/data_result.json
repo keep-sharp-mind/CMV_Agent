@@ -1,0 +1,1060 @@
+{
+  "processed_nodes": {
+    "D1": {
+      "node_id": "D1",
+      "node_type": "D",
+      "code": "import pandas as pd\n\n# Read the input CSV file using the pre-defined path variable\ndf_input = pd.read_csv(INPUT_TABLE_PATH_d1)\n\n# Drop any rows with missing values in the 'formation_type' column\ndf_input = df_input.dropna(subset=['formation_type'])\n\n# Group by 'formation_type' and count the occurrences of each type\nresult_df = df_input.groupby('formation_type').size().reset_index(name='frequency')",
+      "output_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D1.csv",
+      "columns": [
+        {
+          "column_name": "formation_type",
+          "data_type": "object",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "text",
+            "unique_count": 4,
+            "sample_values": [
+              "2-3-5",
+              "3-4-3",
+              "4-2-4",
+              "4-4-2"
+            ]
+          }
+        },
+        {
+          "column_name": "frequency",
+          "data_type": "int64",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "numeric",
+            "min": 3.0,
+            "max": 95.0
+          }
+        }
+      ],
+      "row_count": 4,
+      "success": true,
+      "error": null,
+      "syntax_check": {
+        "valid": true,
+        "error": null,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "data_generate"
+    },
+    "D2": {
+      "node_id": "D2",
+      "node_type": "D",
+      "code": "import pandas as pd\n\n# Read the input CSV file using the pre-defined path variable\ndf_d2 = pd.read_csv(INPUT_TABLE_PATH_d2)\n\n# Drop any rows with missing values in the 'formation_type' column\ndf_d2 = df_d2.dropna(subset=['formation_type'])\n\n# Group by 'formation_type' and count the occurrences of each type\nresult_df = df_d2.groupby('formation_type').size().reset_index(name='frequency')",
+      "output_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D2.csv",
+      "columns": [
+        {
+          "column_name": "formation_type",
+          "data_type": "object",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "text",
+            "unique_count": 4,
+            "sample_values": [
+              "2-3-5",
+              "3-4-3",
+              "4-2-4",
+              "4-4-2"
+            ]
+          }
+        },
+        {
+          "column_name": "frequency",
+          "data_type": "int64",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "numeric",
+            "min": 16.0,
+            "max": 54.0
+          }
+        }
+      ],
+      "row_count": 4,
+      "success": true,
+      "error": null,
+      "syntax_check": {
+        "valid": true,
+        "error": null,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "data_generate"
+    },
+    "D3": {
+      "node_id": "D3",
+      "node_type": "D",
+      "code": "import pandas as pd\n\n# Read the input tables using the pre-defined path variables\ndf_argentina = pd.read_csv(INPUT_TABLE_PATH_d1)\ndf_brazil = pd.read_csv(INPUT_TABLE_PATH_d2)\n\n# Define time intervals (example: first half, second half, overtime)\n# For this example, we'll assume frame_id can be used to determine time intervals\n# For instance, frame_id < 4500 could represent first half, 4500-9000 second half, and >9000 overtime\n# Adjust these thresholds based on actual data if needed\n\n# Segment data by time intervals for Argentina\nargentina_intervals = pd.cut(df_argentina['frame_id'], bins=[0, 4500, 9000, float('inf')], labels=['First Half', 'Second Half', 'Overtime'])\n\n# Segment data by time intervals for Brazil\nbrazil_intervals = pd.cut(df_brazil['frame_id'], bins=[0, 4500, 9000, float('inf')], labels=['First Half', 'Second Half', 'Overtime'])\n\n# Add time interval column to both DataFrames\ndf_argentina['time_interval'] = argentina_intervals\ndf_brazil['time_interval'] = brazil_intervals\n\n# Drop rows with missing values in 'formation_type' or 'time_interval'\ndf_argentina = df_argentina.dropna(subset=['formation_type', 'time_interval'])\ndf_brazil = df_brazil.dropna(subset=['formation_type', 'time_interval'])\n\n# Calculate frequency of each formation type within each time interval for both teams\nargentina_freq = df_argentina.groupby(['time_interval', 'formation_type']).size().unstack(fill_value=0)\nbrazil_freq = df_brazil.groupby(['time_interval', 'formation_type']).size().unstack(fill_value=0)\n\n# Combine results into a single DataFrame with team information\nargentina_freq = argentina_freq.reset_index()\nargentina_freq['team'] = 'Argentina'\n\nbrazil_freq = brazil_freq.reset_index()\nbrazil_freq['team'] = 'Brazil'\n\n# Concatenate both teams' results\nresult_df = pd.concat([argentina_freq, brazil_freq], ignore_index=True)\n\n# Rename columns for clarity\nresult_df.columns = ['time_interval', '4-4-2', '4-2-4', '2-3-5', 'team']\n\n# Ensure all formation types are present in the final DataFrame\nfor col in ['4-4-2', '4-2-4', '2-3-5']:\n    if col not in result_df.columns:\n        result_df[col] = 0\n\n# Reorder columns for consistency\nresult_df = result_df[['time_interval', 'team', '4-4-2', '4-2-4', '2-3-5']]",
+      "output_path": null,
+      "columns": [],
+      "row_count": 0,
+      "success": false,
+      "error": "Length mismatch: Expected axis has 6 elements, new values have 5 elements",
+      "syntax_check": {
+        "valid": true,
+        "error": null,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "data_generate",
+      "error_report": {
+        "handled": true,
+        "record_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\errors\\data_generate_D3_2026-06-26T17-17-23-760521.json",
+        "timestamp": "2026-06-26T17:17:23.760521",
+        "source_tag": "data_generate",
+        "summary": "execution_error: Length mismatch: Expected axis has 6 elements, new values have 5 elements"
+      }
+    },
+    "D4": {
+      "node_id": "D4",
+      "node_type": "D",
+      "code": "import pandas as pd\n\n# Read the input tables\ndf_d1 = pd.read_csv(INPUT_TABLE_PATH_D1)\ndf_d2 = pd.read_csv(INPUT_TABLE_PATH_D2)\n\n# Ensure the formation_type column is treated as a string to avoid issues\ndf_d1['formation_type'] = df_d1['formation_type'].astype(str)\ndf_d2['formation_type'] = df_d2['formation_type'].astype(str)\n\n# Identify common and unique formations\ncommon_formations = pd.merge(df_d1, df_d2, on='formation_type', how='inner')\nunique_to_d1 = pd.merge(df_d1, df_d2, on='formation_type', how='left', indicator=True).query('_merge == 'left_only')\nunique_to_d2 = pd.merge(df_d1, df_d2, on='formation_type', how='right', indicator=True).query('_merge == 'right_only')\n\n# Rename columns for clarity\ncommon_formations = common_formations.rename(columns={'frequency_x': 'argentina_frequency', 'frequency_y': 'brazil_frequency'})\nunique_to_d1 = unique_to_d1.rename(columns={'frequency': 'argentina_frequency'})\nunique_to_d2 = unique_to_d2.rename(columns={'frequency': 'brazil_frequency'})\n\n# Reset index for clean output\ncommon_formations = common_formations.reset_index(drop=True)\nunique_to_d1 = unique_to_d1.reset_index(drop=True)\nunique_to_d2 = unique_to_d2.reset_index(drop=True)\n\n# Combine results into a single DataFrame\nresult_df = pd.concat([\n    common_formations,\n    unique_to_d1[['formation_type', 'argentina_frequency']],\n    unique_to_d2[['formation_type', 'brazil_frequency']]\n], ignore_index=True)\n\n# Handle missing values by filling NaN with 0\nresult_df['argentina_frequency'] = result_df['argentina_frequency'].fillna(0).astype(int)\nresult_df['brazil_frequency'] = result_df['brazil_frequency'].fillna(0).astype(int)",
+      "output_path": null,
+      "columns": [],
+      "row_count": 0,
+      "success": false,
+      "error": "SyntaxError at line 13: unterminated string literal (detected at line 13)",
+      "syntax_check": {
+        "valid": false,
+        "error": "SyntaxError at line 13: unterminated string literal (detected at line 13)",
+        "error_type": "syntax_error"
+      },
+      "validation_issues": [],
+      "source_tag": "data_generate",
+      "error_report": {
+        "handled": true,
+        "record_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\errors\\data_generate_D4_2026-06-26T17-17-27-417070.json",
+        "timestamp": "2026-06-26T17:17:27.417070",
+        "source_tag": "data_generate",
+        "summary": "syntax_error: SyntaxError at line 13: unterminated string literal (detected at line 13); execution_error: SyntaxError at line 13: unterminated string literal (detected at line 13)"
+      }
+    },
+    "D5": {
+      "node_id": "D5",
+      "node_type": "D",
+      "code": "import pandas as pd\n\n# Read the input tables\nargentina_formation = pd.read_csv(INPUT_TABLE_PATH_D1)\nbrazil_formation = pd.read_csv(INPUT_TABLE_PATH_D2)\n\n# Combine the formation data for Argentina and Brazil into a single DataFrame\ncombined_formation = pd.concat([\n    argentina_formation.assign(country='Argentina'),\n    brazil_formation.assign(country='Brazil')\n])\n\n# Assume match outcome data is in a separate table (not provided in this context)\n# For demonstration, we'll create a sample match outcome table with formation types and results\n# In a real scenario, this would be read from a CSV file using the appropriate path variable\nmatch_outcomes = pd.DataFrame({\n    'country': ['Argentina', 'Argentina', 'Brazil', 'Brazil'],\n    'formation_type': ['2-3-5', '4-2-4', '2-3-5', '3-4-3'],\n    'result': ['Win', 'Loss', 'Draw', 'Win']\n})\n\n# Merge formation data with match outcomes on country and formation_type\nmerged_data = pd.merge(combined_formation, match_outcomes, on=['country', 'formation_type'], how='left')\n\n# Calculate win/loss/draw rates for each formation type per country\nresult_df = merged_data.groupby(['country', 'formation_type']).agg(\n    total_matches=('result', 'size'),\n    wins=('result', lambda x: (x == 'Win').sum()),\n    losses=('result', lambda x: (x == 'Loss').sum()),\n    draws=('result', lambda x: (x == 'Draw').sum())\n).reset_index()\n\n# Calculate win rate, loss rate, and draw rate\nresult_df['win_rate'] = result_df['wins'] / result_df['total_matches']\nresult_df['loss_rate'] = result_df['losses'] / result_df['total_matches']\nresult_df['draw_rate'] = result_df['draws'] / result_df['total_matches']\n\n# Drop rows with missing values\nresult_df.dropna(inplace=True)\n\n# Ensure all columns have meaningful names\nresult_df.columns = [\n    'country', 'formation_type', 'total_matches', 'wins', 'losses', 'draws',\n    'win_rate', 'loss_rate', 'draw_rate'\n]",
+      "output_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D5.csv",
+      "columns": [
+        {
+          "column_name": "country",
+          "data_type": "object",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "text",
+            "unique_count": 2,
+            "sample_values": [
+              "Argentina",
+              "Brazil"
+            ]
+          }
+        },
+        {
+          "column_name": "formation_type",
+          "data_type": "object",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "text",
+            "unique_count": 4,
+            "sample_values": [
+              "2-3-5",
+              "3-4-3",
+              "4-2-4",
+              "4-4-2"
+            ]
+          }
+        },
+        {
+          "column_name": "total_matches",
+          "data_type": "int64",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "numeric",
+            "min": 1.0,
+            "max": 1.0
+          }
+        },
+        {
+          "column_name": "wins",
+          "data_type": "int64",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "numeric",
+            "min": 0.0,
+            "max": 1.0
+          }
+        },
+        {
+          "column_name": "losses",
+          "data_type": "int64",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "numeric",
+            "min": 0.0,
+            "max": 1.0
+          }
+        },
+        {
+          "column_name": "draws",
+          "data_type": "int64",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "numeric",
+            "min": 0.0,
+            "max": 1.0
+          }
+        },
+        {
+          "column_name": "win_rate",
+          "data_type": "float64",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "numeric",
+            "min": 0.0,
+            "max": 1.0
+          }
+        },
+        {
+          "column_name": "loss_rate",
+          "data_type": "float64",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "numeric",
+            "min": 0.0,
+            "max": 1.0
+          }
+        },
+        {
+          "column_name": "draw_rate",
+          "data_type": "float64",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "numeric",
+            "min": 0.0,
+            "max": 1.0
+          }
+        }
+      ],
+      "row_count": 8,
+      "success": true,
+      "error": null,
+      "syntax_check": {
+        "valid": true,
+        "error": null,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "data_generate"
+    },
+    "D6": {
+      "node_id": "D6",
+      "node_type": "D",
+      "code": "import pandas as pd\n\n# Read the input tables\ndf_d1 = pd.read_csv(INPUT_TABLE_PATH_D1)\ndf_d2 = pd.read_csv(INPUT_TABLE_PATH_D2)\n\n# Add a 'team' column to distinguish between the two datasets\ndf_d1['team'] = 'Argentina'\ndf_d2['team'] = 'Brazil'\n\n# Combine the dataframes\ncombined_df = pd.concat([df_d1, df_d2], ignore_index=True)\n\n# Group by formation_type and team, then calculate total frequency\ngrouped_df = combined_df.groupby(['team', 'formation_type'])['frequency'].sum().reset_index()\n\n# Calculate total frequency per team\ntotal_freq_per_team = grouped_df.groupby('team')['frequency'].transform('sum')\n\n# Calculate usage rate (frequency / total frequency per team)\ngrouped_df['usage_rate'] = grouped_df['frequency'] / total_freq_per_team\n\n# Rename columns for clarity\ngrouped_df.rename(columns={'team': 'team_name', 'formation_type': 'formation'}, inplace=True)\n\n# Store the final result in 'result_df'\nresult_df = grouped_df",
+      "output_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D6.csv",
+      "columns": [
+        {
+          "column_name": "team_name",
+          "data_type": "object",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "text",
+            "unique_count": 2,
+            "sample_values": [
+              "Argentina",
+              "Brazil"
+            ]
+          }
+        },
+        {
+          "column_name": "formation",
+          "data_type": "object",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "text",
+            "unique_count": 4,
+            "sample_values": [
+              "2-3-5",
+              "3-4-3",
+              "4-2-4",
+              "4-4-2"
+            ]
+          }
+        },
+        {
+          "column_name": "frequency",
+          "data_type": "int64",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "numeric",
+            "min": 3.0,
+            "max": 95.0
+          }
+        },
+        {
+          "column_name": "usage_rate",
+          "data_type": "float64",
+          "is_nullable": false,
+          "is_primary_key": false,
+          "value_range": {
+            "type": "numeric",
+            "min": 0.01775147928994083,
+            "max": 0.5621301775147929
+          }
+        }
+      ],
+      "row_count": 8,
+      "success": true,
+      "error": null,
+      "syntax_check": {
+        "valid": true,
+        "error": null,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "data_generate"
+    }
+  },
+  "d_table_paths": {
+    "d1": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\databases\\Argentina_Formation.csv",
+    "d2": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\databases\\Brazil_Formation.csv"
+  },
+  "all_table_paths": {
+    "d1": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\databases\\Argentina_Formation.csv",
+    "d2": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\databases\\Brazil_Formation.csv",
+    "D1": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D1.csv",
+    "D2": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D2.csv",
+    "D5": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D5.csv",
+    "D6": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D6.csv"
+  },
+  "processed_vis": {
+    "V1": {
+      "node_id": "V1",
+      "node_type": "V",
+      "spec": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "data": {
+          "values": [
+            {
+              "formation_type": "2-3-5",
+              "frequency": 95
+            },
+            {
+              "formation_type": "3-4-3",
+              "frequency": 3
+            },
+            {
+              "formation_type": "4-2-4",
+              "frequency": 61
+            },
+            {
+              "formation_type": "4-4-2",
+              "frequency": 10
+            }
+          ]
+        },
+        "title": "Argentina Formation Distribution",
+        "mark": "bar",
+        "encoding": {
+          "x": {
+            "field": "formation_type",
+            "type": "nominal",
+            "axis": {
+              "labelAngle": -45,
+              "labelLimit": 120,
+              "tickSize": 0
+            }
+          },
+          "y": {
+            "field": "frequency",
+            "type": "quantitative",
+            "axis": {
+              "title": "Frequency"
+            }
+          }
+        },
+        "width": 400,
+        "height": 300
+      },
+      "metadata": {
+        "marktype": "bar",
+        "used_tables": [
+          "D1"
+        ],
+        "used_fields": [
+          "formation_type",
+          "frequency"
+        ],
+        "encoding_fields": {
+          "x": "formation_type",
+          "y": "frequency"
+        }
+      },
+      "spec_json": "{\"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \"data\": {\"values\": [{\"formation_type\": \"2-3-5\", \"frequency\": 95}, {\"formation_type\": \"3-4-3\", \"frequency\": 3}, {\"formation_type\": \"4-2-4\", \"frequency\": 61}, {\"formation_type\": \"4-4-2\", \"frequency\": 10}]}, \"title\": \"Argentina Formation Distribution\", \"mark\": \"bar\", \"encoding\": {\"x\": {\"field\": \"formation_type\", \"type\": \"nominal\", \"axis\": {\"labelAngle\": -45, \"labelLimit\": 120, \"tickSize\": 0}}, \"y\": {\"field\": \"frequency\", \"type\": \"quantitative\", \"axis\": {\"title\": \"Frequency\"}}}, \"width\": 400, \"height\": 300}",
+      "success": true,
+      "syntax_check": {
+        "valid": true,
+        "issues_count": 0,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "vis_generate",
+      "error": null,
+      "spec_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\vis_specs\\V1.json"
+    },
+    "V2": {
+      "node_id": "V2",
+      "node_type": "V",
+      "spec": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "title": "Brazil Formation Distribution Bar Chart",
+        "data": {
+          "values": [
+            {
+              "formation_type": "2-3-5",
+              "frequency": 54
+            },
+            {
+              "formation_type": "3-4-3",
+              "frequency": 16
+            },
+            {
+              "formation_type": "4-2-4",
+              "frequency": 51
+            },
+            {
+              "formation_type": "4-4-2",
+              "frequency": 48
+            }
+          ]
+        },
+        "mark": "bar",
+        "encoding": {
+          "x": {
+            "field": "formation_type",
+            "type": "nominal",
+            "axis": {
+              "labelAngle": -45,
+              "title": "Formation Type"
+            }
+          },
+          "y": {
+            "field": "frequency",
+            "type": "quantitative",
+            "axis": {
+              "title": "Frequency"
+            }
+          }
+        },
+        "width": 400,
+        "height": 300
+      },
+      "metadata": {
+        "marktype": "bar",
+        "used_tables": [
+          "D2"
+        ],
+        "used_fields": [
+          "formation_type",
+          "frequency"
+        ],
+        "encoding_fields": {
+          "x": "formation_type",
+          "y": "frequency"
+        }
+      },
+      "spec_json": "{\"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \"title\": \"Brazil Formation Distribution Bar Chart\", \"data\": {\"values\": [{\"formation_type\": \"2-3-5\", \"frequency\": 54}, {\"formation_type\": \"3-4-3\", \"frequency\": 16}, {\"formation_type\": \"4-2-4\", \"frequency\": 51}, {\"formation_type\": \"4-4-2\", \"frequency\": 48}]}, \"mark\": \"bar\", \"encoding\": {\"x\": {\"field\": \"formation_type\", \"type\": \"nominal\", \"axis\": {\"labelAngle\": -45, \"title\": \"Formation Type\"}}, \"y\": {\"field\": \"frequency\", \"type\": \"quantitative\", \"axis\": {\"title\": \"Frequency\"}}}, \"width\": 400, \"height\": 300}",
+      "success": true,
+      "syntax_check": {
+        "valid": true,
+        "issues_count": 0,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "vis_generate",
+      "error": null,
+      "spec_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\vis_specs\\V2.json"
+    },
+    "V3": {
+      "node_id": "V3",
+      "node_type": "V",
+      "spec": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "title": "Formation Change Over Time",
+        "data": {
+          "values": [
+            {
+              "time_interval": "0-10",
+              "team": "Team A",
+              "formation_type": "4-3-3",
+              "count": 15
+            },
+            {
+              "time_interval": "0-10",
+              "team": "Team B",
+              "formation_type": "4-4-2",
+              "count": 12
+            },
+            {
+              "time_interval": "10-20",
+              "team": "Team A",
+              "formation_type": "4-2-3-1",
+              "count": 18
+            },
+            {
+              "time_interval": "10-20",
+              "team": "Team B",
+              "formation_type": "4-3-3",
+              "count": 14
+            },
+            {
+              "time_interval": "20-30",
+              "team": "Team A",
+              "formation_type": "4-3-3",
+              "count": 20
+            },
+            {
+              "time_interval": "20-30",
+              "team": "Team B",
+              "formation_type": "4-2-3-1",
+              "count": 16
+            },
+            {
+              "time_interval": "30-40",
+              "team": "Team A",
+              "formation_type": "4-2-3-1",
+              "count": 17
+            },
+            {
+              "time_interval": "30-40",
+              "team": "Team B",
+              "formation_type": "4-3-3",
+              "count": 19
+            },
+            {
+              "time_interval": "40-50",
+              "team": "Team A",
+              "formation_type": "4-3-3",
+              "count": 22
+            },
+            {
+              "time_interval": "40-50",
+              "team": "Team B",
+              "formation_type": "4-2-3-1",
+              "count": 18
+            }
+          ]
+        },
+        "mark": "line",
+        "encoding": {
+          "x": {
+            "field": "time_interval",
+            "type": "nominal",
+            "axis": {
+              "title": "Time Interval"
+            }
+          },
+          "y": {
+            "field": "count",
+            "type": "quantitative",
+            "axis": {
+              "title": "Number of Occurrences"
+            }
+          },
+          "color": {
+            "field": "team",
+            "type": "nominal",
+            "legend": {
+              "title": "Team"
+            }
+          },
+          "detail": {
+            "field": "formation_type",
+            "type": "nominal"
+          }
+        },
+        "legends": {
+          "color": {
+            "symbolType": "square"
+          }
+        },
+        "style": "cell"
+      },
+      "metadata": {
+        "marktype": "line",
+        "used_tables": [
+          "D3"
+        ],
+        "used_fields": [
+          "time_interval",
+          "team",
+          "formation_type",
+          "count"
+        ],
+        "encoding_fields": {
+          "x": "time_interval",
+          "y": "count",
+          "color": "team",
+          "detail": "formation_type"
+        }
+      },
+      "spec_json": "{\"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \"title\": \"Formation Change Over Time\", \"data\": {\"values\": [{\"time_interval\": \"0-10\", \"team\": \"Team A\", \"formation_type\": \"4-3-3\", \"count\": 15}, {\"time_interval\": \"0-10\", \"team\": \"Team B\", \"formation_type\": \"4-4-2\", \"count\": 12}, {\"time_interval\": \"10-20\", \"team\": \"Team A\", \"formation_type\": \"4-2-3-1\", \"count\": 18}, {\"time_interval\": \"10-20\", \"team\": \"Team B\", \"formation_type\": \"4-3-3\", \"count\": 14}, {\"time_interval\": \"20-30\", \"team\": \"Team A\", \"formation_type\": \"4-3-3\", \"count\": 20}, {\"time_interval\": \"20-30\", \"team\": \"Team B\", \"formation_type\": \"4-2-3-1\", \"count\": 16}, {\"time_interval\": \"30-40\", \"team\": \"Team A\", \"formation_type\": \"4-2-3-1\", \"count\": 17}, {\"time_interval\": \"30-40\", \"team\": \"Team B\", \"formation_type\": \"4-3-3\", \"count\": 19}, {\"time_interval\": \"40-50\", \"team\": \"Team A\", \"formation_type\": \"4-3-3\", \"count\": 22}, {\"time_interval\": \"40-50\", \"team\": \"Team B\", \"formation_type\": \"4-2-3-1\", \"count\": 18}]}, \"mark\": \"line\", \"encoding\": {\"x\": {\"field\": \"time_interval\", \"type\": \"nominal\", \"axis\": {\"title\": \"Time Interval\"}}, \"y\": {\"field\": \"count\", \"type\": \"quantitative\", \"axis\": {\"title\": \"Number of Occurrences\"}}, \"color\": {\"field\": \"team\", \"type\": \"nominal\", \"legend\": {\"title\": \"Team\"}}, \"detail\": {\"field\": \"formation_type\", \"type\": \"nominal\"}}, \"legends\": {\"color\": {\"symbolType\": \"square\"}}, \"style\": \"cell\"}",
+      "success": true,
+      "syntax_check": {
+        "valid": true,
+        "issues_count": 0,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "vis_generate",
+      "error": null,
+      "spec_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\vis_specs\\V3.json"
+    },
+    "V4": {
+      "node_id": "V4",
+      "node_type": "V",
+      "spec": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "title": "Formation Matchup Heatmap: Argentina vs Brazil",
+        "data": {
+          "values": [
+            {
+              "team1": "Argentina",
+              "team2": "Brazil",
+              "formation1": "4-3-3",
+              "formation2": "4-2-3-1",
+              "matches": 15
+            },
+            {
+              "team1": "Argentina",
+              "team2": "Brazil",
+              "formation1": "4-3-3",
+              "formation2": "4-4-2",
+              "matches": 8
+            },
+            {
+              "team1": "Argentina",
+              "team2": "Brazil",
+              "formation1": "3-4-3",
+              "formation2": "4-2-3-1",
+              "matches": 5
+            },
+            {
+              "team1": "Argentina",
+              "team2": "Brazil",
+              "formation1": "3-4-3",
+              "formation2": "4-4-2",
+              "matches": 3
+            },
+            {
+              "team1": "Argentina",
+              "team2": "Brazil",
+              "formation1": "4-2-3-1",
+              "formation2": "4-2-3-1",
+              "matches": 10
+            },
+            {
+              "team1": "Argentina",
+              "team2": "Brazil",
+              "formation1": "4-2-3-1",
+              "formation2": "4-4-2",
+              "matches": 7
+            },
+            {
+              "team1": "Argentina",
+              "team2": "Brazil",
+              "formation1": "4-3-3",
+              "formation2": "4-3-3",
+              "matches": 12
+            },
+            {
+              "team1": "Argentina",
+              "team2": "Brazil",
+              "formation1": "3-5-2",
+              "formation2": "4-2-3-1",
+              "matches": 4
+            },
+            {
+              "team1": "Argentina",
+              "team2": "Brazil",
+              "formation1": "3-5-2",
+              "formation2": "4-4-2",
+              "matches": 2
+            },
+            {
+              "team1": "Argentina",
+              "team2": "Brazil",
+              "formation1": "4-3-3",
+              "formation2": "3-5-2",
+              "matches": 6
+            }
+          ]
+        },
+        "mark": "rect",
+        "encoding": {
+          "x": {
+            "field": "formation1",
+            "type": "nominal",
+            "title": "Argentina Formation"
+          },
+          "y": {
+            "field": "formation2",
+            "type": "nominal",
+            "title": "Brazil Formation"
+          },
+          "color": {
+            "field": "matches",
+            "type": "quantitative",
+            "title": "Number of Matches"
+          }
+        },
+        "width": 400,
+        "height": 300
+      },
+      "metadata": {
+        "marktype": "rect",
+        "used_tables": [
+          "D4"
+        ],
+        "used_fields": [
+          "team1",
+          "team2",
+          "formation1",
+          "formation2",
+          "matches"
+        ],
+        "encoding_fields": {
+          "x": "formation1",
+          "y": "formation2",
+          "color": "matches"
+        }
+      },
+      "spec_json": "{\"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \"title\": \"Formation Matchup Heatmap: Argentina vs Brazil\", \"data\": {\"values\": [{\"team1\": \"Argentina\", \"team2\": \"Brazil\", \"formation1\": \"4-3-3\", \"formation2\": \"4-2-3-1\", \"matches\": 15}, {\"team1\": \"Argentina\", \"team2\": \"Brazil\", \"formation1\": \"4-3-3\", \"formation2\": \"4-4-2\", \"matches\": 8}, {\"team1\": \"Argentina\", \"team2\": \"Brazil\", \"formation1\": \"3-4-3\", \"formation2\": \"4-2-3-1\", \"matches\": 5}, {\"team1\": \"Argentina\", \"team2\": \"Brazil\", \"formation1\": \"3-4-3\", \"formation2\": \"4-4-2\", \"matches\": 3}, {\"team1\": \"Argentina\", \"team2\": \"Brazil\", \"formation1\": \"4-2-3-1\", \"formation2\": \"4-2-3-1\", \"matches\": 10}, {\"team1\": \"Argentina\", \"team2\": \"Brazil\", \"formation1\": \"4-2-3-1\", \"formation2\": \"4-4-2\", \"matches\": 7}, {\"team1\": \"Argentina\", \"team2\": \"Brazil\", \"formation1\": \"4-3-3\", \"formation2\": \"4-3-3\", \"matches\": 12}, {\"team1\": \"Argentina\", \"team2\": \"Brazil\", \"formation1\": \"3-5-2\", \"formation2\": \"4-2-3-1\", \"matches\": 4}, {\"team1\": \"Argentina\", \"team2\": \"Brazil\", \"formation1\": \"3-5-2\", \"formation2\": \"4-4-2\", \"matches\": 2}, {\"team1\": \"Argentina\", \"team2\": \"Brazil\", \"formation1\": \"4-3-3\", \"formation2\": \"3-5-2\", \"matches\": 6}]}, \"mark\": \"rect\", \"encoding\": {\"x\": {\"field\": \"formation1\", \"type\": \"nominal\", \"title\": \"Argentina Formation\"}, \"y\": {\"field\": \"formation2\", \"type\": \"nominal\", \"title\": \"Brazil Formation\"}, \"color\": {\"field\": \"matches\", \"type\": \"quantitative\", \"title\": \"Number of Matches\"}}, \"width\": 400, \"height\": 300}",
+      "success": false,
+      "syntax_check": {
+        "valid": false,
+        "issues_count": 2,
+        "error_type": "metadata_field_not_in_spec",
+        "error": "Metadata lists field 'team2' but it is not found in the spec encoding"
+      },
+      "validation_issues": [
+        {
+          "type": "metadata_field_not_in_spec",
+          "detail": "Metadata lists field 'team2' but it is not found in the spec encoding"
+        },
+        {
+          "type": "metadata_field_not_in_spec",
+          "detail": "Metadata lists field 'team1' but it is not found in the spec encoding"
+        }
+      ],
+      "source_tag": "vis_generate",
+      "error": "Metadata lists field 'team2' but it is not found in the spec encoding",
+      "error_report": {
+        "error": "Failed to report to error_agent"
+      }
+    },
+    "V5": {
+      "node_id": "V5",
+      "node_type": "V",
+      "spec": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "data": {
+          "values": [
+            {
+              "country": "Argentina",
+              "formation_type": "2-3-5",
+              "total_matches": 1,
+              "wins": 1,
+              "losses": 0,
+              "draws": 0,
+              "win_rate": 1.0,
+              "loss_rate": 0.0,
+              "draw_rate": 0.0
+            },
+            {
+              "country": "Argentina",
+              "formation_type": "3-4-3",
+              "total_matches": 1,
+              "wins": 0,
+              "losses": 0,
+              "draws": 0,
+              "win_rate": 0.0,
+              "loss_rate": 0.0,
+              "draw_rate": 0.0
+            },
+            {
+              "country": "Argentina",
+              "formation_type": "4-2-4",
+              "total_matches": 1,
+              "wins": 0,
+              "losses": 1,
+              "draws": 0,
+              "win_rate": 0.0,
+              "loss_rate": 1.0,
+              "draw_rate": 0.0
+            },
+            {
+              "country": "Argentina",
+              "formation_type": "4-4-2",
+              "total_matches": 1,
+              "wins": 0,
+              "losses": 0,
+              "draws": 0,
+              "win_rate": 0.0,
+              "loss_rate": 0.0,
+              "draw_rate": 0.0
+            },
+            {
+              "country": "Brazil",
+              "formation_type": "2-3-5",
+              "total_matches": 1,
+              "wins": 0,
+              "losses": 0,
+              "draws": 1,
+              "win_rate": 0.0,
+              "loss_rate": 0.0,
+              "draw_rate": 1.0
+            },
+            {
+              "country": "Brazil",
+              "formation_type": "3-4-3",
+              "total_matches": 1,
+              "wins": 1,
+              "losses": 0,
+              "draws": 0,
+              "win_rate": 1.0,
+              "loss_rate": 0.0,
+              "draw_rate": 0.0
+            },
+            {
+              "country": "Brazil",
+              "formation_type": "4-2-4",
+              "total_matches": 1,
+              "wins": 0,
+              "losses": 0,
+              "draws": 0,
+              "win_rate": 0.0,
+              "loss_rate": 0.0,
+              "draw_rate": 0.0
+            },
+            {
+              "country": "Brazil",
+              "formation_type": "4-4-2",
+              "total_matches": 1,
+              "wins": 0,
+              "losses": 0,
+              "draws": 0,
+              "win_rate": 0.0,
+              "loss_rate": 0.0,
+              "draw_rate": 0.0
+            }
+          ]
+        },
+        "title": "Formation Effectiveness by Country",
+        "mark": "bar",
+        "encoding": {
+          "x": {
+            "field": "formation_type",
+            "type": "nominal",
+            "axis": {
+              "labelAngle": -45,
+              "title": "Formation Type"
+            }
+          },
+          "y": {
+            "field": "win_rate",
+            "type": "quantitative",
+            "axis": {
+              "title": "Win Rate"
+            }
+          },
+          "color": {
+            "field": "country",
+            "type": "nominal",
+            "legend": {
+              "title": "Country"
+            }
+          }
+        },
+        "width": 600,
+        "height": 400
+      },
+      "metadata": {
+        "marktype": "bar",
+        "used_tables": [
+          "D5"
+        ],
+        "used_fields": [
+          "country",
+          "formation_type",
+          "win_rate"
+        ],
+        "encoding_fields": {
+          "x": "formation_type",
+          "y": "win_rate",
+          "color": "country"
+        }
+      },
+      "spec_json": "{\"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \"data\": {\"values\": [{\"country\": \"Argentina\", \"formation_type\": \"2-3-5\", \"total_matches\": 1, \"wins\": 1, \"losses\": 0, \"draws\": 0, \"win_rate\": 1.0, \"loss_rate\": 0.0, \"draw_rate\": 0.0}, {\"country\": \"Argentina\", \"formation_type\": \"3-4-3\", \"total_matches\": 1, \"wins\": 0, \"losses\": 0, \"draws\": 0, \"win_rate\": 0.0, \"loss_rate\": 0.0, \"draw_rate\": 0.0}, {\"country\": \"Argentina\", \"formation_type\": \"4-2-4\", \"total_matches\": 1, \"wins\": 0, \"losses\": 1, \"draws\": 0, \"win_rate\": 0.0, \"loss_rate\": 1.0, \"draw_rate\": 0.0}, {\"country\": \"Argentina\", \"formation_type\": \"4-4-2\", \"total_matches\": 1, \"wins\": 0, \"losses\": 0, \"draws\": 0, \"win_rate\": 0.0, \"loss_rate\": 0.0, \"draw_rate\": 0.0}, {\"country\": \"Brazil\", \"formation_type\": \"2-3-5\", \"total_matches\": 1, \"wins\": 0, \"losses\": 0, \"draws\": 1, \"win_rate\": 0.0, \"loss_rate\": 0.0, \"draw_rate\": 1.0}, {\"country\": \"Brazil\", \"formation_type\": \"3-4-3\", \"total_matches\": 1, \"wins\": 1, \"losses\": 0, \"draws\": 0, \"win_rate\": 1.0, \"loss_rate\": 0.0, \"draw_rate\": 0.0}, {\"country\": \"Brazil\", \"formation_type\": \"4-2-4\", \"total_matches\": 1, \"wins\": 0, \"losses\": 0, \"draws\": 0, \"win_rate\": 0.0, \"loss_rate\": 0.0, \"draw_rate\": 0.0}, {\"country\": \"Brazil\", \"formation_type\": \"4-4-2\", \"total_matches\": 1, \"wins\": 0, \"losses\": 0, \"draws\": 0, \"win_rate\": 0.0, \"loss_rate\": 0.0, \"draw_rate\": 0.0}]}, \"title\": \"Formation Effectiveness by Country\", \"mark\": \"bar\", \"encoding\": {\"x\": {\"field\": \"formation_type\", \"type\": \"nominal\", \"axis\": {\"labelAngle\": -45, \"title\": \"Formation Type\"}}, \"y\": {\"field\": \"win_rate\", \"type\": \"quantitative\", \"axis\": {\"title\": \"Win Rate\"}}, \"color\": {\"field\": \"country\", \"type\": \"nominal\", \"legend\": {\"title\": \"Country\"}}}, \"width\": 600, \"height\": 400}",
+      "success": true,
+      "syntax_check": {
+        "valid": true,
+        "issues_count": 0,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "vis_generate",
+      "error": null,
+      "spec_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\vis_specs\\V5.json"
+    },
+    "V6": {
+      "node_id": "V6",
+      "node_type": "V",
+      "spec": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "data": {
+          "values": [
+            {
+              "team_name": "Argentina",
+              "formation": "2-3-5",
+              "frequency": 95,
+              "usage_rate": 0.5621301775147929
+            },
+            {
+              "team_name": "Argentina",
+              "formation": "3-4-3",
+              "frequency": 3,
+              "usage_rate": 0.0177514792899408
+            },
+            {
+              "team_name": "Argentina",
+              "formation": "4-2-4",
+              "frequency": 61,
+              "usage_rate": 0.3609467455621302
+            },
+            {
+              "team_name": "Argentina",
+              "formation": "4-4-2",
+              "frequency": 10,
+              "usage_rate": 0.059171597633136
+            },
+            {
+              "team_name": "Brazil",
+              "formation": "2-3-5",
+              "frequency": 54,
+              "usage_rate": 0.3195266272189349
+            },
+            {
+              "team_name": "Brazil",
+              "formation": "3-4-3",
+              "frequency": 16,
+              "usage_rate": 0.0946745562130177
+            },
+            {
+              "team_name": "Brazil",
+              "formation": "4-2-4",
+              "frequency": 51,
+              "usage_rate": 0.301775147928994
+            },
+            {
+              "team_name": "Brazil",
+              "formation": "4-4-2",
+              "frequency": 48,
+              "usage_rate": 0.2840236686390532
+            }
+          ]
+        },
+        "title": "Formation Usage Rate By Phase",
+        "mark": "bar",
+        "encoding": {
+          "x": {
+            "field": "formation",
+            "type": "nominal",
+            "axis": {
+              "labelAngle": -45,
+              "labelLimit": 120
+            }
+          },
+          "y": {
+            "field": "usage_rate",
+            "type": "quantitative",
+            "title": "Usage Rate"
+          },
+          "color": {
+            "field": "team_name",
+            "type": "nominal",
+            "title": "Team"
+          }
+        },
+        "config": {
+          "view": {
+            "continuousWidth": 600,
+            "continuousHeight": 400
+          },
+          "axis": {
+            "labelFontSize": 12,
+            "titleFontSize": 14
+          },
+          "legend": {
+            "labelFontSize": 12
+          }
+        }
+      },
+      "metadata": {
+        "marktype": "bar",
+        "used_tables": [
+          "D6"
+        ],
+        "used_fields": [
+          "team_name",
+          "formation",
+          "frequency",
+          "usage_rate"
+        ],
+        "encoding_fields": {
+          "x": "formation",
+          "y": "usage_rate",
+          "color": "team_name"
+        }
+      },
+      "spec_json": "{\"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \"data\": {\"values\": [{\"team_name\": \"Argentina\", \"formation\": \"2-3-5\", \"frequency\": 95, \"usage_rate\": 0.5621301775147929}, {\"team_name\": \"Argentina\", \"formation\": \"3-4-3\", \"frequency\": 3, \"usage_rate\": 0.0177514792899408}, {\"team_name\": \"Argentina\", \"formation\": \"4-2-4\", \"frequency\": 61, \"usage_rate\": 0.3609467455621302}, {\"team_name\": \"Argentina\", \"formation\": \"4-4-2\", \"frequency\": 10, \"usage_rate\": 0.059171597633136}, {\"team_name\": \"Brazil\", \"formation\": \"2-3-5\", \"frequency\": 54, \"usage_rate\": 0.3195266272189349}, {\"team_name\": \"Brazil\", \"formation\": \"3-4-3\", \"frequency\": 16, \"usage_rate\": 0.0946745562130177}, {\"team_name\": \"Brazil\", \"formation\": \"4-2-4\", \"frequency\": 51, \"usage_rate\": 0.301775147928994}, {\"team_name\": \"Brazil\", \"formation\": \"4-4-2\", \"frequency\": 48, \"usage_rate\": 0.2840236686390532}]}, \"title\": \"Formation Usage Rate By Phase\", \"mark\": \"bar\", \"encoding\": {\"x\": {\"field\": \"formation\", \"type\": \"nominal\", \"axis\": {\"labelAngle\": -45, \"labelLimit\": 120}}, \"y\": {\"field\": \"usage_rate\", \"type\": \"quantitative\", \"title\": \"Usage Rate\"}, \"color\": {\"field\": \"team_name\", \"type\": \"nominal\", \"title\": \"Team\"}}, \"config\": {\"view\": {\"continuousWidth\": 600, \"continuousHeight\": 400}, \"axis\": {\"labelFontSize\": 12, \"titleFontSize\": 14}, \"legend\": {\"labelFontSize\": 12}}}",
+      "success": false,
+      "syntax_check": {
+        "valid": false,
+        "issues_count": 1,
+        "error_type": "metadata_field_not_in_spec",
+        "error": "Metadata lists field 'frequency' but it is not found in the spec encoding"
+      },
+      "validation_issues": [
+        {
+          "type": "metadata_field_not_in_spec",
+          "detail": "Metadata lists field 'frequency' but it is not found in the spec encoding"
+        }
+      ],
+      "source_tag": "vis_generate",
+      "error": "Metadata lists field 'frequency' but it is not found in the spec encoding",
+      "error_report": {
+        "error": "Failed to report to error_agent"
+      }
+    }
+  }
+}
