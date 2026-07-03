@@ -8,6 +8,7 @@ from model import get_model_client, ModelClient
 from agents.plan_agent import get_plan_agent
 from agents.data_agent import get_data_agent
 from agents.vis_agent import get_vis_agent
+from agents.interaction_agent import get_interaction_agent
 
 
 class Message:
@@ -340,7 +341,8 @@ class CMVAgent:
         plan_data: Dict[str, Any],
         database_schema: List[Dict[str, Any]],
         project_dir: str,
-        all_table_paths: Dict[str, str] = None
+        all_table_paths: Dict[str, str] = None,
+        project_id: str = ""
     ) -> Dict[str, Any]:
         """
         Process all V (visualization) nodes after data processing.
@@ -351,6 +353,7 @@ class CMVAgent:
             database_schema: Database schema info
             project_dir: Project directory
             all_table_paths: Mapping from node_id to CSV path (from data processing)
+            project_id: Project ID (for building data URLs in converted specs)
 
         Returns:
             Dict: { processed_vis: { node_id: {...} }, vis_table_paths: {...} }
@@ -399,11 +402,37 @@ class CMVAgent:
                         input_table_paths[in_id] = csv_path
 
             result = vis_agent.process_v_node(
-                v_node, input_nodes, input_table_paths, vis_dir
+                v_node, input_nodes, input_table_paths, vis_dir, project_id
             )
             processed_vis[v_id] = result
 
         return {"processed_vis": processed_vis}
+
+    def process_interactions(
+        self,
+        plan_data: Dict[str, Any],
+        processed_vis: Dict[str, Any],
+        all_table_paths: Dict[str, str] = None,
+        project_dir: str = "",
+        project_id: str = ""
+    ) -> Dict[str, Any]:
+        """
+        Process all I (interaction) nodes.
+        Modifies source V specs with selection params, restructures target V specs
+        into dual-layer layout, and generates frontend JS interaction code.
+
+        Args:
+            plan_data: Plan data with nodes and dependencies
+            processed_vis: {v_id: {spec, metadata, ...}} from visualizations
+            all_table_paths: {node_id: csv_path}
+            project_dir: Project directory (for error logging)
+            project_id: Project ID (for building data URLs)
+
+        Returns:
+            Dict with updated processed_vis and interaction_results
+        """
+        ia = get_interaction_agent(project_dir=project_dir)
+        return ia.process_interactions(plan_data, processed_vis, all_table_paths, project_id)
 
     def _find_d_node_csv_path(
         self,

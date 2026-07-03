@@ -18,6 +18,11 @@ from prompts.plan_agent_prompts import (
 )
 
 
+def _clean_json_text(text: str) -> str:
+    """Replace NaN/Infinity with null for compliant JSON parsing."""
+    return re.sub(r'\bNaN\b|\bInfinity\b|\b-Infinity\b', 'null', text)
+
+
 class PlanAgent:
     """Plan Agent - Generate analysis plans"""
 
@@ -68,15 +73,16 @@ class PlanAgent:
         Returns:
             Dict: Parsed JSON object
         """
+        cleaned = _clean_json_text(text)
         # Try direct parsing
         try:
-            return json.loads(text)
+            return json.loads(cleaned)
         except json.JSONDecodeError:
             pass
 
         # Try to extract ```json ... ``` blocks
         pattern = r"```(?:json)?\s*([\s\S]*?)\s*```"
-        matches = re.findall(pattern, text)
+        matches = re.findall(pattern, cleaned)
         for match in matches:
             try:
                 return json.loads(match.strip())
@@ -84,11 +90,11 @@ class PlanAgent:
                 continue
 
         # Try to extract from first { to last }
-        start = text.find("{")
-        end = text.rfind("}")
+        start = cleaned.find("{")
+        end = cleaned.rfind("}")
         if start != -1 and end != -1 and end > start:
             try:
-                return json.loads(text[start:end + 1])
+                return json.loads(cleaned[start:end + 1])
             except json.JSONDecodeError:
                 pass
 

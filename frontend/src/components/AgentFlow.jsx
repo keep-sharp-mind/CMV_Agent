@@ -20,6 +20,13 @@ const AGENT_META = {
     shape: 'circle',
     desc: 'Generates Vega-Lite visualizations for V-nodes'
   },
+  interaction: {
+    name: 'Interaction Agent',
+    color: '#8b5cf6',
+    icon: '🔄',
+    shape: 'rect',
+    desc: 'Generates interaction bindings between charts'
+  },
   error: {
     name: 'Error Agent',
     color: '#ef4444',
@@ -153,6 +160,13 @@ function buildSyntheticItems(agentId, planNodes) {
       status: idx === 0 ? 'processing' : 'pending'
     }))
   }
+  if (agentId === 'interaction' && planNodes?.I) {
+    return planNodes.I.map((n, idx) => ({
+      id: `interaction-${n.id}`,
+      label: `Process ${n.id}${n.name ? ': ' + n.name : ''}`,
+      status: idx === 0 ? 'processing' : 'pending'
+    }))
+  }
   if (agentId === 'error') {
     return [{ id: 'error-check', label: 'Checking for errors', status: 'processing' }]
   }
@@ -160,11 +174,19 @@ function buildSyntheticItems(agentId, planNodes) {
 }
 
 function AgentFlow({ agents, connections, activeAgent, expandedAgent, onToggleExpand, generating, planNodes }) {
-  const agentOrder = ['plan', 'data', 'vis', 'error']
+  const agentOrder = ['plan', 'data', 'vis', 'interaction', 'error']
+
+  const hasPlanNodes = (id, pn) => {
+    const map = { data: 'D', vis: 'V', interaction: 'I' }
+    const key = map[id]
+    return key ? (pn[key]?.length > 0) : false
+  }
 
   const visibleAgents = generating
     ? agentOrder
-    : (agents ? agentOrder.filter(id => agents[id]) : [])
+    : (agents
+        ? agentOrder.filter(id => agents[id] || (planNodes && hasPlanNodes(id, planNodes)))
+        : [])
 
   if (visibleAgents.length === 0) return null
 

@@ -18,6 +18,12 @@ from prompts.data_agent_prompts import (
 )
 
 
+def _clean_json_text(text: str) -> str:
+    """Replace NaN/Infinity with null for compliant JSON parsing."""
+    import re
+    return re.sub(r'\bNaN\b|\bInfinity\b|\b-Infinity\b', 'null', text)
+
+
 class DataAgent:
     """Data Agent - Generate and execute data processing code for D nodes"""
 
@@ -143,24 +149,25 @@ class DataAgent:
         Returns:
             Dict: Parsed JSON object
         """
+        cleaned = _clean_json_text(text)
         try:
-            return json.loads(text)
+            return json.loads(cleaned)
         except json.JSONDecodeError:
             pass
 
         pattern = r"```(?:json)?\s*([\s\S]*?)\s*```"
-        matches = re.findall(pattern, text)
+        matches = re.findall(pattern, cleaned)
         for match in matches:
             try:
                 return json.loads(match.strip())
             except json.JSONDecodeError:
                 continue
 
-        start = text.find("{")
-        end = text.rfind("}")
+        start = cleaned.find("{")
+        end = cleaned.rfind("}")
         if start != -1 and end != -1 and end > start:
             try:
-                return json.loads(text[start:end + 1])
+                return json.loads(cleaned[start:end + 1])
             except json.JSONDecodeError:
                 pass
 
@@ -355,20 +362,30 @@ class DataAgent:
                 if any(t in col_dtype.lower() for t in numeric_types):
                     non_null = result_df[col].dropna()
                     if len(non_null) > 0:
-                        col_info["value_range"] = {
-                            "type": "numeric",
-                            "min": float(non_null.min()),
-                            "max": float(non_null.max())
-                        }
+                        try:
+                            col_info["value_range"] = {
+                                "type": "numeric",
+                                "min": float(non_null.min()),
+                                "max": float(non_null.max())
+                            }
+                        except TypeError:
+                            col_info["value_range"] = {"type": "numeric", "min": None, "max": None}
                     else:
                         col_info["value_range"] = {"type": "numeric", "min": None, "max": None}
                 else:
-                    unique_vals = result_df[col].dropna().unique().tolist()
-                    col_info["value_range"] = {
-                        "type": "text",
-                        "unique_count": len(unique_vals),
-                        "sample_values": unique_vals[:20]
-                    }
+                    try:
+                        unique_vals = result_df[col].dropna().unique().tolist()
+                        col_info["value_range"] = {
+                            "type": "text",
+                            "unique_count": len(unique_vals),
+                            "sample_values": str(unique_vals)[:200]
+                        }
+                    except TypeError:
+                        col_info["value_range"] = {
+                            "type": "text",
+                            "unique_count": 0,
+                            "sample_values": []
+                        }
 
                 columns_info.append(col_info)
 

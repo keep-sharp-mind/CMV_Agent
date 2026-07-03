@@ -4,7 +4,7 @@ Flask应用 - 与前端通信
 
 import json
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from agent import get_agent, init_agent, CMVAgent
@@ -924,6 +924,30 @@ def process_data(project_id):
         }
         project_store.save_project_file(project_id, "data_result.json", data_result)
 
+        # Trace batch processing
+        from trace_manager import append_trace_entry, make_trace_entry
+        plan_nodes = project_store.load_project_file(project_id, "plan.json").get("nodes", {})
+        for node_id, node_res in result.get("processed_nodes", {}).items():
+            node_info = next((n for n in plan_nodes.get("D", []) if n["id"] == node_id), None)
+            append_trace_entry(project_dir, make_trace_entry(
+                step=node_id, node_type="D",
+                label=(node_info or {}).get("name", node_id),
+                input_desc=node_id, output_desc=f"{node_id}.csv",
+                status="success" if node_res.get("success") else "error"
+            ))
+        for node_id, node_res in vis_result.get("processed_vis", {}).items():
+            node_info = next((n for n in plan_nodes.get("V", []) if n["id"] == node_id), None)
+            status = "success" if node_res.get("success") else "error"
+            if node_res.get("recovered"):
+                status = "recovered"
+            append_trace_entry(project_dir, make_trace_entry(
+                step=node_id, node_type="V",
+                label=(node_info or {}).get("name", node_id),
+                input_desc=node_id, output_desc=f"{node_id}.json",
+                status=status
+            ))
+        _save_data_flow(project_store, project_id, plan_data)
+
         return jsonify({
             "success": True,
             "data": data_result
@@ -1049,6 +1073,19 @@ def process_single_d_node(project_id, node_id):
             "processed_vis": data_result.get("processed_vis", {})
         }
         project_store.save_project_file(project_id, "data_result.json", updated_result)
+
+        from trace_manager import append_trace_entry, make_trace_entry
+        input_desc = ", ".join(input_node_ids) if input_node_ids else "database"
+        output_desc = f"{node_id}.csv"
+        if result.get("columns"):
+            output_desc += f" ({len(result['columns'])} cols)"
+        append_trace_entry(project_dir, make_trace_entry(
+            step=node_id, node_type="D",
+            label=target_node.get("name", node_id),
+            input_desc=input_desc, output_desc=output_desc,
+            status="success" if result.get("success") else "error"
+        ))
+        _save_data_flow(project_store, project_id, plan_data)
 
         return jsonify({"success": True, "data": result})
     except Exception as e:
@@ -1220,6 +1257,23 @@ def get_node_data(project_id, node_id):
         }), 500
 
 
+@app.route("/api/projects/<project_id>/data/<path:filename>/download", methods=["GET"])
+def download_csv_data(project_id, filename):
+    """
+    Download CSV data file for a given node_id (e.g. D1.csv).
+    Used by Vega-Lite data.url in converted specs.
+    """
+    try:
+        project_store = get_project_store()
+        node_id = filename.replace('.csv', '')
+        csv_path = _find_node_csv_path(project_store, project_id, node_id)
+        if not csv_path or not os.path.exists(csv_path):
+            return jsonify({"success": False, "error": f"CSV not found for {filename}"}), 404
+        return send_file(csv_path, mimetype='text/csv', as_attachment=False)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route("/api/projects/<project_id>/data/<node_id>/code", methods=["GET"])
 def get_node_code(project_id, node_id):
     """
@@ -1307,9 +1361,25 @@ def process_visualizations(project_id):
         all_table_paths = (data_result or {}).get("all_table_paths", {})
 
         agent = get_or_init_agent()
-        vis_result = agent.process_visualizations(plan_data, db_schema, project_dir, all_table_paths)
+        vis_result = agent.process_visualizations(plan_data, db_schema, project_dir, all_table_paths, project_id)
 
         project_store.save_project_file(project_id, "vis_result.json", vis_result)
+
+        # Trace V nodes in batch
+        from trace_manager import append_trace_entry, make_trace_entry
+        plan_nodes = plan_data.get("nodes", {}).get("V", [])
+        for node_id, node_res in vis_result.get("processed_vis", {}).items():
+            node_info = next((n for n in plan_nodes if n["id"] == node_id), None)
+            status = "success" if node_res.get("success") else "error"
+            if node_res.get("recovered"):
+                status = "recovered"
+            append_trace_entry(project_dir, make_trace_entry(
+                step=node_id, node_type="V",
+                label=(node_info or {}).get("name", node_id),
+                input_desc=node_id, output_desc=f"{node_id}.json",
+                status=status
+            ))
+        _save_data_flow(project_store, project_id, plan_data)
 
         return jsonify({"success": True, "data": vis_result})
 
@@ -1377,7 +1447,7 @@ def process_single_v_node(project_id, node_id):
         output_dir = os.path.join(project_dir, "vis_outputs")
         os.makedirs(output_dir, exist_ok=True)
 
-        result = vis_agent.process_v_node(target_node, input_nodes, all_table_paths, output_dir)
+        result = vis_agent.process_v_node(target_node, input_nodes, all_table_paths, output_dir, project_id)
 
         # Accumulate into vis_result.json
         vis_result = project_store.load_project_file(project_id, "vis_result.json")
@@ -1386,6 +1456,106 @@ def process_single_v_node(project_id, node_id):
 
         updated = {"processed_vis": processed_vis}
         project_store.save_project_file(project_id, "vis_result.json", updated)
+
+        from trace_manager import append_trace_entry, make_trace_entry
+        input_desc = ", ".join(input_node_ids) if input_node_ids else "D nodes"
+        output_desc = f"{node_id}.json (Vega-Lite spec)"
+        status = "success" if result.get("success") else "error"
+        if result.get("recovered"):
+            status = "recovered"
+        append_trace_entry(project_dir, make_trace_entry(
+            step=node_id, node_type="V",
+            label=target_node.get("name", node_id),
+            input_desc=input_desc, output_desc=output_desc,
+            status=status
+        ))
+        if result.get("recovered") and result.get("error_report"):
+            # Add a separate trace entry for the error→retry path
+            append_trace_entry(project_dir, make_trace_entry(
+                step=f"re_{node_id}", node_type="V",
+                label=f"retry {target_node.get('name', node_id)}",
+                input_desc=input_desc,
+                output_desc=f"{node_id}.json (recovered spec)",
+                status="recovered", is_retry=True,
+                previous_error=result.get("error", "")
+            ))
+        _save_data_flow(project_store, project_id, plan_data)
+
+        return jsonify({"success": True, "data": result})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/projects/<project_id>/interactions/process", methods=["POST"])
+def process_interactions(project_id):
+    """
+    Process all I (interaction) nodes.
+    Reads plan.json (I nodes + dependencies) and vis_result.json (processed_vis),
+    modifies source/target V specs for interactivity, generates JS code,
+    and saves the merged result to data_result.json.
+
+    Response:
+        {
+            "success": true,
+            "data": {
+                "interaction_results": { ... },
+                "processed_vis": { ... }   # updated specs with selections + dual-layers
+            }
+        }
+    """
+    try:
+        project_store = get_project_store()
+        project = project_store.get_project(project_id)
+        if not project:
+            return jsonify({"success": False, "error": "Project not found"}), 404
+
+        plan_data = project_store.load_project_file(project_id, "plan.json")
+        if not plan_data:
+            return jsonify({"success": False, "error": "No plan found"}), 400
+
+        # Load accumulated vis results
+        vis_result = project_store.load_project_file(project_id, "vis_result.json")
+        processed_vis = (vis_result or {}).get("processed_vis", {})
+
+        # Also try data_result.json as fallback (single-node processing may have updated it)
+        if not processed_vis:
+            data_result = project_store.load_project_file(project_id, "data_result.json")
+            processed_vis = (data_result or {}).get("processed_vis", {})
+
+        if not processed_vis:
+            return jsonify({"success": False, "error": "No processed visualizations found. Process V nodes first."}), 400
+
+        data_result = project_store.load_project_file(project_id, "data_result.json")
+        all_table_paths = (data_result or {}).get("all_table_paths", {})
+
+        agent = get_or_init_agent()
+        project_dir = project_store.get_project_path(project_id)
+        result = agent.process_interactions(plan_data, processed_vis, all_table_paths, project_dir, project_id)
+
+        # Merge updated processed_vis back to data_result.json
+        merged = data_result or {}
+        merged["processed_vis"] = result.get("processed_vis", processed_vis)
+        merged["interaction_results"] = result.get("interaction_results", {})
+        project_store.save_project_file(project_id, "data_result.json", merged)
+
+        # Trace: record each I-node
+        from trace_manager import append_trace_entry, make_trace_entry
+        project_dir = project_store.get_project_path(project_id)
+        i_results = result.get("interaction_results", {})
+        for i_id, i_info in i_results.items():
+            ispec = i_info.get("interaction_spec", {})
+            sv = ispec.get("source_views", [])
+            cv = ispec.get("controlled_view", [])
+            sv_labels = [s.get("id", "") for s in sv]
+            tv_labels = [c.get("view", "") for c in cv]
+            append_trace_entry(project_dir, make_trace_entry(
+                step=i_id, node_type="I",
+                label=f"{i_id}",
+                input_desc=", ".join(sv_labels) if sv_labels else "V nodes",
+                output_desc=f"JS interaction: {', '.join(tv_labels)}" if tv_labels else "interaction code",
+                status="success" if i_info.get("success") else "error"
+            ))
+        _save_data_flow(project_store, project_id, plan_data)
 
         return jsonify({"success": True, "data": result})
     except Exception as e:
@@ -1428,6 +1598,27 @@ def get_vis_spec(project_id, node_id):
 
         return jsonify({"success": True, "data": node_data})
 
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/projects/<project_id>/interactions/<node_id>", methods=["GET"])
+def get_interaction_result(project_id, node_id):
+    """Get the interaction result for an I node."""
+    try:
+        project_store = get_project_store()
+        project = project_store.get_project(project_id)
+        if not project:
+            return jsonify({"success": False, "error": "Project not found"}), 404
+
+        project_dir = project_store.get_project_path(project_id)
+        i_path = os.path.join(project_dir, "interactions", f"{node_id}.json")
+        if not os.path.isfile(i_path):
+            return jsonify({"success": False, "error": f"No interaction result found for {node_id}"}), 404
+
+        with open(i_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return jsonify({"success": True, "data": data})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -1628,18 +1819,44 @@ def get_agent_trace(project_id):
                     "items": []
                 }
 
+        # --- Interaction Agent ---
+        interaction_items = []
+        if data_result and data_result.get("interaction_results"):
+            for i_id, i_info in data_result["interaction_results"].items():
+                i_success = i_info.get("success", False)
+                ispec = i_info.get("interaction_spec", {})
+                sv_list = ispec.get("source_views", [])
+                cv_list = ispec.get("controlled_view", [])
+                sv_labels = [s.get("id", "") for s in sv_list]
+                tv_labels = [c.get("view", "") for c in cv_list]
+                interaction_items.append({
+                    "id": i_id,
+                    "label": f"{i_id}: {', '.join(sv_labels)} → {', '.join(tv_labels)}",
+                    "input": ", ".join(sv_labels) if sv_labels else "V nodes",
+                    "output": "JS interaction code",
+                    "status": "success" if i_success else "error",
+                    "error_detail": i_info.get("error") if not i_success else None
+                })
+        if interaction_items:
+            agents["interaction"] = {
+                "name": "Interaction Agent",
+                "status": "completed",
+                "items": interaction_items
+            }
+
         # Only include agents that have status != idle
         result_agents = {}
         for k, v in agents.items():
-            if v["status"] != "idle" or k == "error":
+            if v["status"] != "idle" or k == "error" or k == "interaction":
                 result_agents[k] = v
 
         # Default connections between agents
         connections = [
             {"from": "plan", "to": "data"},
             {"from": "data", "to": "vis"},
-            {"from": "data", "to": "error"},
-            {"from": "vis", "to": "error"}
+            {"from": "vis", "to": "interaction"},
+            {"from": "vis", "to": "error"},
+            {"from": "interaction", "to": "error"}
         ]
 
         return jsonify({
@@ -1654,6 +1871,110 @@ def get_agent_trace(project_id):
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/projects/<project_id>/planner/data-flow", methods=["GET"])
+def get_data_flow(project_id):
+    """
+    Compute data-flow (in_fields / out_fields) for all plan nodes.
+
+    Response:
+        {
+            "success": true,
+            "data": {
+                "V1": { "in_fields": ["D1.species",...], "out_fields": ["species"] },
+                ...
+            }
+        }
+    """
+    try:
+        project_store = get_project_store()
+        project = project_store.get_project(project_id)
+        if not project:
+            return jsonify({"success": False, "error": "Project not found"}), 404
+
+        plan_data = project_store.load_project_file(project_id, "plan.json")
+        if not plan_data:
+            return jsonify({"success": False, "error": "No plan found"}), 400
+
+        flow = _save_data_flow(project_store, project_id, plan_data)
+
+        return jsonify({"success": True, "data": flow})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/projects/<project_id>/trace", methods=["GET"])
+def get_trace(project_id):
+    """Get the generation trace.json for a project."""
+    try:
+        project_store = get_project_store()
+        project = project_store.get_project(project_id)
+        if not project:
+            return jsonify({"success": False, "error": "Project not found"}), 404
+
+        project_dir = project_store.get_project_path(project_id)
+        trace_path = os.path.join(project_dir, "trace.json")
+        if not os.path.isfile(trace_path):
+            return jsonify({"success": True, "data": []})
+
+        with open(trace_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return jsonify({"success": True, "data": data})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/projects/<project_id>/reset-processing", methods=["POST"])
+def reset_processing(project_id):
+    """
+    Clear all processing artifacts (data_result.json, vis_result.json,
+    trace.json, interactions/, data_tables/, vis_outputs/) but keep plan.json.
+    """
+    try:
+        project_store = get_project_store()
+        project = project_store.get_project(project_id)
+        if not project:
+            return jsonify({"success": False, "error": "Project not found"}), 404
+
+        project_dir = project_store.get_project_path(project_id)
+
+        files_to_remove = ["data_result.json", "vis_result.json", "trace.json", "data_flow.json"]
+        for fname in files_to_remove:
+            fpath = os.path.join(project_dir, fname)
+            if os.path.isfile(fpath):
+                os.remove(fpath)
+
+        dirs_to_remove = ["data_tables", "vis_outputs", "interactions"]
+        for dname in dirs_to_remove:
+            dpath = os.path.join(project_dir, dname)
+            if os.path.isdir(dpath):
+                for root, dirs, files in os.walk(dpath, topdown=False):
+                    for f in files:
+                        os.remove(os.path.join(root, f))
+                    for d in dirs:
+                        os.rmdir(os.path.join(root, d))
+                os.rmdir(dpath)
+
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+def _save_data_flow(project_store, project_id, plan_data):
+    """Compute and persist data_flow.json. Returns the flow dict or empty dict."""
+    try:
+        db_schema = _build_db_schema(project_store, project_id)
+        data_result = project_store.load_project_file(project_id, "data_result.json") or {}
+        processed_vis = data_result.get("processed_vis", {})
+        processed_nodes = data_result.get("processed_nodes", {})
+        from agents.planner_agent import get_planner_agent
+        pa = get_planner_agent()
+        flow = pa.analyze_data_flow(plan_data, db_schema, processed_vis, processed_nodes)
+        project_store.save_project_file(project_id, "data_flow.json", flow)
+        return flow
+    except Exception:
+        return {}
 
 
 def _find_node_csv_path(project_store, project_id, node_id):

@@ -6,6 +6,7 @@ visualization specifications for V (visualization) nodes.
 import os
 import json
 import re
+import copy
 import traceback
 from typing import List, Dict, Any, Optional
 from model import get_model_client, ModelClient
@@ -16,6 +17,11 @@ from prompts.vis_agent_prompts import (
     SYSTEM_PROMPT_GENERATE,
     VISUALIZATION_SPEC_PROMPT
 )
+
+
+def _clean_json_text(text: str) -> str:
+    """Replace NaN/Infinity with null for compliant JSON parsing."""
+    return re.sub(r'\bNaN\b|\bInfinity\b|\b-Infinity\b', 'null', text)
 
 
 class VisAgent:
@@ -38,22 +44,23 @@ class VisAgent:
         return self._extract_json(response["content"])
 
     def _extract_json(self, text: str) -> Dict[str, Any]:
+        cleaned = _clean_json_text(text)
         try:
-            return json.loads(text)
+            return json.loads(cleaned)
         except json.JSONDecodeError:
             pass
         pattern = r"```(?:json)?\s*([\s\S]*?)\s*```"
-        matches = re.findall(pattern, text)
+        matches = re.findall(pattern, cleaned)
         for match in matches:
             try:
                 return json.loads(match.strip())
             except json.JSONDecodeError:
                 continue
-        start = text.find("{")
-        end = text.rfind("}")
+        start = cleaned.find("{")
+        end = cleaned.rfind("}")
         if start != -1 and end != -1 and end > start:
             try:
-                return json.loads(text[start:end + 1])
+                return json.loads(cleaned[start:end + 1])
             except json.JSONDecodeError:
                 pass
         return {"raw_text": text}
@@ -64,6 +71,131 @@ class VisAgent:
         if matches:
             return matches[-1].strip()
         return text.strip()
+
+    def convert_view_spec(
+        self,
+        node_id: str,
+        spec: Dict[str, Any],
+        project_id: str,
+        input_table_paths: Dict[str, str],
+        metadata: Optional[Dict] = None
+    ) -> Dict[str, Any]:
+        """
+        Convert and enhance a spec into a complete Vega-Lite spec.
+        Handles table→data.url conversion, mark enhancements, opacity auto-complete.
+
+        The data URL is set to: /api/projects/{project_id}/data/{table_id}.csv/download
+        which maps to the download_csv_data endpoint in app.py.
+        """
+        if not spec:
+            return spec
+
+        vega_lite = copy.deepcopy(spec)
+        metadata = metadata or {}
+
+        # Determine the CSV filename to use for data URL
+        csv_filename = ""
+        if 'table' in vega_lite:
+            csv_filename = vega_lite['table']
+            del vega_lite['table']
+        elif 'data' in vega_lite and isinstance(vega_lite['data'], dict):
+            if 'url' in vega_lite['data']:
+                csv_filename = os.path.basename(vega_lite['data']['url'].rstrip('.csv')) + '.csv'
+            elif 'values' in vega_lite['data']:
+                # Try used_tables from metadata first (most reliable)
+                used_tables = metadata.get('used_tables', [])
+                if used_tables:
+                    csv_filename = f"{used_tables[0]}.csv"
+                else:
+                    # Fallback: first input table that exists on disk
+                    for tid in input_table_paths:
+                        csv_filename = f"{tid}.csv"
+                        break
+                del vega_lite['data']
+
+        if not csv_filename and input_table_paths:
+            for tid in input_table_paths:
+                csv_filename = f"{tid}.csv"
+                break
+        if csv_filename:
+            csv_filename = csv_filename if csv_filename.endswith('.csv') else f"{csv_filename}.csv"
+            vega_lite['data'] = {'url': f'/api/projects/{project_id}/data/{csv_filename}/download'}
+
+        vega_lite.update({
+            'description': node_id,
+            'height': 'container',
+            'width': 'container',
+            "autosize": {
+                "type": "fit",
+                "contains": "padding"
+            },
+            '$schema': vega_lite.get('$schema', 'https://vega.github.io/schema/vega-lite/v6.json'),
+            'config': {
+                'background': 'rgba(0, 0, 0, 0)',
+                'padding': 10,
+                **vega_lite.get('config', {})
+            }
+        })
+
+        if 'transform' not in vega_lite:
+            vega_lite['transform'] = []
+        if 'params' not in vega_lite:
+            vega_lite['params'] = []
+        if 'encoding' not in vega_lite:
+            vega_lite['encoding'] = {}
+
+        raw_mark = vega_lite.get('markType', vega_lite.get('mark', 'point'))
+        mark_type = raw_mark['type'] if isinstance(raw_mark, dict) else raw_mark
+
+        # Boxplot
+        if mark_type == 'boxplot':
+            encoding = vega_lite['encoding']
+            if 'x' in encoding and 'color' in encoding:
+                color_field = encoding['color'].get('field')
+                x_type = encoding['x'].get('type')
+                if color_field:
+                    if x_type == 'quantitative':
+                        encoding['yOffset'] = encoding['color']
+                    else:
+                        encoding['xOffset'] = encoding['color']
+            vega_lite['mark'] = {
+                'type': 'boxplot',
+                'extent': 'min-max',
+                'rule': {'color': '#000000'},
+                **(raw_mark if isinstance(raw_mark, dict) else {})
+            }
+
+        # Area
+        elif mark_type == 'area':
+            vega_lite['mark'] = {
+                'type': 'area',
+                'interpolate': 'monotone',
+                'line': True,
+                **(raw_mark if isinstance(raw_mark, dict) else {})
+            }
+            if 'x' in vega_lite['encoding']:
+                x_field = vega_lite['encoding']['x'].get('field')
+                if x_field:
+                    vega_lite['transform'].append({"sort": [{"field": x_field}]})
+
+        # Geoshape → point
+        elif mark_type == 'geoshape':
+            vega_lite['mark'] = {
+                'type': 'point',
+                'tooltip': True,
+                **(raw_mark if isinstance(raw_mark, dict) else {})
+            }
+
+        else:
+            vega_lite['mark'] = raw_mark
+
+        # Color legend
+        if "color" in vega_lite["encoding"] and isinstance(vega_lite["encoding"]["color"], dict):
+            if "legend" not in vega_lite["encoding"]["color"] or vega_lite["encoding"]["color"]["legend"] is None:
+                vega_lite["encoding"]["color"]["legend"] = {}
+            vega_lite["encoding"]["color"]["legend"].setdefault("orient", "bottom")
+
+        return vega_lite
 
     def generate_visualization_spec(
         self,
@@ -258,7 +390,8 @@ class VisAgent:
         node: Dict[str, Any],
         input_nodes: List[Dict[str, Any]],
         input_table_paths: Dict[str, str],
-        output_dir: str
+        output_dir: str,
+        project_id: str = ""
     ) -> Dict[str, Any]:
         """
         Process a single V node: generate spec, validate, report errors.
@@ -283,7 +416,12 @@ class VisAgent:
         result = self.generate_visualization_spec(node, input_nodes, input_table_paths)
         spec = result.get("spec", {})
         metadata = result.get("metadata", {})
-        spec_json = json.dumps(spec, ensure_ascii=False) if spec else ""
+        spec_json = json.dumps(spec, ensure_ascii=False, indent=2) if spec else ""
+
+        # Apply convert_view_spec to add table→data.url, mark enhancements, etc.
+        if project_id:
+            spec = self.convert_view_spec(node_id, spec, project_id, input_table_paths, metadata=metadata)
+            spec_json = json.dumps(spec, ensure_ascii=False, indent=2)
 
         out["spec"] = spec
         out["metadata"] = metadata
@@ -323,8 +461,60 @@ class VisAgent:
                         "spec_path": out.get("spec_path")
                     }
                 }
-                error_result = error_agent.handle_error(error_context, source_tag="vis_generate")
-                out["error_report"] = error_result
+
+                # Attempt auto-recovery: analyze error → fix spec → re-validate
+                analysis = None
+                fix_result = None
+                try:
+                    analysis = error_agent.analyze_vis_error(
+                        node, spec, input_nodes, input_table_paths, error_context["execution_result"]
+                    )
+                    out["error_analysis"] = analysis
+
+                    if analysis.get("success"):
+                        fix_result = error_agent.fix_vis_spec(
+                            node, spec, input_nodes, input_table_paths,
+                            error_context["execution_result"],
+                            f"Root cause: {analysis.get('root_cause')}. Fix strategy: {analysis.get('fix_strategy')}. Suggestion: {analysis.get('suggested_fixes', {}).get('vis_modifications', '')}."
+                        )
+                        out["error_recovery"] = fix_result
+
+                        if fix_result.get("success") and fix_result.get("spec"):
+                            fixed_spec = fix_result["spec"]
+                            fixed_metadata = fix_result.get("metadata", {})
+                            re_validation = self.validate_visualization(fixed_spec, fixed_metadata, input_table_paths)
+
+                            if re_validation.get("valid"):
+                                if project_id:
+                                    fixed_spec = self.convert_view_spec(node_id, fixed_spec, project_id, input_table_paths, metadata=fixed_metadata)
+                                out["spec"] = fixed_spec
+                                out["metadata"] = fixed_metadata
+                                out["spec_json"] = json.dumps(fixed_spec, ensure_ascii=False, indent=2)
+                                out["success"] = True
+                                out["error"] = None
+                                out["validation_issues"] = []
+                                out["syntax_check"] = re_validation.get("syntax_check")
+                                out["recovered"] = True
+                                spec_path = os.path.join(output_dir, f"{node_id}.json")
+                                try:
+                                    os.makedirs(output_dir, exist_ok=True)
+                                    with open(spec_path, "w", encoding="utf-8") as f:
+                                        json.dump(fixed_spec, f, ensure_ascii=False, indent=2)
+                                    out["spec_path"] = spec_path
+                                except Exception as e:
+                                    out["error"] = f"Failed to save spec: {e}"
+                except Exception:
+                    out["error_recovery"] = {"error": "Failed to attempt auto-recovery"}
+
+                # Save error record with diagnosis and fix results
+                try:
+                    error_result = error_agent.handle_error(
+                        error_context, source_tag="vis_generate",
+                        analysis_result=analysis, fix_result=fix_result
+                    )
+                    out["error_report"] = error_result
+                except Exception:
+                    out["error_report"] = {"error": "Failed to report to error_agent"}
             except Exception:
                 out["error_report"] = {"error": "Failed to report to error_agent"}
 

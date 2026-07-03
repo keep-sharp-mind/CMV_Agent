@@ -1016,6 +1016,65 @@ body {
   border: 1px dashed #d1d5db;
 }
 
+.node-data-flow {
+  margin-top: 12px;
+  border: 1px solid #e0e7ff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.node-data-flow-header {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  background: #eef2ff;
+  color: #4338ca;
+  border-bottom: 1px solid #e0e7ff;
+}
+
+.node-data-flow-body {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.node-data-flow-col strong {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.node-data-flow-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.data-flow-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.data-flow-tag.in {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.data-flow-tag.out {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
 .node-meta-bar {
   display: flex;
   align-items: center;
@@ -1561,4 +1620,52 @@ body {
 /* Agent active shape glow enhancement */
 .agent-active .agent-shape {
   filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.5));
+}
+
+/* Data Flow Table */
+.data-flow-table-wrap {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.data-flow-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-flow-table th {
+  position: sticky;
+  top: 0;
+  background: #f9fafb;
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 2px solid #e5e7eb;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.data-flow-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+
+.data-flow-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.data-flow-table .data-flow-tag {
+  margin: 1px 2px;
+}
+
+.data-flow-node-id {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
 }

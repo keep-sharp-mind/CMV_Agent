@@ -246,6 +246,52 @@ async function getAgentTrace(projectId) {
   return data.data;
 }
 
+async function processInteractions(projectId) {
+  const response = await fetch(`${API_BASE}/projects/${projectId}/interactions/process`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error);
+  return data.data;
+}
+
+async function getDataFlow(projectId) {
+  const response = await fetch(`${API_BASE}/projects/${projectId}/planner/data-flow`, {
+    method: 'GET'
+  });
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error);
+  return data.data;
+}
+
+async function resetProcessing(projectId) {
+  const response = await fetch(`${API_BASE}/projects/${projectId}/reset-processing`, {
+    method: 'POST'
+  });
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error);
+  return data;
+}
+
+async function getTrace(projectId) {
+  const response = await fetch(`${API_BASE}/projects/${projectId}/trace`, {
+    method: 'GET'
+  });
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error);
+  return data.data;
+}
+
+async function getInteractionResult(projectId, nodeId) {
+  const response = await fetch(`${API_BASE}/projects/${projectId}/interactions/${nodeId}`, {
+    method: 'GET'
+  });
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error);
+  return data.data;
+}
+
 export {
   fetchModels,
   setModel,
@@ -271,5 +317,10 @@ export {
   processVisualizations,
   processSingleVNode,
   getVisSpec,
-  getAgentTrace
+  getAgentTrace,
+  processInteractions,
+  getDataFlow,
+  getInteractionResult,
+  getTrace,
+  resetProcessing
 };

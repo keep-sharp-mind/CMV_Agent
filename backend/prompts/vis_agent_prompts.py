@@ -27,7 +27,7 @@ Available Input Tables:
 Requirements:
 1. Output a JSON object with two keys: "spec" and "metadata"
 2. "spec" must be a valid Vega-Lite v5 specification that can be rendered directly by vega-embed
-3. Include all necessary data inline using the "data" -> "values" property in the spec (embed sample data from the tables provided; include at most 100 rows)
+3. Do NOT include inline "data" -> "values". Instead, add a top-level field "table": "<input_node_id>" referencing the input table that provides data for this chart (e.g. "table": "D1"). The spec must reference data by table ID, not by embedding data inline.
 4. Use the chart type hint if appropriate, or choose the best mark type for the data
 5. The visualization should be self-explanatory with proper axis titles, title, etc.
 6. "metadata" must contain:

@@ -12,12 +12,17 @@ function NodeDetailSection({
   onToggleCode,
   showVisCode,
   onToggleVisCode,
-  chartContainerRef
+  chartContainerRef,
+  dataFlow,
+  interactionSpec,
+  showInteractionCode,
+  onToggleInteractionCode
 }) {
   if (!node) return null
 
   const isD = node.type === 'd' || node.type === 'D'
   const isV = node.type === 'V'
+  const isI = node.type === 'I'
   const processedInfo = dataResult?.processed_nodes?.[node.id]
   const hasProcessed = processedInfo?.success
   const columns = isD ? (nodeTableData?.columns || processedInfo?.columns || []) : []
@@ -70,6 +75,40 @@ function NodeDetailSection({
         {showCode && nodeCode && (
           <div className="code-box">
             <pre><code>{nodeCode}</code></pre>
+          </div>
+        )}
+      </>
+    )
+  }
+
+  const renderIContent = () => {
+    if (!interactionSpec) {
+      return <div className="node-empty-box">No interaction result available. Process interactions first.</div>
+    }
+
+    const ispec = interactionSpec.interaction_spec || {}
+    const srcViews = ispec.source_views || []
+    const ctrlViews = ispec.controlled_view || []
+    const jsCode = interactionSpec.js_code || ''
+
+    return (
+      <>
+        <div className="node-vis-info">
+          {srcViews.length > 0 && (
+            <div className="node-vis-tag"><strong>Source Views:</strong> {srcViews.map(s => `${s.id} (${s.select}, ch:${(s.source_channels||[]).join(',')}, link:${s.link_field})`).join('; ')}</div>
+          )}
+          {ctrlViews.length > 0 && (
+            <div className="node-vis-tag"><strong>Controlled Views:</strong> {ctrlViews.map(c => `${c.view} (field:${c.field}, ${c.action})`).join('; ')}</div>
+          )}
+        </div>
+
+        {interactionSpec.recovered && (
+          <div className="node-vis-tag" style={{color:'#d97706',marginTop:'8px'}}><strong>⚠ Recovered from error</strong></div>
+        )}
+
+        {showInteractionCode && jsCode && (
+          <div className="code-box" style={{marginTop:'8px'}}>
+            <pre><code>{jsCode}</code></pre>
           </div>
         )}
       </>
@@ -162,6 +201,11 @@ function NodeDetailSection({
               {showVisCode ? 'Hide Code' : 'Show Code'}
             </button>
           )}
+          {isI && interactionSpec?.js_code && (
+            <button className="code-btn" onClick={onToggleInteractionCode}>
+              {showInteractionCode ? 'Hide JS' : 'Show JS'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -170,6 +214,45 @@ function NodeDetailSection({
 
       {isD && renderDContent()}
       {isV && renderVContent()}
+      {isI && renderIContent()}
+
+      {dataFlow && (
+        <div className="node-data-flow">
+          <div className="node-data-flow-header">Data Flow</div>
+          <div className="node-data-flow-body">
+            {dataFlow.in_fields?.length > 0 ? (
+              <div className="node-data-flow-col">
+                <strong>In Fields</strong>
+                <div className="node-data-flow-tags">
+                  {dataFlow.in_fields.map((f, i) => (
+                    <span key={i} className="data-flow-tag in">{f}</span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="node-data-flow-col">
+                <strong>In Fields</strong>
+                <div className="node-data-flow-tags"><span className="data-flow-tag in" style={{opacity:0.5}}>—</span></div>
+              </div>
+            )}
+            {dataFlow.out_fields?.length > 0 ? (
+              <div className="node-data-flow-col">
+                <strong>Out Fields</strong>
+                <div className="node-data-flow-tags">
+                  {dataFlow.out_fields.map((f, i) => (
+                    <span key={i} className="data-flow-tag out">{f}</span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="node-data-flow-col">
+                <strong>Out Fields</strong>
+                <div className="node-data-flow-tags"><span className="data-flow-tag out" style={{opacity:0.5}}>—</span></div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

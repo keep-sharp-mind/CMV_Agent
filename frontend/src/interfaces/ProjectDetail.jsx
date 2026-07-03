@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getProject, updateProject, fetchDatabases, uploadDatabase, deleteDatabase, generateGoal, generatePlan, getPlan, processData, processSingleDNode, processSingleVNode, getNodeData, getNodeCode, getDataResult, getVisSpec, getAgentTrace } from '../api'
+import { getProject, updateProject, fetchDatabases, uploadDatabase, deleteDatabase, generateGoal, generatePlan, getPlan, processData, processSingleDNode, processSingleVNode, getNodeData, getNodeCode, getDataResult, getVisSpec, getAgentTrace, processInteractions, getDataFlow, getInteractionResult, resetProcessing } from '../api'
 import DependencyGraph from '../components/DependencyGraph'
 import ProjectInfoSection from '../components/ProjectInfoSection'
 import DatabaseSection from '../components/DatabaseSection'
 import NodeCard from '../components/NodeCard'
 import NodeDetailSection from '../components/NodeDetailSection'
 import AgentFlow from '../components/AgentFlow'
+import DataFlowTable from '../components/DataFlowTable'
+import ChartPreview from '../components/ChartPreview'
 import vegaEmbed from 'vega-embed'
 
 const NODE_TYPE_LABELS = {
@@ -116,6 +118,8 @@ function ProjectDetail() {
   const [isLoadingNodeCode, setIsLoadingNodeCode] = useState(false)
   const [visSpec, setVisSpec] = useState(null)
   const [showVisCode, setShowVisCode] = useState(false)
+  const [interactionSpec, setInteractionSpec] = useState(null)
+  const [showInteractionCode, setShowInteractionCode] = useState(false)
   const chartContainerRef = useRef(null)
   const chartRenderedRef = useRef(false)
   const [agentTrace, setAgentTrace] = useState(null)
@@ -123,6 +127,10 @@ function ProjectDetail() {
   const [activeAgent, setActiveAgent] = useState(null)
   const [activeNodes, setActiveNodes] = useState([])
   const agentTimerRef = useRef(null)
+  const [isProcessingInteractions, setIsProcessingInteractions] = useState(false)
+  const [interactionResults, setInteractionResults] = useState(null)
+  const [viewDataUrls, setViewDataUrls] = useState(null)
+  const [nodeDataFlow, setNodeDataFlow] = useState(null)
 
   useEffect(() => {
     loadProject()
@@ -292,6 +300,9 @@ function ProjectDetail() {
     setAgentTrace(null)
     setActiveNodes([])
 
+    // Clear backend processing artifacts (keep plan)
+    try { await resetProcessing(projectId) } catch (_) {}
+
     setIsGenerating(true)
     setError(null)
     setActiveAgent('plan')
@@ -333,6 +344,7 @@ function ProjectDetail() {
         setActiveNodes([nodeId])
         const result = await processSingleDNode(projectId, nodeId)
         allProcessedNodes[nodeId] = result
+        loadDataFlow()
       }
 
       // Step 3: Process V nodes one by one
@@ -342,15 +354,34 @@ function ProjectDetail() {
           setActiveNodes([nodeId])
           const result = await processSingleVNode(projectId, nodeId)
           allProcessedNodes[nodeId] = result
+          loadDataFlow()
         }
       }
 
       // Load accumulated result
       const result = await getDataResult(projectId)
       setDataResult(result)
+
+      // Step 4: Process interactions (if I nodes exist)
+      const iNodes = planData?.nodes?.I
+      if (iNodes && iNodes.length > 0) {
+        setActiveAgent('interaction')
+        setActiveNodes(iNodes.map(n => n.id))
+        try {
+          const interactionResult = await processInteractions(projectId)
+          setInteractionResults(interactionResult.interaction_results || {})
+          setViewDataUrls(interactionResult.view_data_urls || {})
+          const updated = await getDataResult(projectId)
+          setDataResult(updated)
+          loadDataFlow()
+        } catch (interr) {
+          console.warn('Interaction processing failed:', interr.message)
+        }
+      }
     } catch (err) {
       setError(`Data processing failed: ${err.message}`)
     } finally {
+      loadDataFlow()
       setActiveAgent(null)
       setActiveNodes([])
       setIsProcessingData(false)
@@ -370,6 +401,9 @@ function ProjectDetail() {
     setAgentTrace(null)
     setActiveNodes([])
 
+    // Clear backend processing artifacts (keep plan)
+    try { await resetProcessing(projectId) } catch (_) {}
+
     setIsProcessingData(true)
     setError(null)
     setActiveAgent('data')
@@ -385,6 +419,7 @@ function ProjectDetail() {
       for (const nodeId of dNodes) {
         setActiveNodes([nodeId])
         await processSingleDNode(projectId, nodeId)
+        loadDataFlow()
       }
 
       if (vNodes.length > 0) {
@@ -392,19 +427,44 @@ function ProjectDetail() {
         for (const nodeId of vNodes) {
           setActiveNodes([nodeId])
           await processSingleVNode(projectId, nodeId)
+          loadDataFlow()
         }
       }
 
       const result = await getDataResult(projectId)
       setDataResult(result)
+
+      const iNodes = planResult?.nodes?.I
+      if (iNodes && iNodes.length > 0) {
+        setActiveAgent('interaction')
+        setActiveNodes(iNodes.map(n => n.id))
+        try {
+          const interactionResult = await processInteractions(projectId)
+          setInteractionResults(interactionResult.interaction_results || {})
+          setViewDataUrls(interactionResult.view_data_urls || {})
+          const updated = await getDataResult(projectId)
+          setDataResult(updated)
+          loadDataFlow()
+        } catch (interr) {
+          console.warn('Interaction processing failed:', interr.message)
+        }
+      }
     } catch (err) {
       setError(`Failed to process data: ${err.message}`)
     } finally {
+      loadDataFlow()
       setActiveAgent(null)
       setActiveNodes([])
       setIsProcessingData(false)
       loadAgentTrace()
     }
+  }
+
+  const loadDataFlow = async () => {
+    try {
+      const flow = await getDataFlow(projectId)
+      setNodeDataFlow(flow)
+    } catch (_) {}
   }
 
   const handleNodeSelect = async (node) => {
@@ -417,8 +477,11 @@ function ProjectDetail() {
 
     if (!node) {
       setNodeTableData(null)
+      setNodeDataFlow(null)
       return
     }
+
+    loadDataFlow()
 
     if (node.type === 'd' || node.type === 'D') {
       setIsLoadingNodeData(true)
@@ -437,6 +500,17 @@ function ProjectDetail() {
       if (visData) {
         setVisSpec(visData)
         chartRenderedRef.current = false
+      }
+    } else if (node.type === 'I') {
+      setNodeTableData(null)
+      setVisSpec(null)
+      setInteractionSpec(null)
+      setShowInteractionCode(false)
+      try {
+        const iData = await getInteractionResult(projectId, node.id)
+        setInteractionSpec(iData)
+      } catch (_) {
+        setInteractionSpec(null)
       }
     } else {
       setNodeTableData(null)
@@ -616,10 +690,53 @@ function ProjectDetail() {
                     showVisCode={showVisCode}
                     onToggleVisCode={() => handleShowVisCode(selectedGraphNode.id)}
                     chartContainerRef={chartContainerRef}
+                    dataFlow={nodeDataFlow?.[selectedGraphNode.id] || null}
+                    interactionSpec={interactionSpec}
+                    showInteractionCode={showInteractionCode}
+                    onToggleInteractionCode={() => setShowInteractionCode(!showInteractionCode)}
                   />
                 )}
+
+                <DataFlowTable
+                  nodeDataFlow={nodeDataFlow}
+                  planNodes={planResult?.nodes}
+                />
               </div>
             )}
+          </div>
+        )}
+
+        {dataResult?.processed_vis && Object.keys(dataResult.processed_vis).length > 0 && (
+          <div className="plan-section">
+            <div className="section-header">
+              <h2>Visualizations Dashboard</h2>
+              <button
+                className="primary-button"
+                onClick={async () => {
+                  setIsProcessingInteractions(true)
+                  try {
+                    const result = await processInteractions(projectId)
+                    setInteractionResults(result.interaction_results || {})
+                    setViewDataUrls(result.view_data_urls || {})
+                    const updated = await getDataResult(projectId)
+                    setDataResult(updated)
+                  } catch (err) {
+                    setError(`Interaction processing failed: ${err.message}`)
+                  } finally {
+                    setIsProcessingInteractions(false)
+                  }
+                }}
+                disabled={isProcessingInteractions}
+                style={{ fontSize: '0.85rem', padding: '6px 12px' }}
+              >
+                {isProcessingInteractions ? 'Processing...' : 'Process Interactions'}
+              </button>
+            </div>
+            <ChartPreview
+              processedVis={dataResult.processed_vis}
+              interactionResults={interactionResults}
+              viewDataUrls={viewDataUrls}
+            />
           </div>
         )}
 
