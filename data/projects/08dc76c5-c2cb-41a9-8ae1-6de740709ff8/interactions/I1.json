@@ -1,0 +1,45 @@
+{
+  "interaction_spec": {
+    "interaction_id": "I1",
+    "trigger": "select",
+    "effect": "filter",
+    "select_type": "point",
+    "source_views": [
+      {
+        "id": "V1",
+        "select": "point",
+        "source_channels": [
+          "x"
+        ],
+        "link_field": "formation_type",
+        "semantic": "formation"
+      }
+    ],
+    "controlled_view": [
+      {
+        "view": "V2",
+        "field": "formation_type",
+        "action": "filter",
+        "semantic": "formation"
+      }
+    ]
+  },
+  "js_code": "(function() {\n  var IID = 'I1';\n  var srcViews = [{\"id\": \"V1\", \"select\": \"point\", \"source_channels\": [\"x\"], \"link_field\": \"formation_type\", \"semantic\": \"formation\"}];\n  var ctrlViews = [{\"view\": \"V2\", \"field\": \"formation_type\", \"action\": \"filter\", \"semantic\": \"formation\"}];\n\n  function extractPointValues(raw, field) {\n    var values = [];\n    function visit(value, acceptScalar) {\n      if (value == null) return;\n      if (Array.isArray(value)) {\n        value.forEach(function(item) { visit(item, acceptScalar); });\n        return;\n      }\n      if (typeof value === 'object') {\n        if (Object.prototype.hasOwnProperty.call(value, field)) {\n          visit(value[field], true);\n        } else {\n          Object.keys(value).forEach(function(key) {\n            visit(value[key], false);\n          });\n        }\n        return;\n      }\n      if (acceptScalar) values.push(String(value));\n    }\n    visit(raw, Array.isArray(raw));\n    return values.filter(function(v, i, a) { return a.indexOf(v) === i; });\n  }\n\n  function process() {\n    var selMap = {};\n    var hasSel = false;\n\n    srcViews.forEach(function(sv) {\n      var raw = window['I_Data_' + IID + '_' + sv.id];\n      if (raw == null) return;\n      hasSel = true;\n      var f = sv.link_field;\n      if (!f) return;\n      var semanticKey = sv.semantic || f;\n      if (sv.select === 'point') {\n        var vals = extractPointValues(raw, f);\n        if (vals.length) {\n          selMap[semanticKey] = (selMap[semanticKey] || []).concat(vals).filter(function(v, i, a) { return a.indexOf(v) === i; });\n        }\n      } else if (sv.select === 'interval') {\n        var chs = sv.source_channels;\n        if (!chs || !chs.length) return;\n        var ch = chs[0];\n        var range = raw[ch];\n        if (Array.isArray(range) && range.length === 2) {\n          selMap[semanticKey] = [Number(range[0]), Number(range[1])];\n        }\n      }\n    });\n    if (!hasSel) return;\n\n    ctrlViews.forEach(function(cv) {\n      var dv = viewRegistry.get(cv.view + '_data');\n      if (!dv || !dv.fullData) return;\n      var full = dv.fullData;\n      var linkF = cv.field;\n      var semanticKey = cv.semantic || linkF;\n      if (!linkF || !selMap[semanticKey]) return;\n      var svals = selMap[semanticKey];\n      var numericRange = Array.isArray(svals) && svals.length === 2 && typeof svals[0] === 'number';\n\n      var filtered = full.filter(function(row) {\n        var rv = row[linkF];\n        if (rv == null) return false;\n        if (numericRange) {\n          var nv = Number(rv);\n          return !isNaN(nv) && nv >= svals[0] && nv <= svals[1];\n        }\n        if (Array.isArray(svals)) {\n          return svals.some(function(v) { return String(v) === String(rv); });\n        }\n        return String(svals) === String(rv);\n      });\n      if (filtered.length === 0 && full.length > 0) filtered = [full[0]];\n\n      var target = viewRegistry.get(cv.view);\n      if (!target) return;\n      target.data('bg_' + cv.view, cv.action === 'highlight' ? full : []);\n      target.data('fg_' + cv.view, filtered);\n      target.runAsync();\n    });\n  }\n\n  window.addEventListener('interaction-' + IID, process);\n})();",
+  "success": true,
+  "source_v_ids": [
+    "V1"
+  ],
+  "target_v_ids": [
+    "V2"
+  ],
+  "signal_slots": {
+    "V1": "sel_I1"
+  },
+  "fallback_used": true,
+  "model_validation_issues": [
+    {
+      "type": "missing_source_views",
+      "detail": "I-Spec omits declared V->I sources: ['V1']"
+    }
+  ]
+}

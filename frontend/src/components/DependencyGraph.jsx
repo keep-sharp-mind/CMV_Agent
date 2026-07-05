@@ -59,7 +59,7 @@ function applySelectionOpacity({ link, arrow, node, label, linkData, selected })
   })
 }
 
-function DependencyGraph({ nodes, dependencies, activeNodes = [], width = 700, height = 450, onNodeSelect }) {
+function DependencyGraph({ nodes, dependencies, activeNodes = [], width = 700, height = 450, onNodeSelect, disabled = false }) {
   const svgRef = useRef(null)
   const containerRef = useRef(null)
   const linkRef = useRef(null)
@@ -74,6 +74,7 @@ function DependencyGraph({ nodes, dependencies, activeNodes = [], width = 700, h
   const [selectedNodeId, setSelectedNodeId] = useState(null)
   const selectedRef = useRef(null)
   const onNodeSelectRef = useRef(onNodeSelect)
+  const disabledRef = useRef(disabled)
 
   useEffect(() => {
     selectedRef.current = selectedNodeId
@@ -82,6 +83,10 @@ function DependencyGraph({ nodes, dependencies, activeNodes = [], width = 700, h
   useEffect(() => {
     onNodeSelectRef.current = onNodeSelect
   }, [onNodeSelect])
+
+  useEffect(() => {
+    disabledRef.current = disabled
+  }, [disabled])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -147,8 +152,9 @@ function DependencyGraph({ nodes, dependencies, activeNodes = [], width = 700, h
       .attr('height', h)
       .attr('fill', 'transparent')
       .on('click', () => {
+        if (disabledRef.current) return
         setSelectedNodeId(null)
-        if (onNodeSelect) onNodeSelect(null)
+        if (onNodeSelectRef.current) onNodeSelectRef.current(null)
       })
 
     const linkGroup = svg.append('g').attr('class', 'links')
@@ -194,7 +200,7 @@ function DependencyGraph({ nodes, dependencies, activeNodes = [], width = 700, h
       .attr('stroke', '#fff')
       .attr('stroke-width', 2)
       .attr('opacity', d => NODE_CONFIG[d.type].baseOpacity)
-      .style('cursor', 'pointer')
+      .style('cursor', disabled ? 'not-allowed' : 'pointer')
 
     node.append('title').text(d => d.id + ': ' + d.name)
 
@@ -248,6 +254,7 @@ function DependencyGraph({ nodes, dependencies, activeNodes = [], width = 700, h
 
     node.on('click', function(event, d) {
       event.stopPropagation()
+      if (disabledRef.current) return
       const currentSelected = selectedRef.current
       const nextId = currentSelected === d.id ? null : d.id
       setSelectedNodeId(nextId)
@@ -308,7 +315,7 @@ function DependencyGraph({ nodes, dependencies, activeNodes = [], width = 700, h
     return () => {
       simulation.stop()
     }
-  }, [nodes, dependencies, renderKey])
+  }, [nodes, dependencies, renderKey, disabled])
 
   useEffect(() => {
     applySelectionOpacity({
@@ -327,7 +334,11 @@ function DependencyGraph({ nodes, dependencies, activeNodes = [], width = 700, h
   }, [activeNodes])
 
   return (
-    <div className="dependency-graph-container" ref={containerRef}>
+    <div
+      className={`dependency-graph-container${disabled ? ' is-disabled' : ''}`}
+      ref={containerRef}
+      aria-disabled={disabled}
+    >
       <svg ref={svgRef} width={dimensionsRef.current.width} height={dimensionsRef.current.height} />
       {tooltip.visible && tooltip.content && (
         <div

@@ -379,10 +379,10 @@ class PlanAgent:
         """
         Validate dependency graph for logical errors.
         Rules:
-          1. Each V must have exactly one D incoming edge
-          2. No cycles (direct or indirect)
-          3. No isolated nodes (except d type)
-          4. No bidirectional edges, D->I, I->D, or V->D edges
+          1. Every non-d node has at least one valid predecessor
+          2. D/V/I incoming edges satisfy their type-specific contracts
+          3. Edge endpoints and type labels are valid
+          4. No duplicates, self-loops, bidirectional edges, or cycles
 
         Args:
             nodes: All nodes grouped by type {d, D, V, I}
@@ -398,36 +398,215 @@ class PlanAgent:
         for ntype, nlist in nodes.items():
             for n in nlist:
                 nid = n["id"]
+                if nid in all_node_ids:
+                    errors.append({
+                        "rule": "unique_node_id",
+                        "severity": "error",
+                        "message": f"Node id '{nid}' is duplicated",
+                        "nodes": [nid]
+                    })
                 all_node_ids.add(nid)
                 node_type_map[nid] = ntype
 
         # Build adjacency maps
-        outgoing = {}  # node -> [(to, type)]
-        incoming = {}  # node -> [(from, type)]
+        outgoing = {nid: [] for nid in all_node_ids}  # node -> [(to, type)]
+        incoming = {nid: [] for nid in all_node_ids}  # node -> [(from, type)]
         edge_pairs = set()  # set of (from, to)
+        seen_edges = set()
+        allowed_edge_types = {
+            ("d", "D"): "d->D",
+            ("D", "D"): "D->D",
+            ("d", "V"): "d->V",
+            ("D", "V"): "D->V",
+            ("V", "I"): "V->I",
+            ("I", "V"): "I->V"
+        }
 
         for dep in dependencies:
             f = dep.get("from", "")
             t = dep.get("to", "")
             etype = dep.get("type", "")
-            if f not in outgoing:
-                outgoing[f] = []
+            edge_key = (f, t, etype)
+
+            if edge_key in seen_edges:
+                errors.append({
+                    "rule": "duplicate_edge",
+                    "severity": "error",
+                    "message": f"Duplicate edge '{f}' -> '{t}' ({etype})",
+                    "nodes": [f, t]
+                })
+                continue
+            seen_edges.add(edge_key)
+
+            unknown = [nid for nid in (f, t) if nid not in all_node_ids]
+            if unknown:
+                errors.append({
+                    "rule": "known_edge_endpoints",
+                    "severity": "error",
+                    "message": f"Edge '{f}' -> '{t}' references unknown node(s): {unknown}",
+                    "nodes": unknown
+                })
+                continue
+
+            if f == t:
+                errors.append({
+                    "rule": "no_self_loop",
+                    "severity": "error",
+                    "message": f"Node '{f}' has a self-loop",
+                    "nodes": [f]
+                })
+                continue
+
+            expected_type = allowed_edge_types.get(
+                (node_type_map.get(f), node_type_map.get(t))
+            )
+            if expected_type is None or etype != expected_type:
+                errors.append({
+                    "rule": "edge_type_matches_nodes",
+                    "severity": "error",
+                    "message": (
+                        f"Edge '{f}' ({node_type_map.get(f)}) -> "
+                        f"'{t}' ({node_type_map.get(t)}) has type '{etype}'; "
+                        f"expected {expected_type or 'no edge is allowed'}"
+                    ),
+                    "nodes": [f, t]
+                })
+                continue
+
             outgoing[f].append((t, etype))
-            if t not in incoming:
-                incoming[t] = []
             incoming[t].append((f, etype))
             edge_pairs.add((f, t))
 
-        # --- Rule 1: Each V must have exactly one D incoming ---
+        # --- Rule 1: only d nodes may have no predecessor ---
+        for ntype, nlist in nodes.items():
+            for node in nlist:
+                nid = node["id"]
+                if ntype == "d":
+                    if incoming.get(nid):
+                        errors.append({
+                            "rule": "d_is_source",
+                            "severity": "error",
+                            "message": f"Input node '{nid}' must not have incoming edges",
+                            "nodes": [nid]
+                        })
+                    continue
+                if not incoming.get(nid):
+                    expected = {
+                        "D": "d->D or D->D",
+                        "V": "d->V or D->V",
+                        "I": "V->I"
+                    }.get(ntype, "a valid incoming edge")
+                    errors.append({
+                        "rule": "non_d_has_predecessor",
+                        "severity": "error",
+                        "message": (
+                            f"Node '{nid}' ({ntype}) has no valid predecessor; "
+                            f"expected {expected}"
+                        ),
+                        "nodes": [nid]
+                    })
+
+        # --- Rule 2: each D must have at least one data predecessor ---
+        for dnode in nodes.get("D", []):
+            did = dnode["id"]
+            data_inputs = [
+                src for src, etype in incoming.get(did, [])
+                if etype in ("d->D", "D->D")
+            ]
+            if not data_inputs and incoming.get(did):
+                errors.append({
+                    "rule": "d_has_data_predecessor",
+                    "severity": "error",
+                    "message": f"D node '{did}' has no d/D data predecessor",
+                    "nodes": [did]
+                })
+            data_consumers = [
+                target for target, etype in outgoing.get(did, [])
+                if etype in ("D->D", "D->V")
+            ]
+            if not data_consumers:
+                errors.append({
+                    "rule": "d_has_consumer",
+                    "severity": "error",
+                    "message": f"D node '{did}' has no downstream D/V consumer",
+                    "nodes": [did]
+                })
+
+            task_text = " ".join([
+                str(dnode.get("name", "")),
+                str(dnode.get("description", "")),
+                str(dnode.get("task", ""))
+            ])
+            infeasible_patterns = (
+                r"\bnot\s+provided\b",
+                r"\bnot\s+available\b",
+                r"\bunavailable\s+(?:metric|field|column|data)",
+                r"\bif\s+available\b",
+                r"\bassume\b.*\b(?:metric|proxy|represent)\b"
+            )
+            if any(
+                re.search(pattern, task_text, re.IGNORECASE)
+                for pattern in infeasible_patterns
+            ):
+                errors.append({
+                    "rule": "data_feasibility",
+                    "severity": "error",
+                    "message": (
+                        f"D node '{did}' requests unavailable or assumed data; "
+                        "remove the node or redesign it using fields explicitly "
+                        "present in its upstream schemas"
+                    ),
+                    "nodes": [did]
+                })
+
+        # --- Rule 3: each V must have exactly one data predecessor ---
         for vnode in nodes.get("V", []):
             vid = vnode["id"]
-            d_incoming = [src for src, _ in incoming.get(vid, []) if node_type_map.get(src) in ("d", "D")]
+            d_incoming = [
+                src for src, etype in incoming.get(vid, [])
+                if etype in ("d->V", "D->V")
+            ]
             if len(d_incoming) != 1:
                 errors.append({
                     "rule": "single_d_input",
                     "severity": "error",
                     "message": f"V node '{vid}' has {len(d_incoming)} data input(s) (expected exactly 1 D/d). Found: {d_incoming if d_incoming else 'none'}",
                     "nodes": [vid]
+                })
+
+        # --- Rule 4: each I needs a V trigger and a different V target ---
+        for inode in nodes.get("I", []):
+            iid = inode["id"]
+            trigger_views = {
+                src for src, etype in incoming.get(iid, []) if etype == "V->I"
+            }
+            target_views = {
+                target for target, etype in outgoing.get(iid, []) if etype == "I->V"
+            }
+            if not trigger_views and incoming.get(iid):
+                errors.append({
+                    "rule": "i_has_trigger",
+                    "severity": "error",
+                    "message": f"I node '{iid}' has no incoming V->I trigger",
+                    "nodes": [iid]
+                })
+            if not target_views:
+                errors.append({
+                    "rule": "i_has_target",
+                    "severity": "error",
+                    "message": f"I node '{iid}' has no outgoing I->V target",
+                    "nodes": [iid]
+                })
+            overlap = sorted(trigger_views & target_views)
+            if overlap:
+                errors.append({
+                    "rule": "i_source_target_differ",
+                    "severity": "error",
+                    "message": (
+                        f"I node '{iid}' uses the same V node(s) as trigger and target: "
+                        f"{overlap}"
+                    ),
+                    "nodes": [iid] + overlap
                 })
 
         # --- Rule 2: No cycles (DFS with white/gray/black) ---
@@ -478,59 +657,17 @@ class PlanAgent:
                     })
                     # stop at first cycle found
 
-        # --- Rule 3: No isolated nodes (except d type) ---
-        connected_nodes = set()
-        for dep in dependencies:
-            connected_nodes.add(dep.get("from", ""))
-            connected_nodes.add(dep.get("to", ""))
-
-        for ntype, nlist in nodes.items():
-            if ntype == "d":
-                continue
-            for n in nlist:
-                nid = n["id"]
-                if nid not in connected_nodes:
-                    errors.append({
-                        "rule": "no_isolated_node",
-                        "severity": "error",
-                        "message": f"Node '{nid}' ({ntype}) is isolated (no connections to any other node)",
-                        "nodes": [nid]
-                    })
-
-        # --- Rule 4: Invalid edge types ---
-        invalid_type_map = {
-            "D->I": "D->I",
-            "I->D": "I->D",
-            "V->D": "V->D",
-            "I->D": "I->D",
-        }
-
-        # Check for bidirectional edges (exclude V<->I which is intentional interaction)
+        # --- Rule 6: No bidirectional edges ---
         bidirectional_found = set()
         for f, t in edge_pairs:
             ftype = node_type_map.get(f, "?")
             ttype = node_type_map.get(t, "?")
-            # Skip V<->I pairs — intentional interaction pattern
-            if {ftype, ttype} == {"V", "I"}:
-                continue
             if (t, f) in edge_pairs and (f, t) not in bidirectional_found and (t, f) not in bidirectional_found:
                 bidirectional_found.add((f, t))
                 errors.append({
                     "rule": "bidirectional_edge",
                     "severity": "error",
                     "message": f"Bidirectional edge detected: '{f}' ({ftype}) <-> '{t}' ({ttype})",
-                    "nodes": [f, t]
-                })
-
-        for dep in dependencies:
-            etype = dep.get("type", "")
-            f = dep.get("from", "")
-            t = dep.get("to", "")
-            if etype in invalid_type_map:
-                errors.append({
-                    "rule": "invalid_edge_type",
-                    "severity": "error",
-                    "message": f"Invalid edge type '{etype}' from '{f}' to '{t}'",
                     "nodes": [f, t]
                 })
 

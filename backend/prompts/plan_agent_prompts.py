@@ -77,6 +77,7 @@ Input Data Tables (these are lowercase 'd' nodes - raw input tables, do NOT gene
 
 ### D nodes (uppercase) - Data Processing (Intermediate Tables)
 - These are intermediate tables created by data processing
+- Every D node MUST declare at least one predecessor through d->D or D->D; a D node can never be a graph root
 - Each D node must have a detailed task description of HOW to process the data
 - Format: D1, D2, D3, ...
 - Each D node has:
@@ -147,15 +148,37 @@ Input Data Tables (these are lowercase 'd' nodes - raw input tables, do NOT gene
 
 ## CRITICAL Dependency Graph Validation Rules (ALL MUST BE SATISFIED)
 
-**Rule 1 - Each V needs exactly one data source:** Every visualization V node must have exactly ONE incoming data edge (d->V or D->V). No V can have zero or multiple data sources.
+**Rule 1 - Every non-d node needs a predecessor:** Every D, V, and I node MUST have at least one valid incoming edge. Only lowercase d input nodes may have zero predecessors.
 
-**Rule 2 - No cycles:** The dependency graph must be acyclic. You CANNOT create circular dependencies like D1->D2->D1 or V1->I1->V1.
+**Rule 2 - D predecessor contract:** Every D must have at least one incoming d->D or D->D edge. Creating D3->V3 is not sufficient if D3 itself has no input.
 
-**Rule 3 - No isolated nodes (except d nodes):** Every node (D, V, I) MUST be connected to at least one other node. No node can be disconnected from the graph. d nodes (input tables) are the only exception — they can exist as pure sources.
+**Rule 3 - V data contract:** Every V must have exactly ONE incoming data edge (d->V or D->V). An I->V edge is an interaction control edge and does not replace the required data predecessor.
 
-**Rule 4 - Every D node needs a data input:** Each data processing D node MUST have at least one incoming data edge (d->D or D->D). A D node with no input data cannot perform any processing.
+**Rule 4 - I predecessor contract:** Every I must have at least one incoming V->I trigger edge and at least one outgoing I->V target edge. Source and target V nodes must be different.
 
-**Rule 5 - Every D/V node must produce useful output:** Every D node should be connected to at least one downstream node (D>D, D->V). A D node that produces data no one uses is wasteful. Every V node should appear in at least one dependency edge as a source or target.
+**Rule 5 - No cycles:** The dependency graph must be acyclic. You CANNOT create circular dependencies like D1->D2->D1 or V1->I1->V1.
+
+**Rule 6 - Edge integrity:** Every edge endpoint must reference an existing node, its `type` must exactly match the source and target node types, duplicate/self-loop edges are forbidden, and lowercase d nodes cannot have incoming edges.
+
+**Rule 7 - Useful outputs:** Every D node should have at least one downstream D or V consumer. A D node that produces data no one uses is wasteful.
+
+**Rule 8 - Data feasibility:** Every D task and V chart must be computable from
+the fields explicitly present in its upstream data. Never request unavailable
+metrics, write phrases such as "not provided" or "if available", invent proxy
+metrics, or substitute counts/IDs for performance, quality, effectiveness, or
+other absent concepts. Remove an infeasible requirement instead of fabricating
+a computation. A scatter plot requires two meaningful varying dimensions.
+
+## Mandatory Dependency Audit Before Responding
+
+Before producing JSON, audit every generated node:
+1. List each D node mentally and verify at least one incoming d->D or D->D edge.
+2. List each V node and verify exactly one incoming d->V or D->V edge.
+3. List each I node and verify at least one incoming V->I and one outgoing I->V edge to a different V.
+4. Trace every D/V/I backward. The chain must eventually reach at least one lowercase d source.
+5. Verify every edge type equals the actual endpoint types and that no node ID is missing or duplicated.
+6. If a node cannot be connected validly, remove that node instead of returning an invalid graph.
+7. Reject any D/V pair whose requested metric is absent from the supplied table schemas.
 
 ## Important Guidelines
 
@@ -163,6 +186,7 @@ Input Data Tables (these are lowercase 'd' nodes - raw input tables, do NOT gene
 - Create reasonable number of nodes (3-10 D nodes, 3-8 V nodes, 2-5 I nodes)
 - d nodes are only data sources, they appear as dependencies but don't need task descriptions
 - The dependency graph should be logically sound
+- Build dependencies at the same time as nodes; never create a D/V/I node without immediately assigning its valid predecessor
 - Respond in English
 - Output strictly in JSON format
 

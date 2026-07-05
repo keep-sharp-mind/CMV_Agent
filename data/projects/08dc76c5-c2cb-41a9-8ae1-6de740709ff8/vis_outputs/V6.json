@@ -1,0 +1,33 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Formation Consistency Line Chart",
+  "data": {
+    "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D6.csv"
+  },
+  "mark": "line",
+  "encoding": {
+    "x": {
+      "field": "match_identifier",
+      "type": "quantitative",
+      "title": "Match Identifier"
+    },
+    "y": {
+      "field": "formation_consistency_variance",
+      "type": "quantitative",
+      "title": "Formation Consistency Variance"
+    }
+  },
+  "width": "container",
+  "height": "container",
+  "description": "V6",
+  "autosize": {
+    "type": "fit",
+    "contains": "padding"
+  },
+  "config": {
+    "background": "rgba(0, 0, 0, 0)",
+    "padding": 10
+  },
+  "transform": [],
+  "params": []
+}

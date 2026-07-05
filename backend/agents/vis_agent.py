@@ -8,6 +8,7 @@ import json
 import re
 import copy
 import traceback
+import math
 from typing import List, Dict, Any, Optional
 from model import get_model_client, ModelClient
 from agents.error_agent import get_error_agent
@@ -72,6 +73,57 @@ class VisAgent:
             return matches[-1].strip()
         return text.strip()
 
+    @staticmethod
+    def _apply_quantitative_axis_domains(
+        spec: Dict[str, Any],
+        field_profiles: Dict[str, Any]
+    ) -> None:
+        """Use observed numeric ranges for x/y axes instead of zero-based defaults."""
+        if not isinstance(spec, dict):
+            return
+
+        encoding = spec.get("encoding") or {}
+        for channel in ("x", "y"):
+            definition = encoding.get(channel)
+            if not isinstance(definition, dict):
+                continue
+            if str(definition.get("type", "")).lower() != "quantitative":
+                continue
+            if definition.get("aggregate") or definition.get("bin"):
+                continue
+            field = definition.get("field")
+            profile = field_profiles.get(field) or {}
+            minimum = profile.get("min")
+            maximum = profile.get("max")
+            if not isinstance(minimum, (int, float)) or not isinstance(
+                maximum, (int, float)
+            ):
+                continue
+            if not math.isfinite(minimum) or not math.isfinite(maximum):
+                continue
+            span = maximum - minimum
+            padding = span * 0.05 if span > 0 else max(abs(minimum) * 0.05, 1.0)
+            scale = dict(definition.get("scale") or {})
+            scale.update({
+                "zero": False,
+                "nice": True,
+                "domain": [minimum - padding, maximum + padding]
+            })
+            definition["scale"] = scale
+
+        for key in ("layer", "hconcat", "vconcat", "concat"):
+            children = spec.get(key) or []
+            if isinstance(children, list):
+                for child in children:
+                    VisAgent._apply_quantitative_axis_domains(
+                        child, field_profiles
+                    )
+        nested_spec = spec.get("spec")
+        if isinstance(nested_spec, dict):
+            VisAgent._apply_quantitative_axis_domains(
+                nested_spec, field_profiles
+            )
+
     def convert_view_spec(
         self,
         node_id: str,
@@ -119,7 +171,10 @@ class VisAgent:
                 break
         if csv_filename:
             csv_filename = csv_filename if csv_filename.endswith('.csv') else f"{csv_filename}.csv"
-            vega_lite['data'] = {'url': f'/api/projects/{project_id}/data/{csv_filename}/download'}
+            base_url = os.environ.get(
+                "DATA_SERVICE_URL", "http://localhost:5000/data"
+            ).rstrip("/")
+            vega_lite['data'] = {'url': f'{base_url}/{project_id}/{csv_filename}'}
 
         vega_lite.update({
             'description': node_id,
@@ -136,6 +191,12 @@ class VisAgent:
                 **vega_lite.get('config', {})
             }
         })
+
+        field_profiles = metadata.get("input_field_profiles") or {}
+        if isinstance(field_profiles, dict):
+            self._apply_quantitative_axis_domains(
+                vega_lite, field_profiles
+            )
 
         if 'transform' not in vega_lite:
             vega_lite['transform'] = []
@@ -201,7 +262,8 @@ class VisAgent:
         self,
         node: Dict[str, Any],
         input_nodes: List[Dict[str, Any]],
-        input_table_paths: Dict[str, str]
+        input_table_paths: Dict[str, str],
+        field_contract: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Generate a Vega-Lite spec + metadata for a V node.
@@ -215,22 +277,46 @@ class VisAgent:
             Dict: {spec: {...}, metadata: {marktype, used_tables, used_fields, encoding_fields}}
         """
         inputs_desc = []
+        input_field_profiles = {}
         for inp in input_nodes:
             nid = inp["id"]
             csv_path = input_table_paths.get(nid, "")
             if csv_path and os.path.exists(csv_path):
                 try:
                     import pandas as pd
-                    df = pd.read_csv(csv_path, nrows=20)
+                    df = pd.read_csv(csv_path)
                     columns = list(df.columns)
                     dtypes = {c: str(df[c].dtype) for c in columns}
+                    field_profiles = {}
+                    for column in columns:
+                        series = df[column].dropna()
+                        profile = {
+                            "data_type": dtypes[column],
+                            "non_null_count": int(series.size),
+                            "unique_count": int(series.nunique())
+                        }
+                        if pd.api.types.is_numeric_dtype(df[column]):
+                            if not series.empty:
+                                profile.update({
+                                    "min": float(series.min()),
+                                    "max": float(series.max()),
+                                    "q01": float(series.quantile(0.01)),
+                                    "q99": float(series.quantile(0.99))
+                                })
+                        else:
+                            profile["sample_values"] = [
+                                str(value) for value in series.unique()[:10]
+                            ]
+                        field_profiles[column] = profile
+                        input_field_profiles.setdefault(column, profile)
                     inputs_desc.append({
                         "id": nid,
                         "name": inp.get("name", nid),
                         "file_path": csv_path,
                         "columns": columns,
                         "dtypes": dtypes,
-                        "sample_rows": df.to_dict(orient="records")
+                        "field_profiles": field_profiles,
+                        "sample_rows": df.head(20).to_dict(orient="records")
                     })
                 except Exception as e:
                     inputs_desc.append({"id": nid, "name": inp.get("name", nid), "file_path": csv_path, "error": str(e)})
@@ -246,7 +332,10 @@ class VisAgent:
             node_name=node.get("name", ""),
             node_description=node.get("description", ""),
             chart_type=chart_type,
-            inputs_json=inputs_json
+            inputs_json=inputs_json,
+            field_contract_json=json.dumps(
+                field_contract or {}, ensure_ascii=False, indent=2
+            )
         )
 
         messages = [
@@ -270,6 +359,9 @@ class VisAgent:
             except json.JSONDecodeError:
                 spec = {}
                 metadata = {}
+
+        if isinstance(metadata, dict):
+            metadata["input_field_profiles"] = input_field_profiles
 
         return {
             "spec": spec,
@@ -329,11 +421,19 @@ class VisAgent:
 
         used_fields = set()
         encoding = spec.get("encoding", {})
+        quantitative_axes = []
         for channel, enc_def in encoding.items():
             if isinstance(enc_def, dict):
                 field = enc_def.get("field", "")
                 if field:
                     used_fields.add(field)
+                    if (
+                        channel in ("x", "y")
+                        and str(enc_def.get("type", "")).lower() == "quantitative"
+                        and not enc_def.get("aggregate")
+                        and not enc_def.get("bin")
+                    ):
+                        quantitative_axes.append((channel, field))
 
         for channel in ("layer", "facet", "repeat"):
             child = spec.get(channel, {})
@@ -378,6 +478,39 @@ class VisAgent:
                         "detail": f"Field '{f}' referenced in spec encoding does not exist in the input tables. Available fields: {list(all_table_fields)[:20]}"
                     })
 
+        # A quantitative axis with one distinct value creates a visually valid
+        # but analytically meaningless flat chart (for example every y equals 1).
+        if quantitative_axes and input_table_paths:
+            try:
+                import pandas as pd
+                used_tables = set((metadata or {}).get("used_tables") or [])
+                candidate_paths = [
+                    path for table_id, path in input_table_paths.items()
+                    if not used_tables or table_id in used_tables
+                ]
+                for channel, field in quantitative_axes:
+                    distinct = set()
+                    for path in candidate_paths:
+                        if not os.path.exists(path):
+                            continue
+                        frame = pd.read_csv(path, usecols=lambda name: name == field)
+                        if field in frame:
+                            distinct.update(frame[field].dropna().unique().tolist())
+                        if len(distinct) > 1:
+                            break
+                    if len(distinct) <= 1:
+                        issues.append({
+                            "type": "constant_quantitative_axis",
+                            "detail": (
+                                f"Quantitative {channel}-axis field '{field}' has "
+                                f"only {len(distinct)} distinct non-null value(s). "
+                                "Choose a genuinely varying metric or a more "
+                                "appropriate chart; do not render a flat plot."
+                            )
+                        })
+            except Exception:
+                pass
+
         syntax_check = {"valid": len(issues) == 0, "issues_count": len(issues), "error_type": None}
         if issues:
             syntax_check["error"] = issues[0]["detail"]
@@ -391,7 +524,8 @@ class VisAgent:
         input_nodes: List[Dict[str, Any]],
         input_table_paths: Dict[str, str],
         output_dir: str,
-        project_id: str = ""
+        project_id: str = "",
+        field_contract: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Process a single V node: generate spec, validate, report errors.
@@ -400,6 +534,58 @@ class VisAgent:
             Dict: {node_id, spec, metadata, spec_json, success, syntax_check, validation_issues, source_tag, error_report}
         """
         node_id = node["id"]
+        if field_contract is None and self.project_dir:
+            try:
+                from agents.planner_agent import PlannerAgent
+                contract_path = os.path.join(
+                    self.project_dir, "data_flow_contract.json"
+                )
+                with open(contract_path, "r", encoding="utf-8") as file:
+                    field_contract = PlannerAgent.build_node_contract(
+                        json.load(file), node_id
+                    )
+            except (OSError, json.JSONDecodeError):
+                field_contract = {}
+        if not field_contract:
+            field_contract = {
+                "node_id": node_id,
+                "required_inputs": {},
+                "required_outputs": [],
+                "allowed_predecessors": [
+                    item.get("id") for item in input_nodes if item.get("id")
+                ],
+                "incoming_edges": [],
+                "outgoing_edges": []
+            }
+
+        def apply_field_contract(validation_result, candidate_spec, candidate_metadata):
+            if not field_contract:
+                return validation_result
+            from agents.planner_agent import PlannerAgent
+            contract_issues = PlannerAgent.validate_artifact_contract(
+                node_id,
+                "V",
+                {"spec": candidate_spec, "metadata": candidate_metadata},
+                field_contract
+            )
+            if contract_issues:
+                validation_result = dict(validation_result)
+                validation_result["valid"] = False
+                validation_result["issues"] = (
+                    list(validation_result.get("issues") or [])
+                    + contract_issues
+                )
+                syntax_check = dict(
+                    validation_result.get("syntax_check") or {"valid": True}
+                )
+                syntax_check.update({
+                    "valid": False,
+                    "error": contract_issues[0]["detail"],
+                    "error_type": "field_contract_violation"
+                })
+                validation_result["syntax_check"] = syntax_check
+            return validation_result
+
         out = {
             "node_id": node_id,
             "node_type": "V",
@@ -413,7 +599,16 @@ class VisAgent:
             "error": None
         }
 
-        result = self.generate_visualization_spec(node, input_nodes, input_table_paths)
+        try:
+            result = self.generate_visualization_spec(
+                node, input_nodes, input_table_paths, field_contract
+            )
+        except TypeError as exc:
+            if "generate_visualization_spec" not in str(exc):
+                raise
+            result = self.generate_visualization_spec(
+                node, input_nodes, input_table_paths
+            )
         spec = result.get("spec", {})
         metadata = result.get("metadata", {})
         spec_json = json.dumps(spec, ensure_ascii=False, indent=2) if spec else ""
@@ -428,6 +623,7 @@ class VisAgent:
         out["spec_json"] = spec_json
 
         validation = self.validate_visualization(spec, metadata, input_table_paths)
+        validation = apply_field_contract(validation, spec, metadata)
         out["syntax_check"] = validation.get("syntax_check")
         out["validation_issues"] = validation.get("issues", [])
 
@@ -483,6 +679,9 @@ class VisAgent:
                             fixed_spec = fix_result["spec"]
                             fixed_metadata = fix_result.get("metadata", {})
                             re_validation = self.validate_visualization(fixed_spec, fixed_metadata, input_table_paths)
+                            re_validation = apply_field_contract(
+                                re_validation, fixed_spec, fixed_metadata
+                            )
 
                             if re_validation.get("valid"):
                                 if project_id:

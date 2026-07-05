@@ -9,22 +9,22 @@
     {
       "id": "R2",
       "name": "Formation Change Over Time Analysis",
-      "description": "Examine how the formation types change across different time intervals (e.g., match phases or game periods) for both teams."
+      "description": "Examine how the formation types of each team change across different match segments or time intervals."
     },
     {
       "id": "R3",
       "name": "Formation Matchup Analysis",
-      "description": "Compare the formation types used by the two teams against each other to identify patterns in their tactical interactions."
+      "description": "Compare the formation types used by the two teams against each other to identify tactical interactions."
     },
     {
       "id": "R4",
       "name": "Formation Effectiveness Analysis",
-      "description": "Evaluate the correlation between specific formation types and match outcomes (e.g., wins, losses, draws) for each team."
+      "description": "Evaluate the performance outcomes (e.g., goals, possession, shots) associated with specific formations for each team."
     },
     {
       "id": "R5",
-      "name": "Formation Usage Rate by Game Phase",
-      "description": "Analyze how often each formation is used during different phases of the game (e.g., first half, second half, overtime)."
+      "name": "Formation Consistency Analysis",
+      "description": "Assess the consistency of formation usage across matches to determine if teams stick to specific strategies."
     }
   ],
   "nodes": {
@@ -47,89 +47,89 @@
         "id": "D1",
         "name": "Argentina_Formation_Distribution",
         "description": "Calculate the frequency of each formation type used by Argentina",
-        "task": "Group the 'formation_type' column from d1 and count the occurrences of each type."
+        "task": "Aggregate the 'formation_type' column from d1 to count the frequency of each unique formation type."
       },
       {
         "id": "D2",
         "name": "Brazil_Formation_Distribution",
         "description": "Calculate the frequency of each formation type used by Brazil",
-        "task": "Group the 'formation_type' column from d2 and count the occurrences of each type."
+        "task": "Aggregate the 'formation_type' column from d2 to count the frequency of each unique formation type."
       },
       {
         "id": "D3",
         "name": "Formation_Change_Over_Time",
-        "description": "Analyze how formation types change across different time intervals for both teams",
-        "task": "Segment the data by time intervals (e.g., first half, second half, overtime) and calculate the frequency of each formation type within each interval for both teams."
+        "description": "Track how formation types change across match segments or time intervals",
+        "task": "Group the data from d1 and d2 by 'frame_id' (representing time intervals) and count the formation types used in each interval."
       },
       {
         "id": "D4",
-        "name": "Formation_Matchup_Analysis",
+        "name": "Formation_Matchup",
         "description": "Compare the formation types used by Argentina and Brazil against each other",
-        "task": "Cross-reference the formation types from d1 and d2 to identify common and unique formations used by each team during the same match phases."
+        "task": "Join the formation data from d1 and d2 on 'frame_id' and analyze the co-occurrence of formation types between the two teams."
       },
       {
         "id": "D5",
         "name": "Formation_Effectiveness",
-        "description": "Evaluate the correlation between formation types and match outcomes for each team",
-        "task": "Join formation data with match outcome data (if available) and calculate the win/loss/draw rates for each formation type used by Argentina and Brazil separately."
+        "description": "Evaluate performance outcomes (e.g., goals, possession, shots) associated with specific formations",
+        "task": "Join formation data from d1 and d2 with performance metrics (not provided in input tables), and calculate average performance outcomes per formation type."
       },
       {
         "id": "D6",
-        "name": "Formation_Usage_Rate_By_Phase",
-        "description": "Analyze how often each formation is used during different game phases",
-        "task": "Group the formation data by game phase (first half, second half, overtime) and calculate the usage rate of each formation type for both teams."
+        "name": "Formation_Consistency",
+        "description": "Assess the consistency of formation usage across matches",
+        "task": "Group the formation data from d1 and d2 by match identifier (if available) and calculate the variance or standard deviation of formation types used per match."
       }
     ],
     "V": [
       {
         "id": "V1",
         "name": "Argentina_Formation_Distribution_Bar",
-        "description": "Shows the distribution of formation types used by Argentina",
+        "description": "Bar chart showing the distribution of formation types used by Argentina",
         "chart_type": "bar"
       },
       {
         "id": "V2",
         "name": "Brazil_Formation_Distribution_Bar",
-        "description": "Shows the distribution of formation types used by Brazil",
+        "description": "Bar chart showing the distribution of formation types used by Brazil",
         "chart_type": "bar"
       },
       {
         "id": "V3",
         "name": "Formation_Change_Over_Time_Line",
-        "description": "Displays how formation types change over different time intervals for both teams",
+        "description": "Line chart showing how formation types change over time intervals",
         "chart_type": "line"
       },
       {
         "id": "V4",
         "name": "Formation_Matchup_Heatmap",
-        "description": "Compares the formation types used by Argentina and Brazil against each other",
+        "description": "Heatmap showing the frequency of formation type matchups between Argentina and Brazil",
         "chart_type": "heatmap"
       },
       {
         "id": "V5",
-        "name": "Formation_Effectiveness_Bar",
-        "description": "Shows the effectiveness of each formation type in terms of match outcomes for both teams",
-        "chart_type": "bar"
+        "name": "Formation_Effectiveness_Scatter",
+        "description": "Scatter plot showing the relationship between formation types and performance outcomes",
+        "chart_type": "scatter"
       },
       {
         "id": "V6",
-        "name": "Formation_Usage_Rate_By_Phase_Bar",
-        "description": "Analyzes how often each formation is used during different game phases for both teams",
-        "chart_type": "bar"
+        "name": "Formation_Consistency_Line",
+        "description": "Line chart showing the consistency of formation usage across matches",
+        "chart_type": "line"
       }
     ],
     "I": [
       {
         "id": "I1",
-        "name": "Filter_Formation_Type",
-        "description": "Allows users to filter formations displayed in charts",
+        "name": "Select_Formation_Type",
+        "description": "Allows users to select a formation type to filter the charts",
         "trigger": "select",
         "effect": "filter"
       },
       {
         "id": "I2",
-        "name": "Highlight_Match_Phase",
-        "description": "Highlights specific game phases in charts",
+        "name": "Highlight_Matchup",
+        "description": "Highlights specific formation type matchups between the two teams",
         "trigger": "interval",
         "effect": "highlight"
       }
@@ -172,9 +172,19 @@
       "type": "D->V"
     },
     {
+      "from": "D3",
+      "to": "D4",
+      "type": "D->D"
+    },
+    {
       "from": "D4",
       "to": "V4",
       "type": "D->V"
+    },
+    {
+      "from": "D3",
+      "to": "D5",
+      "type": "D->D"
     },
     {
       "from": "D5",
@@ -182,39 +192,14 @@
       "type": "D->V"
     },
     {
+      "from": "D3",
+      "to": "D6",
+      "type": "D->D"
+    },
+    {
       "from": "D6",
       "to": "V6",
       "type": "D->V"
-    },
-    {
-      "from": "D1",
-      "to": "D4",
-      "type": "D->D"
-    },
-    {
-      "from": "D2",
-      "to": "D4",
-      "type": "D->D"
-    },
-    {
-      "from": "D1",
-      "to": "D5",
-      "type": "D->D"
-    },
-    {
-      "from": "D2",
-      "to": "D5",
-      "type": "D->D"
-    },
-    {
-      "from": "D1",
-      "to": "D6",
-      "type": "D->D"
-    },
-    {
-      "from": "D2",
-      "to": "D6",
-      "type": "D->D"
     },
     {
       "from": "V1",
@@ -222,36 +207,21 @@
       "type": "V->I"
     },
     {
-      "from": "V2",
-      "to": "I1",
-      "type": "V->I"
+      "from": "I1",
+      "to": "V2",
+      "type": "I->V"
     },
     {
-      "from": "V3",
+      "from": "V4",
       "to": "I2",
       "type": "V->I"
     },
     {
-      "from": "I1",
-      "to": "V4",
-      "type": "I->V"
-    },
-    {
-      "from": "I1",
-      "to": "V5",
-      "type": "I->V"
-    },
-    {
-      "from": "I1",
-      "to": "V6",
-      "type": "I->V"
-    },
-    {
       "from": "I2",
-      "to": "V6",
+      "to": "V5",
       "type": "I->V"
     }
   ],
   "validation_errors": [],
-  "generated_at": "2026-06-26T11:12:07.660584"
+  "generated_at": "2026-07-05T18:08:41.573121"
 }

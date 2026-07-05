@@ -1,0 +1,38 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Brazil Formation Distribution Bar",
+  "mark": "bar",
+  "encoding": {
+    "x": {
+      "field": "formation_type",
+      "type": "nominal",
+      "axis": {
+        "labelAngle": -45,
+        "title": "Formation Type"
+      }
+    },
+    "y": {
+      "field": "frequency",
+      "type": "quantitative",
+      "axis": {
+        "title": "Frequency"
+      }
+    }
+  },
+  "data": {
+    "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D2.csv"
+  },
+  "description": "V2",
+  "height": "container",
+  "width": "container",
+  "autosize": {
+    "type": "fit",
+    "contains": "padding"
+  },
+  "config": {
+    "background": "rgba(0, 0, 0, 0)",
+    "padding": 10
+  },
+  "transform": [],
+  "params": []
+}

@@ -6,7 +6,7 @@ import os
 from typing import List, Dict, Any, Optional, Callable
 from model import get_model_client, ModelClient
 from agents.plan_agent import get_plan_agent
-from agents.data_agent import get_data_agent
+from agents.data_agent import get_data_agent, build_initial_field_semantics
 from agents.vis_agent import get_vis_agent
 from agents.interaction_agent import get_interaction_agent
 
@@ -251,9 +251,16 @@ class CMVAgent:
         dependencies = plan_data.get("dependencies", [])
         d_nodes = nodes.get("d", [])
         D_nodes = nodes.get("D", [])
+        field_semantics = build_initial_field_semantics(
+            d_nodes, database_schema
+        )
 
         if not D_nodes:
-            return {"processed_nodes": {}, "d_table_paths": {}}
+            return {
+                "processed_nodes": {},
+                "d_table_paths": {},
+                "field_semantics": field_semantics
+            }
 
         data_dir = os.path.join(project_dir, "data_tables")
         os.makedirs(data_dir, exist_ok=True)
@@ -323,17 +330,24 @@ class CMVAgent:
                             break
 
             result = data_agent.process_d_node(
-                node, input_nodes, input_table_paths, data_dir
+                node,
+                input_nodes,
+                input_table_paths,
+                data_dir,
+                field_semantics
             )
 
             processed_nodes[node_id] = result
+            if result.get("field_semantics"):
+                field_semantics[node_id] = result["field_semantics"]
             if result.get("success") and result.get("output_path"):
                 all_table_paths[node_id] = result["output_path"]
 
         return {
             "processed_nodes": processed_nodes,
             "d_table_paths": d_table_paths,
-            "all_table_paths": all_table_paths
+            "all_table_paths": all_table_paths,
+            "field_semantics": field_semantics
         }
 
     def process_visualizations(
@@ -414,7 +428,8 @@ class CMVAgent:
         processed_vis: Dict[str, Any],
         all_table_paths: Dict[str, str] = None,
         project_dir: str = "",
-        project_id: str = ""
+        project_id: str = "",
+        field_semantics: Dict[str, Any] = None
     ) -> Dict[str, Any]:
         """
         Process all I (interaction) nodes.
@@ -432,7 +447,13 @@ class CMVAgent:
             Dict with updated processed_vis and interaction_results
         """
         ia = get_interaction_agent(project_dir=project_dir)
-        return ia.process_interactions(plan_data, processed_vis, all_table_paths, project_id)
+        return ia.process_interactions(
+            plan_data,
+            processed_vis,
+            all_table_paths,
+            project_id,
+            field_semantics
+        )
 
     def _find_d_node_csv_path(
         self,

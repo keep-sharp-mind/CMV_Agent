@@ -28,6 +28,7 @@ Each item has:
 | `select` | string | "point", "interval", or "none" |
 | `source_channels` | string[] | Encoding channels monitored (e.g., ["x"], ["x","y"]) |
 | `link_field` | string | Data field used for linking (e.g., "customer_id") |
+| `semantic` | string | Canonical semantic concept supplied in the view metadata (e.g., "formation") |
 
 ### `controlled_view` (array)
 Each item has:
@@ -36,13 +37,18 @@ Each item has:
 | `view` | string | Target view ID to control (e.g., "V1") |
 | `field` | string | Data field in target view for linking (e.g., "customer_id") |
 | `action` | string | "filter" or "highlight" (applies only to this target view) |
+| `semantic` | string | Canonical semantic concept; must match the source semantic |
 
 ## Rules
 1. `source_channels` must be encoding channel names only (e.g., ["x"]), not field names.
-2. `link_field` in source and `field` in target must refer to the same underlying data field for linking to work.
+2. `link_field` in source and `field` in target may have different names, but their semantic metadata must describe the same canonical concept.
+   Example: `argentina_formation` and `brazil_formation` can link when both have `semantic: "formation"`.
+   These field values are the machine-readable contracts for the V->I and I->V edges; each must be a single field-name string, never an array or encoding channel.
 3. `select` type determines interaction trigger: "point" for click/select, "interval" for brush.
 4. Output only a valid JSON object with exactly two keys: "source_views" and "controlled_view".
 5. Omit all explanations, comments, or non-JSON content.
+6. Include one `source_views` entry for every declared V->I source and one `controlled_view` entry for every declared I->V target.
+7. Choose fields from the supplied encoding fields only. Prefer semantic compatibility over identical spelling, and never invent a field or semantic label.
 
 ## Example
 
@@ -51,7 +57,7 @@ View Specifications: [V4: area chart, encoding x=customer_id, y=count; V1: bar c
 Interaction Requirement: "V4 uses x-axis brush to filter V1 by customer_id"
 
 ### Output
-{{"source_views": [{{"id": "V4", "select": "interval", "source_channels": ["x"], "link_field": "customer_id"}}], "controlled_view": [{{"view": "V1", "field": "customer_id", "action": "filter"}}]}}
+{{"source_views": [{{"id": "V4", "select": "interval", "source_channels": ["x"], "link_field": "customer_id", "semantic": "customer_id"}}], "controlled_view": [{{"view": "V1", "field": "customer_id", "action": "filter", "semantic": "customer_id"}}]}}
 
 Now analyze the given View Specifications and Interaction Requirement, and output the JSON. Do not include any explanation."""
 

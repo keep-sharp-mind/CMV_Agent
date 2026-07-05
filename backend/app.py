@@ -820,6 +820,14 @@ def generate_plan(project_id):
                 "error": "No database uploaded. Please upload a database first."
             }), 400
 
+        # A new plan invalidates lineage computed from the previous graph.
+        # Remove it before planning so failed or long-running replans cannot
+        # leave stale data flow visible to clients.
+        for stale_name in ("data_flow.json", "data_flow_contract.json"):
+            stale_path = project_store.get_project_path(project_id, stale_name)
+            if os.path.isfile(stale_path):
+                os.remove(stale_path)
+
         if not goal or goal.strip() == "":
             agent = get_or_init_agent()
             goal_result = agent.generate_goal(db_schema, context)
@@ -888,6 +896,7 @@ def process_data(project_id):
             }
         }
     """
+    print(f"[process_data] START project={project_id}", flush=True)
     try:
         project_store = get_project_store()
         project = project_store.get_project(project_id)
@@ -920,7 +929,8 @@ def process_data(project_id):
             "processed_nodes": result["processed_nodes"],
             "d_table_paths": result["d_table_paths"],
             "all_table_paths": all_table_paths,
-            "processed_vis": vis_result.get("processed_vis", {})
+            "processed_vis": vis_result.get("processed_vis", {}),
+            "field_semantics": result.get("field_semantics", {})
         }
         project_store.save_project_file(project_id, "data_result.json", data_result)
 
@@ -948,12 +958,15 @@ def process_data(project_id):
             ))
         _save_data_flow(project_store, project_id, plan_data)
 
+        print(f"[process_data] RETURN {len(result.get('processed_nodes', {}))} D-nodes processed", flush=True)
         return jsonify({
             "success": True,
             "data": data_result
         })
 
     except Exception as e:
+        print(f"[process_data] ERROR: {e}", flush=True)
+        import traceback; traceback.print_exc()
         return jsonify({
             "success": False,
             "error": str(e)
@@ -973,6 +986,7 @@ def process_single_d_node(project_id, node_id):
             "data": { node result }
         }
     """
+    print(f"[process_single_d_node] START node={node_id} project={project_id}", flush=True)
     try:
         project_store = get_project_store()
         project = project_store.get_project(project_id)
@@ -1057,12 +1071,24 @@ def process_single_d_node(project_id, node_id):
         os.makedirs(data_dir, exist_ok=True)
 
         from agents.data_agent import get_data_agent
+        from agents.data_agent import build_initial_field_semantics
         data_agent = get_data_agent(project_dir=project_dir)
+        field_semantics = data_result.get("field_semantics")
+        if not isinstance(field_semantics, dict) or not field_semantics:
+            field_semantics = build_initial_field_semantics(
+                d_nodes, db_schema
+            )
         result = data_agent.process_d_node(
-            target_node, input_nodes, input_table_paths, data_dir
+            target_node,
+            input_nodes,
+            input_table_paths,
+            data_dir,
+            field_semantics
         )
 
         processed_nodes[node_id] = result
+        if result.get("field_semantics"):
+            field_semantics[node_id] = result["field_semantics"]
         if result.get("success") and result.get("output_path"):
             all_table_paths[node_id] = result["output_path"]
 
@@ -1070,7 +1096,8 @@ def process_single_d_node(project_id, node_id):
             "processed_nodes": processed_nodes,
             "d_table_paths": data_result.get("d_table_paths", {}),
             "all_table_paths": all_table_paths,
-            "processed_vis": data_result.get("processed_vis", {})
+            "processed_vis": data_result.get("processed_vis", {}),
+            "field_semantics": field_semantics
         }
         project_store.save_project_file(project_id, "data_result.json", updated_result)
 
@@ -1087,8 +1114,11 @@ def process_single_d_node(project_id, node_id):
         ))
         _save_data_flow(project_store, project_id, plan_data)
 
+        print(f"[process_single_d_node] RETURN success={result.get('success')} node={node_id}", flush=True)
         return jsonify({"success": True, "data": result})
     except Exception as e:
+        print(f"[process_single_d_node] ERROR: {e}", flush=True)
+        import traceback; traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -1257,6 +1287,20 @@ def get_node_data(project_id, node_id):
         }), 500
 
 
+def _serve_csv(project_id, filename):
+    """Internal: serve a CSV file for a project."""
+    from project import get_project_store
+    ps = get_project_store()
+    project = ps.get_project(project_id)
+    if not project:
+        return jsonify({"success": False, "error": "Project not found"}), 404
+    node_id = filename.replace('.csv', '')
+    csv_path = _find_node_csv_path(ps, project_id, node_id)
+    if not csv_path or not os.path.exists(csv_path):
+        return jsonify({"success": False, "error": f"CSV not found for {filename}"}), 404
+    return send_file(csv_path, mimetype='text/csv', as_attachment=False)
+
+
 @app.route("/api/projects/<project_id>/data/<path:filename>/download", methods=["GET"])
 def download_csv_data(project_id, filename):
     """
@@ -1264,12 +1308,16 @@ def download_csv_data(project_id, filename):
     Used by Vega-Lite data.url in converted specs.
     """
     try:
-        project_store = get_project_store()
-        node_id = filename.replace('.csv', '')
-        csv_path = _find_node_csv_path(project_store, project_id, node_id)
-        if not csv_path or not os.path.exists(csv_path):
-            return jsonify({"success": False, "error": f"CSV not found for {filename}"}), 404
-        return send_file(csv_path, mimetype='text/csv', as_attachment=False)
+        return _serve_csv(project_id, filename)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/data/<project_id>/<path:filename>", methods=["GET"])
+def download_csv_simple(project_id, filename):
+    """Simpler URL path for CSV download: /data/<project_id>/<filename>"""
+    try:
+        return _serve_csv(project_id, filename)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -1339,10 +1387,11 @@ def process_visualizations(project_id):
         {
             "success": true,
             "data": {
-                "processed_vis": { "V1": {spec, metadata, spec_json, success, ...}, ... }
+                "processed_vis": { ... }
             }
         }
     """
+    print(f"[process_visualizations] START project={project_id}", flush=True)
     try:
         project_store = get_project_store()
         project = project_store.get_project(project_id)
@@ -1381,9 +1430,12 @@ def process_visualizations(project_id):
             ))
         _save_data_flow(project_store, project_id, plan_data)
 
+        print(f"[process_visualizations] RETURN {len(vis_result.get('processed_vis', {}))} V-nodes", flush=True)
         return jsonify({"success": True, "data": vis_result})
 
     except Exception as e:
+        print(f"[process_visualizations] ERROR: {e}", flush=True)
+        import traceback; traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -1397,9 +1449,10 @@ def process_single_v_node(project_id, node_id):
     Response:
         {
             "success": true,
-            "data": { single V node result }
+            "data": { node result }
         }
     """
+    print(f"[process_single_v_node] START node={node_id} project={project_id}", flush=True)
     try:
         project_store = get_project_store()
         project = project_store.get_project(project_id)
@@ -1481,8 +1534,11 @@ def process_single_v_node(project_id, node_id):
             ))
         _save_data_flow(project_store, project_id, plan_data)
 
+        print(f"[process_single_v_node] RETURN success={result.get('success')} recovered={result.get('recovered')} node={node_id}", flush=True)
         return jsonify({"success": True, "data": result})
     except Exception as e:
+        print(f"[process_single_v_node] ERROR: {e}", flush=True)
+        import traceback; traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -1503,6 +1559,7 @@ def process_interactions(project_id):
             }
         }
     """
+    print(f"[process_interactions] START project={project_id}", flush=True)
     try:
         project_store = get_project_store()
         project = project_store.get_project(project_id)
@@ -1530,7 +1587,15 @@ def process_interactions(project_id):
 
         agent = get_or_init_agent()
         project_dir = project_store.get_project_path(project_id)
-        result = agent.process_interactions(plan_data, processed_vis, all_table_paths, project_dir, project_id)
+        field_semantics = (data_result or {}).get("field_semantics", {})
+        result = agent.process_interactions(
+            plan_data,
+            processed_vis,
+            all_table_paths,
+            project_dir,
+            project_id,
+            field_semantics
+        )
 
         # Merge updated processed_vis back to data_result.json
         merged = data_result or {}
@@ -1557,8 +1622,11 @@ def process_interactions(project_id):
             ))
         _save_data_flow(project_store, project_id, plan_data)
 
+        print(f"[process_interactions] RETURN success with {len(result.get('interaction_results', {}))} I-nodes", flush=True)
         return jsonify({"success": True, "data": result})
     except Exception as e:
+        print(f"[process_interactions] ERROR: {e}", flush=True)
+        import traceback; traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -1939,13 +2007,35 @@ def reset_processing(project_id):
 
         project_dir = project_store.get_project_path(project_id)
 
+        # Promote only successful node lineage into the regeneration contract
+        # before clearing artifacts. Failed nodes keep their previous contract.
+        stable_flow = project_store.load_project_file(
+            project_id, "data_flow.json"
+        ) or {}
+        stable_node_ids = _successful_artifact_node_ids(
+            project_store, project_id
+        )
+        previous_contract = project_store.load_project_file(
+            project_id, "data_flow_contract.json"
+        ) or {}
+        next_contract = dict(previous_contract)
+        next_contract.update({
+            node_id: flow
+            for node_id, flow in stable_flow.items()
+            if node_id in stable_node_ids and isinstance(flow, dict)
+        })
+        if next_contract:
+            project_store.save_project_file(
+                project_id, "data_flow_contract.json", next_contract
+            )
+
         files_to_remove = ["data_result.json", "vis_result.json", "trace.json", "data_flow.json"]
         for fname in files_to_remove:
             fpath = os.path.join(project_dir, fname)
             if os.path.isfile(fpath):
                 os.remove(fpath)
 
-        dirs_to_remove = ["data_tables", "vis_outputs", "interactions"]
+        dirs_to_remove = ["data_tables", "vis_outputs", "interactions", "errors"]
         for dname in dirs_to_remove:
             dpath = os.path.join(project_dir, dname)
             if os.path.isdir(dpath):
@@ -1961,19 +2051,116 @@ def reset_processing(project_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+def _successful_artifact_node_ids(project_store, project_id):
+    """Return nodes whose latest artifacts are safe to promote as contracts."""
+    plan = project_store.load_project_file(project_id, "plan.json") or {}
+    nodes = plan.get("nodes") or {}
+    data_result = project_store.load_project_file(
+        project_id, "data_result.json"
+    ) or {}
+    vis_result = project_store.load_project_file(
+        project_id, "vis_result.json"
+    ) or {}
+
+    stable = {
+        node.get("id")
+        for node in (nodes.get("d") or [])
+        if node.get("id")
+    }
+    processed_nodes = data_result.get("processed_nodes") or {}
+    stable.update(
+        node.get("id")
+        for node in (nodes.get("D") or [])
+        if (processed_nodes.get(node.get("id")) or {}).get("success")
+    )
+
+    processed_vis = {}
+    for source in (
+        vis_result.get("processed_vis") or {},
+        data_result.get("processed_vis") or {}
+    ):
+        if isinstance(source, dict):
+            processed_vis.update(source)
+    stable.update(
+        node.get("id")
+        for node in (nodes.get("V") or [])
+        if (processed_vis.get(node.get("id")) or {}).get("success")
+    )
+
+    project_dir = project_store.get_project_path(project_id)
+    for node in nodes.get("I") or []:
+        path = os.path.join(project_dir, "interactions", f"{node.get('id')}.json")
+        try:
+            with open(path, "r", encoding="utf-8") as file:
+                if (json.load(file) or {}).get("success"):
+                    stable.add(node.get("id"))
+        except (OSError, json.JSONDecodeError):
+            continue
+    return stable
+
+
 def _save_data_flow(project_store, project_id, plan_data):
     """Compute and persist data_flow.json. Returns the flow dict or empty dict."""
     try:
+        print(f"[_save_data_flow] computing for project={project_id}", flush=True)
         db_schema = _build_db_schema(project_store, project_id)
         data_result = project_store.load_project_file(project_id, "data_result.json") or {}
-        processed_vis = data_result.get("processed_vis", {})
+        vis_result = project_store.load_project_file(project_id, "vis_result.json") or {}
+        # vis_result contains the latest visualization generation output, while
+        # data_result may contain interaction-enhanced specs. Merge both so field
+        # lineage is not lost regardless of which pipeline stage ran last.
+        processed_vis = {}
+        for vis_source in (
+            vis_result.get("processed_vis", {}),
+            data_result.get("processed_vis", {})
+        ):
+            if isinstance(vis_source, dict):
+                processed_vis.update(vis_source)
+            elif isinstance(vis_source, list):
+                for vis_item in vis_source:
+                    if not isinstance(vis_item, dict):
+                        continue
+                    vis_id = vis_item.get("node_id") or vis_item.get("id")
+                    if vis_id:
+                        processed_vis[vis_id] = vis_item
         processed_nodes = data_result.get("processed_nodes", {})
+        interaction_results = data_result.get("interaction_results", {})
+        if not isinstance(interaction_results, dict):
+            interaction_results = {}
+        # Per-node interaction artifacts are also persisted independently.
+        # Load them as a fallback when data_result was reset or partially saved.
+        for interaction_node in plan_data.get("nodes", {}).get("I", []):
+            interaction_id = interaction_node.get("id")
+            if not interaction_id or interaction_id in interaction_results:
+                continue
+            interaction_path = project_store.get_project_path(
+                project_id,
+                os.path.join("interactions", f"{interaction_id}.json")
+            )
+            if not os.path.isfile(interaction_path):
+                continue
+            try:
+                with open(interaction_path, "r", encoding="utf-8") as file:
+                    interaction_results[interaction_id] = json.load(file)
+            except (OSError, json.JSONDecodeError):
+                pass
+        print(f"[_save_data_flow] processed_vis={len(processed_vis)} processed_nodes={len(processed_nodes)}", flush=True)
         from agents.planner_agent import get_planner_agent
         pa = get_planner_agent()
-        flow = pa.analyze_data_flow(plan_data, db_schema, processed_vis, processed_nodes)
+        flow = pa.analyze_data_flow(
+            plan_data,
+            db_schema,
+            processed_vis,
+            processed_nodes,
+            interaction_results
+        )
         project_store.save_project_file(project_id, "data_flow.json", flow)
+        print(f"[_save_data_flow] saved data_flow.json with {len(flow)} nodes", flush=True)
         return flow
-    except Exception:
+    except Exception as e:
+        import traceback
+        print(f"[_save_data_flow] FAILED: {e}", flush=True)
+        traceback.print_exc()
         return {}
 
 

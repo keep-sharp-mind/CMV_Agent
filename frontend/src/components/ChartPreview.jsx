@@ -32,7 +32,7 @@ function ChartPreview({ processedVis, interactionResults, viewDataUrls }) {
     // Create grid
     const grid = document.createElement('div')
     grid.className = 'chart-grid'
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:16px;padding:16px 0'
+    grid.style.cssText = 'display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding:16px 0;width:100%'
     container.appendChild(grid)
 
     for (const [vId, visData] of Object.entries(processedVis)) {
@@ -94,6 +94,13 @@ function ChartPreview({ processedVis, interactionResults, viewDataUrls }) {
               await bv.runAsync()
               const fullData = bv.data(bridgeDataName) || []
               viewRegistry.set(vId + '_data', { fullData, bridgeView: bv })
+              const bgDataName = 'bg_' + vId
+              const fgDataName = 'fg_' + vId
+              if (spec.datasets?.[bgDataName] && spec.datasets?.[fgDataName]) {
+                view.data(bgDataName, [])
+                view.data(fgDataName, fullData)
+                await view.runAsync()
+              }
             } catch (e) {
               console.warn('Data bridge failed for', vId, e)
               viewRegistry.set(vId + '_data', { fullData: [] })

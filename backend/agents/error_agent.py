@@ -8,6 +8,7 @@ import os
 import json
 import copy
 import re
+import traceback
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from model import get_model_client, ModelClient
@@ -18,7 +19,9 @@ from prompts.error_agent_prompts import (
     VIS_ERROR_ANALYSIS_PROMPT,
     INTERACTION_ERROR_ANALYSIS_PROMPT,
     FIX_VIS_SPEC_PROMPT,
-    FIX_INTERACTION_PROMPT
+    FIX_INTERACTION_PROMPT,
+    DATA_ERROR_ANALYSIS_PROMPT,
+    FIX_DATA_CODE_PROMPT
 )
 
 
@@ -120,15 +123,20 @@ class ErrorAgent:
         node_details = self._format_nodes_for_prompt(nodes)
         error_details = "\n".join([f"  - {e['message']}" for e in validation_errors])
         deps_json = json.dumps(dependencies, ensure_ascii=False, indent=2)
+        requires_requirement_change = any(
+            error.get("rule") == "data_feasibility"
+            for error in validation_errors
+        )
 
         # Describe the validation rules for the prompt
         validation_rules_text = (
-            "1. Each V must have exactly ONE incoming data edge (d->V or D->V)\n"
-            "2. No cycles in the graph (acyclic)\n"
-            "3. No isolated nodes (every D/V/I must connect to at least one other node)\n"
-            "4. Every D node must have at least one incoming data edge (d->D or D->D)\n"
-            "5. Every D node should have at least one downstream consumer\n"
-            "6. Invalid edges: D->I, I->D, V->D, I->I are forbidden"
+            "1. Every non-d node must have at least one valid incoming predecessor\n"
+            "2. Every D needs a d->D or D->D predecessor and a D/V consumer\n"
+            "3. Every V needs exactly one d->V or D->V data predecessor\n"
+            "4. Every I needs an incoming V->I and outgoing I->V to a different V\n"
+            "5. Every edge endpoint must exist and its type must match endpoint node types\n"
+            "6. Duplicate edges, self-loops, incoming edges to d, and cycles are forbidden\n"
+            "7. D/V nodes must use only metrics present in upstream schemas; unavailable metrics cannot be replaced with invented proxies"
         )
 
         prompt = ANALYZE_PLAN_ERRORS_PROMPT.format(
@@ -150,6 +158,23 @@ class ErrorAgent:
 
             result = self._extract_json_object(content)
             if not result:
+                if requires_requirement_change:
+                    return {
+                        "success": True,
+                        "root_cause": "requirements",
+                        "suggestions": (
+                            "Remove or redesign infeasible requirements and their "
+                            "D/V nodes using only fields present in the input schemas."
+                        ),
+                        "affected_nodes": [
+                            node_id
+                            for error in validation_errors
+                            if error.get("rule") == "data_feasibility"
+                            for node_id in error.get("nodes", [])
+                        ],
+                        "needs_requirement_change": True,
+                        "explanation": "Deterministic data-feasibility validation failed."
+                    }
                 return {
                     "success": False,
                     "root_cause": "dependency_graph",
@@ -161,10 +186,16 @@ class ErrorAgent:
 
             return {
                 "success": True,
-                "root_cause": result.get("root_cause", "dependency_graph"),
+                "root_cause": (
+                    "requirements" if requires_requirement_change
+                    else result.get("root_cause", "dependency_graph")
+                ),
                 "suggestions": result.get("suggestions", ""),
                 "affected_nodes": result.get("affected_nodes", []),
-                "needs_requirement_change": result.get("needs_requirement_change", False),
+                "needs_requirement_change": (
+                    requires_requirement_change
+                    or result.get("needs_requirement_change", False)
+                ),
                 "explanation": result.get("explanation", "")
             }
 
@@ -631,6 +662,325 @@ class ErrorAgent:
             return {"success": False, "interaction_spec": {}, "js_fix_hint": "", "error": str(e),
                     "_prompt_messages": messages, "_raw_response": _raw}
 
+    # ------------------------------------------------------------------
+    # Data error analysis
+    # ------------------------------------------------------------------
+    def _build_data_input_profiles(
+        self,
+        input_nodes: List[Dict[str, Any]],
+        input_table_paths: Dict[str, str],
+        sample_rows: int = 5
+    ) -> str:
+        """Build exact, compact table profiles for data diagnosis/fixing prompts."""
+        node_map = {item.get("id"): item for item in input_nodes if item.get("id")}
+        ordered_ids = list(node_map)
+        ordered_ids.extend(node_id for node_id in input_table_paths if node_id not in node_map)
+        profiles = []
+
+        for node_id in ordered_ids:
+            node = node_map.get(node_id, {})
+            path = input_table_paths.get(node_id, "")
+            profile = {
+                "id": node_id,
+                "name": node.get("name", node_id),
+                "path_variable": f"INPUT_TABLE_PATH_{node_id}",
+                "path_available": bool(path and os.path.isfile(path))
+            }
+            if not profile["path_available"]:
+                profile["error"] = "Input path is missing or the file does not exist"
+                profiles.append(profile)
+                continue
+
+            try:
+                import pandas as pd
+                frame = pd.read_csv(path, nrows=sample_rows)
+                profile.update({
+                    "columns": list(frame.columns),
+                    "dtypes": {column: str(frame[column].dtype) for column in frame.columns},
+                    "null_counts_in_sample": {
+                        column: int(frame[column].isna().sum()) for column in frame.columns
+                    },
+                    "sample_rows": frame.to_dict(orient="records")
+                })
+            except Exception as exc:
+                profile["error"] = f"Failed to profile CSV: {type(exc).__name__}: {exc}"
+            profiles.append(profile)
+
+        if not profiles:
+            profiles.append({
+                "error": "No upstream input table was provided",
+                "path_available": False
+            })
+        return json.dumps(profiles, ensure_ascii=False, indent=2, default=str)
+
+    @staticmethod
+    def _format_data_error_details(execution_result: Dict[str, Any]) -> str:
+        """Format all available runtime evidence, including traceback and validation."""
+        details = []
+        error = execution_result.get("error")
+        if error:
+            details.append(f"error: {error}")
+
+        traceback_text = execution_result.get("error_traceback")
+        if traceback_text:
+            details.append(f"traceback:\n{traceback_text[-6000:]}")
+
+        syntax_check = execution_result.get("syntax_check") or {}
+        if not syntax_check.get("valid", True):
+            details.append(
+                f"syntax_check: type={syntax_check.get('error_type')} "
+                f"detail={syntax_check.get('error')}"
+            )
+
+        for issue in execution_result.get("validation_issues") or []:
+            details.append(
+                "validation: "
+                f"type={issue.get('type')} columns={issue.get('columns', [])} "
+                f"count={issue.get('count', 0)} detail={issue.get('detail', '')}"
+            )
+
+        if execution_result.get("success") and not execution_result.get("validation_issues"):
+            details.append("No execution failure or validation issue was reported")
+        return "\n".join(f"  {line}" for line in details) if details else "  No error details"
+
+    @staticmethod
+    def _infer_data_diagnosis(execution_result: Dict[str, Any]) -> Dict[str, Any]:
+        """Create an evidence-based fallback diagnosis before asking the model."""
+        error = str(execution_result.get("error") or "")
+        syntax_check = execution_result.get("syntax_check") or {}
+        issues = execution_result.get("validation_issues") or []
+        root_cause = "runtime_error"
+        evidence = []
+        modification = "Repair the failing expression using the traceback and exact input profile."
+
+        if syntax_check and not syntax_check.get("valid", True):
+            root_cause = "syntax_error"
+            evidence.append(str(syntax_check.get("error") or error))
+            modification = "Correct the reported Python syntax error before changing data logic."
+        elif "No such file" in error or "FileNotFoundError" in error:
+            root_cause = "missing_input"
+            evidence.append(error)
+            modification = "Use only the provided INPUT_TABLE_PATH_* variables and verify the upstream dependency."
+        elif "KeyError" in error:
+            root_cause = "column_name"
+            evidence.append(error)
+            modification = "Replace the missing field with the exact matching column from the input profile."
+        elif any(token in error for token in ("TypeError", "ValueError", "could not convert", "Can only use")):
+            root_cause = "data_type"
+            evidence.append(error)
+            modification = "Normalize the involved columns to compatible types before the failing operation."
+        elif "result_df" in error or "did not produce" in error or "is not a DataFrame" in error:
+            root_cause = "output_contract"
+            evidence.append(error)
+            modification = "Assign the final pandas DataFrame to the mandatory variable result_df."
+        elif any(issue.get("type") == "empty_result" for issue in issues):
+            root_cause = "empty_result"
+            evidence.extend(str(issue.get("detail")) for issue in issues)
+            modification = "Correct filters, joins, or grouping so the intended transformation returns rows."
+        elif any(issue.get("type") in ("nan_values", "inf_values") for issue in issues):
+            root_cause = "invalid_values"
+            evidence.extend(str(issue.get("detail")) for issue in issues)
+            modification = "Handle missing values and division-by-zero explicitly without disabling validation."
+        elif any(issue.get("type") == "constant_analytical_output" for issue in issues):
+            root_cause = "logic_error"
+            evidence.extend(str(issue.get("detail")) for issue in issues)
+            modification = (
+                "Use a genuinely varying analytical field from the available "
+                "inputs. Do not relabel counts, IDs, or constants as the requested metric."
+            )
+        elif any(issue.get("type") == "field_contract_violation" for issue in issues):
+            root_cause = "output_contract"
+            evidence.extend(str(issue.get("detail")) for issue in issues)
+            modification = (
+                "Preserve every required input/output field in the stable field "
+                "contract and do not introduce undeclared predecessors."
+            )
+        elif error:
+            evidence.append(error)
+
+        return {
+            "root_cause": root_cause,
+            "fix_strategy": "modify_code",
+            "suggested_fixes": {
+                "code_modifications": modification,
+                "data_modifications": None
+            },
+            "evidence": evidence,
+            "explanation": "Local diagnosis inferred from the structured execution result."
+        }
+
+    @staticmethod
+    def _extract_python_code(text: str) -> str:
+        """Extract a Python code block when a model does not return valid JSON."""
+        for pattern in (
+            r"\x60\x60\x60python\s*([\s\S]*?)\s*\x60\x60\x60",
+            r"\x60\x60\x60\s*([\s\S]*?)\s*\x60\x60\x60"
+        ):
+            matches = re.findall(pattern, text or "")
+            if matches:
+                return matches[-1].strip()
+        return ""
+
+    def analyze_data_error(
+        self,
+        node: Dict[str, Any],
+        code: str,
+        input_nodes: List[Dict[str, Any]],
+        input_table_paths: Dict[str, str],
+        execution_result: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Analyze a data processing error and suggest fixes."""
+        print(f"[ErrorAgent.analyze_data_error] node={node.get('id','?')} success={execution_result.get('success')}", flush=True)
+        node_details = f"  {node['id']}: {node.get('name', '')} - {node.get('description', '')} | task: {node.get('task', '')}"
+        input_tables_info = self._build_data_input_profiles(input_nodes, input_table_paths)
+        local_diagnosis = self._infer_data_diagnosis(execution_result)
+        error_details = (
+            self._format_data_error_details(execution_result)
+            + "\n\n  Local pre-diagnosis: "
+            + json.dumps(local_diagnosis, ensure_ascii=False, default=str)
+        )
+
+        prompt = DATA_ERROR_ANALYSIS_PROMPT.format(
+            node_details=node_details,
+            input_tables_info=input_tables_info,
+            code=code,
+            error_details=error_details
+        )
+
+        messages = [
+            {"role": "system", "content": "You are a Python/pandas data processing expert."},
+            {"role": "user", "content": prompt}
+        ]
+        _raw = ""
+
+        try:
+            response = self.model_client.chat(messages, temperature=0.3)
+            _raw = response["content"]
+            result = self._extract_json_object(_raw)
+            if not result:
+                return {
+                    "success": True,
+                    **local_diagnosis,
+                    "diagnosis_source": "local_fallback",
+                    "llm_parse_error": "Failed to parse LLM output",
+                    "_prompt_messages": messages,
+                    "_raw_response": _raw
+                }
+            return {
+                "success": True,
+                "root_cause": result.get("root_cause", local_diagnosis["root_cause"]),
+                "fix_strategy": result.get("fix_strategy", "modify_code"),
+                "suggested_fixes": result.get("suggested_fixes") or local_diagnosis["suggested_fixes"],
+                "evidence": result.get("evidence") or local_diagnosis["evidence"],
+                "explanation": result.get("explanation", ""),
+                "diagnosis_source": "llm",
+                "local_diagnosis": local_diagnosis,
+                "_prompt_messages": messages,
+                "_raw_response": _raw
+            }
+        except Exception as e:
+            return {
+                "success": True,
+                **local_diagnosis,
+                "diagnosis_source": "local_fallback",
+                "llm_error": str(e),
+                "_prompt_messages": messages,
+                "_raw_response": _raw
+            }
+
+    # ------------------------------------------------------------------
+    # Fix data processing code
+    # ------------------------------------------------------------------
+    def fix_data(
+        self,
+        node: Dict[str, Any],
+        code: str,
+        input_nodes: List[Dict[str, Any]],
+        input_table_paths: Dict[str, str],
+        execution_result: Dict[str, Any],
+        diagnosis_text: str
+    ) -> Dict[str, Any]:
+        """Fix data processing code based on diagnosis."""
+        print(f"[ErrorAgent.fix_data] node={node.get('id','?')}", flush=True)
+        node_details = f"  {node['id']}: {node.get('name', '')} - {node.get('description', '')}"
+        input_tables_info = self._build_data_input_profiles(input_nodes, input_table_paths)
+        error_details = self._format_data_error_details(execution_result)
+        output_var = "result_df"
+
+        prompt = FIX_DATA_CODE_PROMPT.format(
+            node_details=node_details,
+            input_tables_info=input_tables_info,
+            code=code,
+            error_details=error_details,
+            diagnosis_text=diagnosis_text,
+            output_var=output_var
+        )
+
+        messages = [
+            {"role": "system", "content": "You are a Python/pandas data processing expert."},
+            {"role": "user", "content": prompt}
+        ]
+        _raw = ""
+
+        try:
+            response = self.model_client.chat(messages, temperature=0.3)
+            _raw = response["content"]
+            result = self._extract_json_object(_raw)
+            fixed_code = result.get("code", "") if result else self._extract_python_code(_raw)
+            fixed_code = fixed_code.strip()
+
+            if fixed_code and not re.search(r"\bresult_df\s*=", fixed_code):
+                legacy_output = f"{node['id']}_result"
+                if re.search(rf"\b{re.escape(legacy_output)}\s*=", fixed_code):
+                    fixed_code += f"\nresult_df = {legacy_output}"
+
+            if not fixed_code:
+                return {
+                    "success": False, "code": code,
+                    "error": "Failed to generate fixed code",
+                    "_prompt_messages": messages, "_raw_response": _raw
+                }
+
+            try:
+                compile(fixed_code, "<error_agent_fixed_code>", "exec")
+            except SyntaxError as exc:
+                return {
+                    "success": False,
+                    "code": fixed_code,
+                    "error": f"Generated fix has SyntaxError at line {exc.lineno}: {exc.msg}",
+                    "syntax_check": {
+                        "valid": False,
+                        "error": str(exc),
+                        "error_type": "syntax_error"
+                    },
+                    "_prompt_messages": messages,
+                    "_raw_response": _raw
+                }
+
+            if not re.search(r"\bresult_df\s*=", fixed_code):
+                return {
+                    "success": False,
+                    "code": fixed_code,
+                    "error": "Generated fix does not assign the mandatory result_df variable",
+                    "_prompt_messages": messages,
+                    "_raw_response": _raw
+                }
+
+            return {
+                "success": True,
+                "code": fixed_code,
+                "metadata": result.get("metadata", {}) if result else {},
+                "syntax_check": {"valid": True, "error": None, "error_type": None},
+                "_prompt_messages": messages,
+                "_raw_response": _raw
+            }
+        except Exception as e:
+            return {
+                "success": False, "code": code,
+                "error": str(e),
+                "_prompt_messages": messages, "_raw_response": _raw
+            }
+
     def handle_error(
         self,
         error_context: Dict[str, Any],
@@ -650,32 +1000,60 @@ class ErrorAgent:
         Returns:
             Dict with handled, record_path, timestamp, source_tag, summary
         """
+        print(f"[ErrorAgent.handle_error] source_tag={source_tag} node_id={error_context.get('node', {}).get('id','?')}", flush=True)
         timestamp = datetime.now().isoformat()
 
         node = error_context.get("node", {})
         node_id = node.get("id", "unknown")
         exec_result = error_context.get("execution_result", {})
-        syntax_check = exec_result.get("syntax_check", {})
-        validation_issues = exec_result.get("validation_issues", [])
-        error_msg = exec_result.get("error", "No error message")
+        original_exec_result = (
+            error_context.get("original_execution_result")
+            or exec_result
+        )
+        recovery_attempts = error_context.get("recovery_attempts", [])
+        syntax_check = original_exec_result.get("syntax_check") or {}
+        validation_issues = original_exec_result.get("validation_issues") or []
+        error_msg = original_exec_result.get("error") or "No error message"
 
         issues_summary = []
         if syntax_check and not syntax_check.get("valid"):
             issues_summary.append(f"syntax_error: {syntax_check.get('error')}")
-        if not exec_result.get("success"):
+        if not original_exec_result.get("success"):
             issues_summary.append(f"execution_error: {error_msg}")
         for issue in validation_issues:
             issues_summary.append(
-                f"{issue['type']}: {issue['count']} issue(s) in {issue['columns']}"
+                f"{issue.get('type', 'validation_error')}: "
+                f"{issue.get('count', 0)} issue(s) in {issue.get('columns', [])}"
             )
 
         summary = "; ".join(issues_summary) if issues_summary else "unknown_issue"
+        recovered = bool(
+            exec_result.get("success")
+            and not (exec_result.get("validation_issues") or [])
+            and recovery_attempts
+        )
 
         record = {
             "timestamp": timestamp,
             "node_id": node_id,
             "source_tag": source_tag,
             "summary": summary,
+            "recovery_status": {
+                "recovered": recovered,
+                "attempt_count": len(recovery_attempts),
+                "final_success": bool(exec_result.get("success")),
+                "final_validation_issue_count": len(exec_result.get("validation_issues") or [])
+            },
+            "original_error": {
+                "error": original_exec_result.get("error"),
+                "error_traceback": original_exec_result.get("error_traceback"),
+                "syntax_check": original_exec_result.get("syntax_check"),
+                "validation_issues": original_exec_result.get("validation_issues", []),
+                "columns": original_exec_result.get("columns", []),
+                "row_count": original_exec_result.get("row_count", 0)
+            },
+            "final_execution_result": exec_result,
+            "recovery_attempts": recovery_attempts,
             "error_context": error_context,
             "analysis_result": analysis_result,
             "fix_result": fix_result
@@ -686,13 +1064,22 @@ class ErrorAgent:
                 "root_cause": analysis_result.get("root_cause"),
                 "fix_strategy": analysis_result.get("fix_strategy"),
                 "suggested_fixes": analysis_result.get("suggested_fixes"),
+                "evidence": analysis_result.get("evidence"),
                 "explanation": analysis_result.get("explanation"),
+                "diagnosis_source": analysis_result.get("diagnosis_source"),
+                "local_diagnosis": analysis_result.get("local_diagnosis"),
+                "llm_error": analysis_result.get("llm_error"),
+                "llm_parse_error": analysis_result.get("llm_parse_error"),
                 "analysis_prompt_messages": analysis_result.get("_prompt_messages"),
                 "analysis_raw_response": analysis_result.get("_raw_response")
             }
         if fix_result:
             record["fix"] = {
                 "applied_fix_success": fix_result.get("success"),
+                "fixed_code": fix_result.get("code"),
+                "metadata": fix_result.get("metadata"),
+                "error": fix_result.get("error"),
+                "syntax_check": fix_result.get("syntax_check"),
                 "fix_prompt_messages": fix_result.get("_prompt_messages"),
                 "fix_raw_response": fix_result.get("_raw_response")
             }
@@ -714,7 +1101,9 @@ class ErrorAgent:
             "source_tag": source_tag,
             "summary": summary,
             "has_diagnosis": analysis_result is not None,
-            "has_fix": fix_result is not None
+            "has_fix": fix_result is not None,
+            "recovered": recovered,
+            "attempt_count": len(recovery_attempts)
         }
 
 

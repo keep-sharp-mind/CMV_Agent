@@ -822,6 +822,15 @@ body {
   display: block;
 }
 
+.dependency-graph-container.is-disabled {
+  cursor: not-allowed;
+}
+
+.dependency-graph-container.is-disabled svg {
+  opacity: 0.72;
+  pointer-events: none;
+}
+
 .graph-tooltip {
   position: absolute;
   z-index: 1000;

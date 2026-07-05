@@ -1,0 +1,544 @@
+{
+  "processed_vis": {
+    "V1": {
+      "node_id": "V1",
+      "node_type": "V",
+      "spec": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "title": "Argentina Formation Distribution",
+        "mark": "bar",
+        "encoding": {
+          "x": {
+            "field": "formation_type",
+            "type": "nominal",
+            "axis": {
+              "title": "Formation Type"
+            }
+          },
+          "y": {
+            "field": "frequency",
+            "type": "quantitative",
+            "axis": {
+              "title": "Frequency"
+            }
+          }
+        },
+        "data": {
+          "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D1.csv"
+        },
+        "description": "V1",
+        "height": "container",
+        "width": "container",
+        "autosize": {
+          "type": "fit",
+          "contains": "padding"
+        },
+        "config": {
+          "background": "rgba(0, 0, 0, 0)",
+          "padding": 10
+        },
+        "transform": [],
+        "params": []
+      },
+      "metadata": {
+        "marktype": "bar",
+        "used_tables": [
+          "D1"
+        ],
+        "used_fields": [
+          "formation_type",
+          "frequency"
+        ],
+        "encoding_fields": {
+          "x": "formation_type",
+          "y": "frequency"
+        },
+        "input_fields_by_table": {
+          "D1": [
+            "formation_type",
+            "frequency"
+          ]
+        }
+      },
+      "spec_json": "{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Argentina Formation Distribution\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D1.csv\"\n  },\n  \"description\": \"V1\",\n  \"height\": \"container\",\n  \"width\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}",
+      "success": true,
+      "syntax_check": {
+        "valid": true,
+        "issues_count": 0,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "vis_generate",
+      "error": null,
+      "spec_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\vis_outputs\\V1.json"
+    },
+    "V2": {
+      "node_id": "V2",
+      "node_type": "V",
+      "spec": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "title": "Brazil Formation Distribution Bar",
+        "mark": "bar",
+        "encoding": {
+          "x": {
+            "field": "formation_type",
+            "type": "nominal",
+            "axis": {
+              "labelAngle": -45,
+              "title": "Formation Type"
+            }
+          },
+          "y": {
+            "field": "frequency",
+            "type": "quantitative",
+            "axis": {
+              "title": "Frequency"
+            }
+          }
+        },
+        "data": {
+          "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D2.csv"
+        },
+        "description": "V2",
+        "height": "container",
+        "width": "container",
+        "autosize": {
+          "type": "fit",
+          "contains": "padding"
+        },
+        "config": {
+          "background": "rgba(0, 0, 0, 0)",
+          "padding": 10
+        },
+        "transform": [],
+        "params": []
+      },
+      "metadata": {
+        "marktype": "bar",
+        "used_tables": [
+          "D2"
+        ],
+        "used_fields": [
+          "formation_type",
+          "frequency"
+        ],
+        "encoding_fields": {
+          "x": "formation_type",
+          "y": "frequency"
+        },
+        "input_fields_by_table": {
+          "D2": [
+            "formation_type",
+            "frequency"
+          ]
+        }
+      },
+      "spec_json": "{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"labelAngle\": -45,\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D2.csv\"\n  },\n  \"description\": \"V2\",\n  \"height\": \"container\",\n  \"width\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}",
+      "success": true,
+      "syntax_check": {
+        "valid": true,
+        "issues_count": 0,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "vis_generate",
+      "error": null,
+      "spec_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\vis_outputs\\V2.json"
+    },
+    "V3": {
+      "node_id": "V3",
+      "node_type": "V",
+      "spec": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "title": "Formation Change Over Time",
+        "encoding": {
+          "x": {
+            "field": "frame_id",
+            "type": "quantitative",
+            "title": "Frame ID"
+          },
+          "y": {
+            "field": "count",
+            "type": "quantitative",
+            "title": "Count"
+          },
+          "color": {
+            "field": "formation_type",
+            "type": "nominal",
+            "title": "Formation Type",
+            "legend": {
+              "orient": "bottom"
+            }
+          }
+        },
+        "mark": "line",
+        "width": "container",
+        "height": "container",
+        "data": {
+          "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D3.csv"
+        },
+        "description": "V3",
+        "autosize": {
+          "type": "fit",
+          "contains": "padding"
+        },
+        "config": {
+          "background": "rgba(0, 0, 0, 0)",
+          "padding": 10
+        },
+        "transform": [],
+        "params": []
+      },
+      "metadata": {
+        "marktype": "line",
+        "used_tables": [
+          "D3"
+        ],
+        "used_fields": [
+          "frame_id",
+          "formation_type",
+          "count"
+        ],
+        "encoding_fields": {
+          "x": "frame_id",
+          "y": "count",
+          "color": "formation_type"
+        },
+        "input_fields_by_table": {
+          "D3": [
+            "frame_id",
+            "formation_type",
+            "count"
+          ]
+        }
+      },
+      "spec_json": "{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Formation Change Over Time\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"frame_id\",\n      \"type\": \"quantitative\",\n      \"title\": \"Frame ID\"\n    },\n    \"y\": {\n      \"field\": \"count\",\n      \"type\": \"quantitative\",\n      \"title\": \"Count\"\n    },\n    \"color\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"title\": \"Formation Type\",\n      \"legend\": {\n        \"orient\": \"bottom\"\n      }\n    }\n  },\n  \"mark\": \"line\",\n  \"width\": \"container\",\n  \"height\": \"container\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D3.csv\"\n  },\n  \"description\": \"V3\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}",
+      "success": true,
+      "syntax_check": {
+        "valid": true,
+        "issues_count": 0,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "vis_generate",
+      "error": null,
+      "spec_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\vis_outputs\\V3.json"
+    },
+    "V4": {
+      "node_id": "V4",
+      "node_type": "V",
+      "spec": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "title": "Formation Matchup Heatmap between Argentina and Brazil",
+        "mark": "rect",
+        "encoding": {
+          "x": {
+            "field": "formation_type",
+            "type": "nominal",
+            "title": "Argentina Formation"
+          },
+          "y": {
+            "field": "formation_type",
+            "type": "nominal",
+            "title": "Brazil Formation"
+          },
+          "color": {
+            "field": "frequency",
+            "type": "quantitative",
+            "title": "Matchup Frequency",
+            "legend": {
+              "orient": "bottom"
+            }
+          }
+        },
+        "width": "container",
+        "height": "container",
+        "data": {
+          "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D4.csv"
+        },
+        "description": "V4",
+        "autosize": {
+          "type": "fit",
+          "contains": "padding"
+        },
+        "config": {
+          "background": "rgba(0, 0, 0, 0)",
+          "padding": 10
+        },
+        "transform": [],
+        "params": []
+      },
+      "metadata": {
+        "marktype": "rect",
+        "used_tables": [
+          "D4"
+        ],
+        "used_fields": [
+          "formation_type",
+          "frequency"
+        ],
+        "encoding_fields": {
+          "x": "formation_type",
+          "y": "formation_type",
+          "color": "frequency"
+        }
+      },
+      "spec_json": "{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Formation Matchup Heatmap between Argentina and Brazil\",\n  \"mark\": \"rect\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"title\": \"Argentina Formation\"\n    },\n    \"y\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"title\": \"Brazil Formation\"\n    },\n    \"color\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"title\": \"Matchup Frequency\",\n      \"legend\": {\n        \"orient\": \"bottom\"\n      }\n    }\n  },\n  \"width\": \"container\",\n  \"height\": \"container\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D4.csv\"\n  },\n  \"description\": \"V4\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}",
+      "success": true,
+      "syntax_check": {
+        "valid": true,
+        "issues_count": 0,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "vis_generate",
+      "error": null,
+      "error_analysis": {
+        "success": true,
+        "root_cause": "data_fields",
+        "fix_strategy": "modify_data_and_vis",
+        "suggested_fixes": {
+          "plan_modifications": null,
+          "data_modifications": "Ensure the upstream data includes 'argentina_formation' and 'brazil_formation' columns. If these columns are not available, consider modifying the data processing step to generate them.",
+          "vis_modifications": "Update the encoding fields to use existing columns from the data. For example, if 'formation_type' represents the formation type for both teams, use it for both x and y axes, and adjust the color field to 'frequency' if it exists."
+        },
+        "explanation": "The visualization spec references 'argentina_formation' and 'brazil_formation' in the encoding, but these fields do not exist in the input data. The available fields include 'formation_type', which may be used instead. The root cause is missing data fields.",
+        "_prompt_messages": [
+          {
+            "role": "system",
+            "content": "You are a Vega-Lite visualization expert and debugger."
+          },
+          {
+            "role": "user",
+            "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V4 (heatmap): Formation_Matchup_Heatmap - Heatmap showing the frequency of formation type matchups between Argentina and Brazil\n\n## Chart Type (from plan)\nheatmap\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D4: path=\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Formation Matchup Heatmap between Argentina and Brazil\",\n  \"mark\": \"rect\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"argentina_formation\",\n      \"type\": \"nominal\",\n      \"title\": \"Argentina Formation\"\n    },\n    \"y\": {\n      \"field\": \"brazil_formation\",\n      \"type\": \"nominal\",\n      \"title\": \"Brazil Formation\"\n    },\n    \"color\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"title\": \"Matchup Frequency\",\n      \"legend\": {\n        \"orient\": \"bottom\"\n      }\n    }\n  },\n  \"width\": \"container\",\n  \"height\": \"container\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D4.csv\"\n  },\n  \"description\": \"V4\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: Field 'argentina_formation' referenced in spec encoding does not exist in the input tables. Available fields: ['average_performance_outcome', 'formation_type', 'Unnamed: 0', 'count', 'formation_consistency_variance', 'frequency', 'match_identifier', 'frame_id']\n  syntax: Field 'argentina_formation' referenced in spec encoding does not exist in the input tables. Available fields: ['average_performance_outcome', 'formation_type', 'Unnamed: 0', 'count', 'formation_consistency_variance', 'frequency', 'match_identifier', 'frame_id']\n  validation: Field 'argentina_formation' referenced in spec encoding does not exist in the input tables. Available fields: ['average_performance_outcome', 'formation_type', 'Unnamed: 0', 'count', 'formation_consistency_variance', 'frequency', 'match_identifier', 'frame_id']\n  validation: Field 'brazil_formation' referenced in spec encoding does not exist in the input tables. Available fields: ['average_performance_outcome', 'formation_type', 'Unnamed: 0', 'count', 'formation_consistency_variance', 'frequency', 'match_identifier', 'frame_id']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+          }
+        ],
+        "_raw_response": "```json\n{\n  \"root_cause\": \"data_fields\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure the upstream data includes 'argentina_formation' and 'brazil_formation' columns. If these columns are not available, consider modifying the data processing step to generate them.\",\n    \"vis_modifications\": \"Update the encoding fields to use existing columns from the data. For example, if 'formation_type' represents the formation type for both teams, use it for both x and y axes, and adjust the color field to 'frequency' if it exists.\"\n  },\n  \"explanation\": \"The visualization spec references 'argentina_formation' and 'brazil_formation' in the encoding, but these fields do not exist in the input data. The available fields include 'formation_type', which may be used instead. The root cause is missing data fields.\"\n}\n```"
+      },
+      "error_recovery": {
+        "success": true,
+        "spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Formation Matchup Heatmap between Argentina and Brazil",
+          "mark": "rect",
+          "encoding": {
+            "x": {
+              "field": "formation_type",
+              "type": "nominal",
+              "title": "Argentina Formation"
+            },
+            "y": {
+              "field": "formation_type",
+              "type": "nominal",
+              "title": "Brazil Formation"
+            },
+            "color": {
+              "field": "frequency",
+              "type": "quantitative",
+              "title": "Matchup Frequency",
+              "legend": {
+                "orient": "bottom"
+              }
+            }
+          },
+          "width": "container",
+          "height": "container",
+          "data": {
+            "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D4.csv"
+          },
+          "description": "V4",
+          "autosize": {
+            "type": "fit",
+            "contains": "padding"
+          },
+          "config": {
+            "background": "rgba(0, 0, 0, 0)",
+            "padding": 10
+          },
+          "transform": []
+        },
+        "metadata": {
+          "marktype": "rect",
+          "used_tables": [
+            "D4"
+          ],
+          "used_fields": [
+            "formation_type",
+            "frequency"
+          ],
+          "encoding_fields": {
+            "x": "formation_type",
+            "y": "formation_type",
+            "color": "frequency"
+          }
+        },
+        "error": null,
+        "_prompt_messages": [
+          {
+            "role": "system",
+            "content": "You are a Vega-Lite visualization expert."
+          },
+          {
+            "role": "user",
+            "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V4 (heatmap): Formation_Matchup_Heatmap - Heatmap showing the frequency of formation type matchups between Argentina and Brazil\n\n## Chart Type\nheatmap\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D4: path=\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Formation Matchup Heatmap between Argentina and Brazil\",\n  \"mark\": \"rect\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"argentina_formation\",\n      \"type\": \"nominal\",\n      \"title\": \"Argentina Formation\"\n    },\n    \"y\": {\n      \"field\": \"brazil_formation\",\n      \"type\": \"nominal\",\n      \"title\": \"Brazil Formation\"\n    },\n    \"color\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"title\": \"Matchup Frequency\",\n      \"legend\": {\n        \"orient\": \"bottom\"\n      }\n    }\n  },\n  \"width\": \"container\",\n  \"height\": \"container\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D4.csv\"\n  },\n  \"description\": \"V4\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: Field 'argentina_formation' referenced in spec encoding does not exist in the input tables. Available fields: ['average_performance_outcome', 'formation_type', 'Unnamed: 0', 'count', 'formation_consistency_variance', 'frequency', 'match_identifier', 'frame_id']\n  syntax: Field 'argentina_formation' referenced in spec encoding does not exist in the input tables. Available fields: ['average_performance_outcome', 'formation_type', 'Unnamed: 0', 'count', 'formation_consistency_variance', 'frequency', 'match_identifier', 'frame_id']\n  validation: Field 'argentina_formation' referenced in spec encoding does not exist in the input tables. Available fields: ['average_performance_outcome', 'formation_type', 'Unnamed: 0', 'count', 'formation_consistency_variance', 'frequency', 'match_identifier', 'frame_id']\n  validation: Field 'brazil_formation' referenced in spec encoding does not exist in the input tables. Available fields: ['average_performance_outcome', 'formation_type', 'Unnamed: 0', 'count', 'formation_consistency_variance', 'frequency', 'match_identifier', 'frame_id']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_fields. Fix strategy: modify_data_and_vis. Suggestion: Update the encoding fields to use existing columns from the data. For example, if 'formation_type' represents the formation type for both teams, use it for both x and y axes, and adjust the color field to 'frequency' if it exists..\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+          }
+        ],
+        "_raw_response": "{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Formation Matchup Heatmap between Argentina and Brazil\",\n    \"mark\": \"rect\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"formation_type\",\n        \"type\": \"nominal\",\n        \"title\": \"Argentina Formation\"\n      },\n      \"y\": {\n        \"field\": \"formation_type\",\n        \"type\": \"nominal\",\n        \"title\": \"Brazil Formation\"\n      },\n      \"color\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"title\": \"Matchup Frequency\",\n        \"legend\": {\n          \"orient\": \"bottom\"\n        }\n      }\n    },\n    \"width\": \"container\",\n    \"height\": \"container\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D4.csv\"\n    },\n    \"description\": \"V4\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"rect\",\n    \"used_tables\": [\"D4\"],\n    \"used_fields\": [\"formation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"formation_type\",\n      \"y\": \"formation_type\",\n      \"color\": \"frequency\"\n    }\n  }\n}"
+      },
+      "recovered": true,
+      "spec_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\vis_outputs\\V4.json",
+      "error_report": {
+        "handled": true,
+        "record_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\errors\\vis_generate_V4_2026-07-05T18-14-12-659346.json",
+        "timestamp": "2026-07-05T18:14:12.659346",
+        "source_tag": "vis_generate",
+        "summary": "syntax_error: Field 'argentina_formation' referenced in spec encoding does not exist in the input tables. Available fields: ['average_performance_outcome', 'formation_type', 'Unnamed: 0', 'count', 'formation_consistency_variance', 'frequency', 'match_identifier', 'frame_id']; execution_error: Field 'argentina_formation' referenced in spec encoding does not exist in the input tables. Available fields: ['average_performance_outcome', 'formation_type', 'Unnamed: 0', 'count', 'formation_consistency_variance', 'frequency', 'match_identifier', 'frame_id']; field_not_found: 0 issue(s) in []; field_not_found: 0 issue(s) in []",
+        "has_diagnosis": true,
+        "has_fix": true,
+        "recovered": false,
+        "attempt_count": 0
+      }
+    },
+    "V5": {
+      "node_id": "V5",
+      "node_type": "V",
+      "spec": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "title": "Formation Effectiveness Scatter Plot",
+        "width": "container",
+        "height": "container",
+        "mark": "point",
+        "encoding": {
+          "x": {
+            "field": "formation_type",
+            "type": "nominal",
+            "axis": {
+              "labelAngle": -45,
+              "title": "Formation Type"
+            }
+          },
+          "y": {
+            "field": "average_performance_outcome",
+            "type": "quantitative",
+            "axis": {
+              "title": "Average Performance Outcome"
+            }
+          }
+        },
+        "data": {
+          "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D5.csv"
+        },
+        "description": "V5",
+        "autosize": {
+          "type": "fit",
+          "contains": "padding"
+        },
+        "config": {
+          "background": "rgba(0, 0, 0, 0)",
+          "padding": 10
+        },
+        "transform": [],
+        "params": []
+      },
+      "metadata": {
+        "marktype": "point",
+        "used_tables": [
+          "D5"
+        ],
+        "used_fields": [
+          "formation_type",
+          "average_performance_outcome"
+        ],
+        "encoding_fields": {
+          "x": "formation_type",
+          "y": "average_performance_outcome"
+        },
+        "input_fields_by_table": {
+          "D5": [
+            "formation_type",
+            "average_performance_outcome"
+          ]
+        }
+      },
+      "spec_json": "{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Formation Effectiveness Scatter Plot\",\n  \"width\": \"container\",\n  \"height\": \"container\",\n  \"mark\": \"point\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"labelAngle\": -45,\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"average_performance_outcome\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Average Performance Outcome\"\n      }\n    }\n  },\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D5.csv\"\n  },\n  \"description\": \"V5\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}",
+      "success": true,
+      "syntax_check": {
+        "valid": true,
+        "issues_count": 0,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "vis_generate",
+      "error": null,
+      "spec_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\vis_outputs\\V5.json"
+    },
+    "V6": {
+      "node_id": "V6",
+      "node_type": "V",
+      "spec": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "title": "Formation Consistency Line Chart",
+        "data": {
+          "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D6.csv"
+        },
+        "mark": "line",
+        "encoding": {
+          "x": {
+            "field": "match_identifier",
+            "type": "quantitative",
+            "title": "Match Identifier"
+          },
+          "y": {
+            "field": "formation_consistency_variance",
+            "type": "quantitative",
+            "title": "Formation Consistency Variance"
+          }
+        },
+        "width": "container",
+        "height": "container",
+        "description": "V6",
+        "autosize": {
+          "type": "fit",
+          "contains": "padding"
+        },
+        "config": {
+          "background": "rgba(0, 0, 0, 0)",
+          "padding": 10
+        },
+        "transform": [],
+        "params": []
+      },
+      "metadata": {
+        "marktype": "line",
+        "used_tables": [
+          "D6"
+        ],
+        "used_fields": [
+          "match_identifier",
+          "formation_consistency_variance"
+        ],
+        "encoding_fields": {
+          "x": "match_identifier",
+          "y": "formation_consistency_variance"
+        },
+        "input_fields_by_table": {
+          "D6": [
+            "match_identifier",
+            "formation_consistency_variance"
+          ]
+        }
+      },
+      "spec_json": "{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Formation Consistency Line Chart\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D6.csv\"\n  },\n  \"mark\": \"line\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"match_identifier\",\n      \"type\": \"quantitative\",\n      \"title\": \"Match Identifier\"\n    },\n    \"y\": {\n      \"field\": \"formation_consistency_variance\",\n      \"type\": \"quantitative\",\n      \"title\": \"Formation Consistency Variance\"\n    }\n  },\n  \"width\": \"container\",\n  \"height\": \"container\",\n  \"description\": \"V6\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}",
+      "success": true,
+      "syntax_check": {
+        "valid": true,
+        "issues_count": 0,
+        "error_type": null
+      },
+      "validation_issues": [],
+      "source_tag": "vis_generate",
+      "error": null,
+      "spec_path": "D:\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\vis_outputs\\V6.json"
+    }
+  }
+}

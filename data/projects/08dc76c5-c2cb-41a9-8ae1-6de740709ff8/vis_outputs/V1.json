@@ -1,25 +1,5 @@
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "data": {
-    "values": [
-      {
-        "formation_type": "2-3-5",
-        "frequency": 95
-      },
-      {
-        "formation_type": "3-4-3",
-        "frequency": 3
-      },
-      {
-        "formation_type": "4-2-4",
-        "frequency": 61
-      },
-      {
-        "formation_type": "4-4-2",
-        "frequency": 10
-      }
-    ]
-  },
   "title": "Argentina Formation Distribution",
   "mark": "bar",
   "encoding": {
@@ -27,7 +7,6 @@
       "field": "formation_type",
       "type": "nominal",
       "axis": {
-        "labelAngle": 0,
         "title": "Formation Type"
       }
     },
@@ -38,5 +17,21 @@
         "title": "Frequency"
       }
     }
-  }
+  },
+  "data": {
+    "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D1.csv"
+  },
+  "description": "V1",
+  "height": "container",
+  "width": "container",
+  "autosize": {
+    "type": "fit",
+    "contains": "padding"
+  },
+  "config": {
+    "background": "rgba(0, 0, 0, 0)",
+    "padding": 10
+  },
+  "transform": [],
+  "params": []
 }

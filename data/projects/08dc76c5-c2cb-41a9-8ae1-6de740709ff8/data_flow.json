@@ -1,0 +1,1171 @@
+{
+  "d1": {
+    "in_fields": [],
+    "direct_in_fields": [],
+    "out_fields": [
+      "formation_type",
+      "frame_id"
+    ],
+    "predecessors": [],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {},
+    "ancestors": [],
+    "ancestor_fields": {},
+    "transitive_in_fields": [],
+    "incoming_edges": [],
+    "outgoing_edges": [
+      {
+        "from": "d1",
+        "to": "D1",
+        "type": "d->D",
+        "fields": [
+          "formation_type"
+        ],
+        "evidence": "code_comment.INPUT_FIELDS+python_ast"
+      },
+      {
+        "from": "d1",
+        "to": "D3",
+        "type": "d->D",
+        "fields": [
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "code_comment.INPUT_FIELDS+python_ast"
+      }
+    ]
+  },
+  "d2": {
+    "in_fields": [],
+    "direct_in_fields": [],
+    "out_fields": [
+      "formation_type",
+      "frame_id"
+    ],
+    "predecessors": [],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {},
+    "ancestors": [],
+    "ancestor_fields": {},
+    "transitive_in_fields": [],
+    "incoming_edges": [],
+    "outgoing_edges": [
+      {
+        "from": "d2",
+        "to": "D2",
+        "type": "d->D",
+        "fields": [
+          "formation_type"
+        ],
+        "evidence": "python_ast"
+      },
+      {
+        "from": "d2",
+        "to": "D3",
+        "type": "d->D",
+        "fields": [
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "code_comment.INPUT_FIELDS+python_ast"
+      }
+    ]
+  },
+  "D1": {
+    "in_fields": [
+      "d1.formation_type"
+    ],
+    "direct_in_fields": [
+      "d1.formation_type"
+    ],
+    "out_fields": [
+      "formation_type",
+      "frequency"
+    ],
+    "predecessors": [
+      "d1"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "d1": [
+        "formation_type"
+      ]
+    },
+    "ancestors": [
+      "d1"
+    ],
+    "ancestor_fields": {
+      "d1": [
+        "formation_type"
+      ]
+    },
+    "transitive_in_fields": [
+      "d1.formation_type"
+    ],
+    "incoming_edges": [
+      {
+        "from": "d1",
+        "to": "D1",
+        "type": "d->D",
+        "fields": [
+          "formation_type"
+        ],
+        "evidence": "code_comment.INPUT_FIELDS+python_ast"
+      }
+    ],
+    "outgoing_edges": [
+      {
+        "from": "D1",
+        "to": "V1",
+        "type": "D->V",
+        "fields": [
+          "formation_type",
+          "frequency"
+        ],
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
+      }
+    ]
+  },
+  "D2": {
+    "in_fields": [
+      "d2.formation_type"
+    ],
+    "direct_in_fields": [
+      "d2.formation_type"
+    ],
+    "out_fields": [
+      "formation_type",
+      "frequency"
+    ],
+    "predecessors": [
+      "d2"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "d2": [
+        "formation_type"
+      ]
+    },
+    "ancestors": [
+      "d2"
+    ],
+    "ancestor_fields": {
+      "d2": [
+        "formation_type"
+      ]
+    },
+    "transitive_in_fields": [
+      "d2.formation_type"
+    ],
+    "incoming_edges": [
+      {
+        "from": "d2",
+        "to": "D2",
+        "type": "d->D",
+        "fields": [
+          "formation_type"
+        ],
+        "evidence": "python_ast"
+      }
+    ],
+    "outgoing_edges": [
+      {
+        "from": "D2",
+        "to": "V2",
+        "type": "D->V",
+        "fields": [
+          "formation_type",
+          "frequency"
+        ],
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
+      }
+    ]
+  },
+  "D3": {
+    "in_fields": [
+      "d1.formation_type",
+      "d1.frame_id",
+      "d2.formation_type",
+      "d2.frame_id"
+    ],
+    "direct_in_fields": [
+      "d1.formation_type",
+      "d1.frame_id",
+      "d2.formation_type",
+      "d2.frame_id"
+    ],
+    "out_fields": [
+      "count",
+      "formation_type",
+      "frame_id"
+    ],
+    "predecessors": [
+      "d1",
+      "d2"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "d1": [
+        "formation_type",
+        "frame_id"
+      ],
+      "d2": [
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "ancestors": [
+      "d1",
+      "d2"
+    ],
+    "ancestor_fields": {
+      "d1": [
+        "formation_type",
+        "frame_id"
+      ],
+      "d2": [
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "transitive_in_fields": [
+      "d1.formation_type",
+      "d1.frame_id",
+      "d2.formation_type",
+      "d2.frame_id"
+    ],
+    "incoming_edges": [
+      {
+        "from": "d1",
+        "to": "D3",
+        "type": "d->D",
+        "fields": [
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "code_comment.INPUT_FIELDS+python_ast"
+      },
+      {
+        "from": "d2",
+        "to": "D3",
+        "type": "d->D",
+        "fields": [
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "code_comment.INPUT_FIELDS+python_ast"
+      }
+    ],
+    "outgoing_edges": [
+      {
+        "from": "D3",
+        "to": "V3",
+        "type": "D->V",
+        "fields": [
+          "count",
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
+      },
+      {
+        "from": "D3",
+        "to": "D4",
+        "type": "D->D",
+        "fields": [
+          "count",
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "code_comment.INPUT_FIELDS+python_ast"
+      },
+      {
+        "from": "D3",
+        "to": "D5",
+        "type": "D->D",
+        "fields": [
+          "count",
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "code_comment.INPUT_FIELDS+python_ast"
+      },
+      {
+        "from": "D3",
+        "to": "D6",
+        "type": "D->D",
+        "fields": [
+          "count",
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "code_comment.INPUT_FIELDS+python_ast"
+      }
+    ]
+  },
+  "D4": {
+    "in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id"
+    ],
+    "direct_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id"
+    ],
+    "out_fields": [
+      "formation_type",
+      "frequency"
+    ],
+    "predecessors": [
+      "D3"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "ancestors": [
+      "D3",
+      "d1",
+      "d2"
+    ],
+    "ancestor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ],
+      "d1": [
+        "formation_type",
+        "frame_id"
+      ],
+      "d2": [
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "transitive_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id",
+      "d1.formation_type",
+      "d1.frame_id",
+      "d2.formation_type",
+      "d2.frame_id"
+    ],
+    "incoming_edges": [
+      {
+        "from": "D3",
+        "to": "D4",
+        "type": "D->D",
+        "fields": [
+          "count",
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "code_comment.INPUT_FIELDS+python_ast"
+      }
+    ],
+    "outgoing_edges": [
+      {
+        "from": "D4",
+        "to": "V4",
+        "type": "D->V",
+        "fields": [
+          "formation_type",
+          "frequency"
+        ],
+        "evidence": "vega_lite_spec"
+      }
+    ]
+  },
+  "D5": {
+    "in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id"
+    ],
+    "direct_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id"
+    ],
+    "out_fields": [
+      "average_performance_outcome",
+      "formation_type"
+    ],
+    "predecessors": [
+      "D3"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "ancestors": [
+      "D3",
+      "d1",
+      "d2"
+    ],
+    "ancestor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ],
+      "d1": [
+        "formation_type",
+        "frame_id"
+      ],
+      "d2": [
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "transitive_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id",
+      "d1.formation_type",
+      "d1.frame_id",
+      "d2.formation_type",
+      "d2.frame_id"
+    ],
+    "incoming_edges": [
+      {
+        "from": "D3",
+        "to": "D5",
+        "type": "D->D",
+        "fields": [
+          "count",
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "code_comment.INPUT_FIELDS+python_ast"
+      }
+    ],
+    "outgoing_edges": [
+      {
+        "from": "D5",
+        "to": "V5",
+        "type": "D->V",
+        "fields": [
+          "average_performance_outcome",
+          "formation_type"
+        ],
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
+      }
+    ]
+  },
+  "D6": {
+    "in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id"
+    ],
+    "direct_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id"
+    ],
+    "out_fields": [
+      "formation_consistency_variance",
+      "match_identifier"
+    ],
+    "predecessors": [
+      "D3"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "ancestors": [
+      "D3",
+      "d1",
+      "d2"
+    ],
+    "ancestor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ],
+      "d1": [
+        "formation_type",
+        "frame_id"
+      ],
+      "d2": [
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "transitive_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id",
+      "d1.formation_type",
+      "d1.frame_id",
+      "d2.formation_type",
+      "d2.frame_id"
+    ],
+    "incoming_edges": [
+      {
+        "from": "D3",
+        "to": "D6",
+        "type": "D->D",
+        "fields": [
+          "count",
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "code_comment.INPUT_FIELDS+python_ast"
+      }
+    ],
+    "outgoing_edges": [
+      {
+        "from": "D6",
+        "to": "V6",
+        "type": "D->V",
+        "fields": [
+          "formation_consistency_variance",
+          "match_identifier"
+        ],
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
+      }
+    ]
+  },
+  "V1": {
+    "in_fields": [
+      "D1.formation_type",
+      "D1.frequency"
+    ],
+    "direct_in_fields": [
+      "D1.formation_type",
+      "D1.frequency"
+    ],
+    "out_fields": [
+      "formation_type"
+    ],
+    "predecessors": [
+      "D1"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "D1": [
+        "formation_type",
+        "frequency"
+      ]
+    },
+    "ancestors": [
+      "D1",
+      "d1"
+    ],
+    "ancestor_fields": {
+      "D1": [
+        "formation_type",
+        "frequency"
+      ],
+      "d1": [
+        "formation_type"
+      ]
+    },
+    "transitive_in_fields": [
+      "D1.formation_type",
+      "D1.frequency",
+      "d1.formation_type"
+    ],
+    "incoming_edges": [
+      {
+        "from": "D1",
+        "to": "V1",
+        "type": "D->V",
+        "fields": [
+          "formation_type",
+          "frequency"
+        ],
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
+      }
+    ],
+    "outgoing_edges": [
+      {
+        "from": "V1",
+        "to": "I1",
+        "type": "V->I",
+        "fields": [
+          "formation_type"
+        ],
+        "evidence": "interaction_spec.source_views.link_field"
+      }
+    ]
+  },
+  "V2": {
+    "in_fields": [
+      "D2.formation_type",
+      "D2.frequency",
+      "I1.formation_type"
+    ],
+    "direct_in_fields": [
+      "D2.formation_type",
+      "D2.frequency",
+      "I1.formation_type"
+    ],
+    "out_fields": [],
+    "predecessors": [
+      "D2",
+      "I1"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "D2": [
+        "formation_type",
+        "frequency"
+      ],
+      "I1": [
+        "formation_type"
+      ]
+    },
+    "ancestors": [
+      "D1",
+      "D2",
+      "I1",
+      "V1",
+      "d1",
+      "d2"
+    ],
+    "ancestor_fields": {
+      "D1": [
+        "formation_type",
+        "frequency"
+      ],
+      "D2": [
+        "formation_type",
+        "frequency"
+      ],
+      "I1": [
+        "formation_type"
+      ],
+      "V1": [
+        "formation_type"
+      ],
+      "d1": [
+        "formation_type"
+      ],
+      "d2": [
+        "formation_type"
+      ]
+    },
+    "transitive_in_fields": [
+      "D1.formation_type",
+      "D1.frequency",
+      "D2.formation_type",
+      "D2.frequency",
+      "I1.formation_type",
+      "V1.formation_type",
+      "d1.formation_type",
+      "d2.formation_type"
+    ],
+    "incoming_edges": [
+      {
+        "from": "D2",
+        "to": "V2",
+        "type": "D->V",
+        "fields": [
+          "formation_type",
+          "frequency"
+        ],
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
+      },
+      {
+        "from": "I1",
+        "to": "V2",
+        "type": "I->V",
+        "fields": [
+          "formation_type"
+        ],
+        "evidence": "interaction_spec.controlled_view.field"
+      }
+    ],
+    "outgoing_edges": []
+  },
+  "V3": {
+    "in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id"
+    ],
+    "direct_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id"
+    ],
+    "out_fields": [],
+    "predecessors": [
+      "D3"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "ancestors": [
+      "D3",
+      "d1",
+      "d2"
+    ],
+    "ancestor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ],
+      "d1": [
+        "formation_type",
+        "frame_id"
+      ],
+      "d2": [
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "transitive_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id",
+      "d1.formation_type",
+      "d1.frame_id",
+      "d2.formation_type",
+      "d2.frame_id"
+    ],
+    "incoming_edges": [
+      {
+        "from": "D3",
+        "to": "V3",
+        "type": "D->V",
+        "fields": [
+          "count",
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
+      }
+    ],
+    "outgoing_edges": []
+  },
+  "V4": {
+    "in_fields": [
+      "D4.formation_type",
+      "D4.frequency"
+    ],
+    "direct_in_fields": [
+      "D4.formation_type",
+      "D4.frequency"
+    ],
+    "out_fields": [
+      "formation_type"
+    ],
+    "predecessors": [
+      "D4"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "D4": [
+        "formation_type",
+        "frequency"
+      ]
+    },
+    "ancestors": [
+      "D3",
+      "D4",
+      "d1",
+      "d2"
+    ],
+    "ancestor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ],
+      "D4": [
+        "formation_type",
+        "frequency"
+      ],
+      "d1": [
+        "formation_type",
+        "frame_id"
+      ],
+      "d2": [
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "transitive_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id",
+      "D4.formation_type",
+      "D4.frequency",
+      "d1.formation_type",
+      "d1.frame_id",
+      "d2.formation_type",
+      "d2.frame_id"
+    ],
+    "incoming_edges": [
+      {
+        "from": "D4",
+        "to": "V4",
+        "type": "D->V",
+        "fields": [
+          "formation_type",
+          "frequency"
+        ],
+        "evidence": "vega_lite_spec"
+      }
+    ],
+    "outgoing_edges": [
+      {
+        "from": "V4",
+        "to": "I2",
+        "type": "V->I",
+        "fields": [
+          "formation_type"
+        ],
+        "evidence": "interaction_spec.source_views.link_field"
+      }
+    ]
+  },
+  "V5": {
+    "in_fields": [
+      "D5.average_performance_outcome",
+      "D5.formation_type",
+      "I2.average_performance_outcome"
+    ],
+    "direct_in_fields": [
+      "D5.average_performance_outcome",
+      "D5.formation_type",
+      "I2.average_performance_outcome"
+    ],
+    "out_fields": [],
+    "predecessors": [
+      "D5",
+      "I2"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "D5": [
+        "average_performance_outcome",
+        "formation_type"
+      ],
+      "I2": [
+        "average_performance_outcome"
+      ]
+    },
+    "ancestors": [
+      "D3",
+      "D4",
+      "D5",
+      "I2",
+      "V4",
+      "d1",
+      "d2"
+    ],
+    "ancestor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ],
+      "D4": [
+        "formation_type",
+        "frequency"
+      ],
+      "D5": [
+        "average_performance_outcome",
+        "formation_type"
+      ],
+      "I2": [
+        "average_performance_outcome"
+      ],
+      "V4": [
+        "formation_type"
+      ],
+      "d1": [
+        "formation_type",
+        "frame_id"
+      ],
+      "d2": [
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "transitive_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id",
+      "D4.formation_type",
+      "D4.frequency",
+      "D5.average_performance_outcome",
+      "D5.formation_type",
+      "I2.average_performance_outcome",
+      "V4.formation_type",
+      "d1.formation_type",
+      "d1.frame_id",
+      "d2.formation_type",
+      "d2.frame_id"
+    ],
+    "incoming_edges": [
+      {
+        "from": "D5",
+        "to": "V5",
+        "type": "D->V",
+        "fields": [
+          "average_performance_outcome",
+          "formation_type"
+        ],
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
+      },
+      {
+        "from": "I2",
+        "to": "V5",
+        "type": "I->V",
+        "fields": [
+          "average_performance_outcome"
+        ],
+        "evidence": "interaction_spec.controlled_view.field"
+      }
+    ],
+    "outgoing_edges": []
+  },
+  "V6": {
+    "in_fields": [
+      "D6.formation_consistency_variance",
+      "D6.match_identifier"
+    ],
+    "direct_in_fields": [
+      "D6.formation_consistency_variance",
+      "D6.match_identifier"
+    ],
+    "out_fields": [],
+    "predecessors": [
+      "D6"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "D6": [
+        "formation_consistency_variance",
+        "match_identifier"
+      ]
+    },
+    "ancestors": [
+      "D3",
+      "D6",
+      "d1",
+      "d2"
+    ],
+    "ancestor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ],
+      "D6": [
+        "formation_consistency_variance",
+        "match_identifier"
+      ],
+      "d1": [
+        "formation_type",
+        "frame_id"
+      ],
+      "d2": [
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "transitive_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id",
+      "D6.formation_consistency_variance",
+      "D6.match_identifier",
+      "d1.formation_type",
+      "d1.frame_id",
+      "d2.formation_type",
+      "d2.frame_id"
+    ],
+    "incoming_edges": [
+      {
+        "from": "D6",
+        "to": "V6",
+        "type": "D->V",
+        "fields": [
+          "formation_consistency_variance",
+          "match_identifier"
+        ],
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
+      }
+    ],
+    "outgoing_edges": []
+  },
+  "I1": {
+    "in_fields": [
+      "V1.formation_type"
+    ],
+    "direct_in_fields": [
+      "V1.formation_type"
+    ],
+    "out_fields": [
+      "formation_type"
+    ],
+    "predecessors": [
+      "V1"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "V1": [
+        "formation_type"
+      ]
+    },
+    "ancestors": [
+      "D1",
+      "V1",
+      "d1"
+    ],
+    "ancestor_fields": {
+      "D1": [
+        "formation_type",
+        "frequency"
+      ],
+      "V1": [
+        "formation_type"
+      ],
+      "d1": [
+        "formation_type"
+      ]
+    },
+    "transitive_in_fields": [
+      "D1.formation_type",
+      "D1.frequency",
+      "V1.formation_type",
+      "d1.formation_type"
+    ],
+    "incoming_edges": [
+      {
+        "from": "V1",
+        "to": "I1",
+        "type": "V->I",
+        "fields": [
+          "formation_type"
+        ],
+        "evidence": "interaction_spec.source_views.link_field"
+      }
+    ],
+    "outgoing_edges": [
+      {
+        "from": "I1",
+        "to": "V2",
+        "type": "I->V",
+        "fields": [
+          "formation_type"
+        ],
+        "evidence": "interaction_spec.controlled_view.field"
+      }
+    ]
+  },
+  "I2": {
+    "in_fields": [
+      "V4.formation_type"
+    ],
+    "direct_in_fields": [
+      "V4.formation_type"
+    ],
+    "out_fields": [
+      "average_performance_outcome"
+    ],
+    "predecessors": [
+      "V4"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "V4": [
+        "formation_type"
+      ]
+    },
+    "ancestors": [
+      "D3",
+      "D4",
+      "V4",
+      "d1",
+      "d2"
+    ],
+    "ancestor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ],
+      "D4": [
+        "formation_type",
+        "frequency"
+      ],
+      "V4": [
+        "formation_type"
+      ],
+      "d1": [
+        "formation_type",
+        "frame_id"
+      ],
+      "d2": [
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "transitive_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id",
+      "D4.formation_type",
+      "D4.frequency",
+      "V4.formation_type",
+      "d1.formation_type",
+      "d1.frame_id",
+      "d2.formation_type",
+      "d2.frame_id"
+    ],
+    "incoming_edges": [
+      {
+        "from": "V4",
+        "to": "I2",
+        "type": "V->I",
+        "fields": [
+          "formation_type"
+        ],
+        "evidence": "interaction_spec.source_views.link_field"
+      }
+    ],
+    "outgoing_edges": [
+      {
+        "from": "I2",
+        "to": "V5",
+        "type": "I->V",
+        "fields": [
+          "average_performance_outcome"
+        ],
+        "evidence": "interaction_spec.controlled_view.field"
+      }
+    ]
+  }
+}

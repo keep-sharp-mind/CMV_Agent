@@ -260,8 +260,13 @@ function ProjectDetail() {
   }
 
   const handleGeneratePlan = async () => {
+    if (isPlanning || isGenerating || isProcessingData || isProcessingInteractions) {
+      return
+    }
+
     // Clear previous generated content
     setDataResult(null)
+    setNodeDataFlow(null)
     setVisSpec(null)
     setNodeTableData(null)
     setNodeCode(null)
@@ -468,6 +473,10 @@ function ProjectDetail() {
   }
 
   const handleNodeSelect = async (node) => {
+    if (isPlanning || isGenerating || isProcessingData || isProcessingInteractions) {
+      return
+    }
+
     setSelectedGraphNode(node)
     setNodeCode(null)
     setShowCode(false)
@@ -625,7 +634,7 @@ function ProjectDetail() {
           <button
             className="primary-button"
             onClick={handleGeneratePlan}
-            disabled={isPlanning || databases.length === 0}
+            disabled={isPlanning || isGenerating || isProcessingData || isProcessingInteractions || databases.length === 0}
           >
             {isPlanning ? 'Generating...' : planResult ? 'Regenerate' : 'Generate Plan'}
           </button>
@@ -662,7 +671,7 @@ function ProjectDetail() {
                   <button
                     className="primary-button"
                     onClick={handleGenerate}
-                    disabled={isGenerating || isProcessingData || !planResult.nodes?.D?.length}
+                    disabled={isPlanning || isGenerating || isProcessingData || isProcessingInteractions || !planResult.nodes?.D?.length}
                     style={{ fontSize: '0.85rem', padding: '6px 12px' }}
                   >
                     {isGenerating || isProcessingData ? 'Generating...' : 'Generate'}
@@ -674,6 +683,7 @@ function ProjectDetail() {
                   onNodeSelect={handleNodeSelect}
                   selectedNodeId={selectedGraphNode?.id || null}
                   activeNodes={activeNodes}
+                  disabled={isPlanning || isGenerating || isProcessingData || isProcessingInteractions}
                 />
 
                 {selectedGraphNode && (
