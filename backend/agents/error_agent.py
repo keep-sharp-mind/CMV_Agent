@@ -9,6 +9,7 @@ import json
 import copy
 import re
 import traceback
+import difflib
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from model import get_model_client, ModelClient
@@ -385,6 +386,13 @@ class ErrorAgent:
             error_lines.append(f"  syntax: {sc.get('error', '')}")
         for iss in execution_result.get("validation_issues", []):
             error_lines.append(f"  validation: {iss.get('detail', '')}")
+        previous_attempts = execution_result.get("previous_recovery_attempts") or []
+        if previous_attempts:
+            error_lines.append("  previous_recovery_attempts:")
+            for attempt in previous_attempts[-5:]:
+                error_lines.append(
+                    "  " + json.dumps(attempt, ensure_ascii=False, default=str)
+                )
         error_details = "\n".join(error_lines) if error_lines else "  No error details"
 
         prompt = VIS_ERROR_ANALYSIS_PROMPT.format(
@@ -416,6 +424,7 @@ class ErrorAgent:
                 "success": True,
                 "root_cause": result.get("root_cause", "vis_spec"),
                 "fix_strategy": result.get("fix_strategy", "modify_vis"),
+                "repair_scope": result.get("repair_scope", ["current_node"]),
                 "suggested_fixes": result.get("suggested_fixes", {}),
                 "explanation": result.get("explanation", ""),
                 "_prompt_messages": messages, "_raw_response": _raw
@@ -580,6 +589,7 @@ class ErrorAgent:
                 "success": True,
                 "root_cause": result.get("root_cause", "interaction_code"),
                 "fix_strategy": result.get("fix_strategy", "modify_interaction"),
+                "repair_scope": result.get("repair_scope", ["current_node"]),
                 "suggested_fixes": result.get("suggested_fixes", {}),
                 "explanation": result.get("explanation", ""),
                 "_prompt_messages": messages, "_raw_response": _raw
@@ -739,48 +749,194 @@ class ErrorAgent:
                 f"count={issue.get('count', 0)} detail={issue.get('detail', '')}"
             )
 
+        previous_attempts = execution_result.get("previous_recovery_attempts") or []
+        if previous_attempts:
+            details.append("previous_recovery_attempts:")
+            for attempt in previous_attempts[-5:]:
+                details.append(json.dumps(attempt, ensure_ascii=False, default=str))
+
         if execution_result.get("success") and not execution_result.get("validation_issues"):
             details.append("No execution failure or validation issue was reported")
         return "\n".join(f"  {line}" for line in details) if details else "  No error details"
 
     @staticmethod
-    def _infer_data_diagnosis(execution_result: Dict[str, Any]) -> Dict[str, Any]:
+    def _collect_available_columns(
+        input_nodes: List[Dict[str, Any]] = None,
+        input_table_paths: Dict[str, str] = None
+    ) -> Dict[str, List[str]]:
+        """Collect exact upstream columns for concrete local repair suggestions."""
+        input_nodes = input_nodes or []
+        input_table_paths = input_table_paths or {}
+        node_ids = [item.get("id") for item in input_nodes if item.get("id")]
+        node_ids.extend(node_id for node_id in input_table_paths if node_id not in node_ids)
+        columns_by_node: Dict[str, List[str]] = {}
+        for node_id in node_ids:
+            path = input_table_paths.get(node_id, "")
+            if not path or not os.path.isfile(path):
+                continue
+            try:
+                import pandas as pd
+                frame = pd.read_csv(path, nrows=0)
+                columns_by_node[node_id] = [str(column) for column in frame.columns]
+            except Exception:
+                columns_by_node[node_id] = []
+        return columns_by_node
+
+    @staticmethod
+    def _extract_missing_columns(error: str) -> List[str]:
+        """Extract likely missing DataFrame columns from common pandas errors."""
+        if not error:
+            return []
+        candidates = []
+        patterns = [
+            r"KeyError:\s*['\"]([^'\"]+)['\"]",
+            r"\[['\"]([^'\"]+)['\"]\]\s+not in index",
+            r"None of \[Index\(\[([^\]]+)\]",
+            r"Column\(s\) \[([^\]]+)\] do not exist",
+            r"['\"]([^'\"]+)['\"]\s+not in index",
+        ]
+        for pattern in patterns:
+            for match in re.findall(pattern, error):
+                if isinstance(match, tuple):
+                    match = next((part for part in match if part), "")
+                for token in re.findall(r"['\"]([^'\"]+)['\"]|([^,\s]+)", str(match)):
+                    value = token[0] or token[1]
+                    value = value.strip().strip("[]")
+                    if value and value not in candidates:
+                        candidates.append(value)
+        return candidates[:5]
+
+    @staticmethod
+    def _format_column_suggestions(missing_columns: List[str], columns_by_node: Dict[str, List[str]]) -> str:
+        if not missing_columns or not columns_by_node:
+            return ""
+        suggestions = []
+        all_columns = []
+        for node_id, columns in columns_by_node.items():
+            for column in columns:
+                all_columns.append((node_id, column))
+        for missing in missing_columns:
+            close = []
+            close_names = difflib.get_close_matches(
+                missing,
+                [column for _, column in all_columns],
+                n=5,
+                cutoff=0.45
+            )
+            for name in close_names:
+                owners = [node_id for node_id, column in all_columns if column == name]
+                close.append(f"`{name}` from {', '.join(owners)}")
+            if close:
+                suggestions.append(f"missing `{missing}`; closest available columns: {', '.join(close)}")
+            else:
+                available_preview = "; ".join(
+                    f"{node_id}: {columns[:8]}" for node_id, columns in columns_by_node.items()
+                )
+                suggestions.append(f"missing `{missing}`; no close match found. Available columns include {available_preview}")
+        return " ".join(suggestions)
+
+    @staticmethod
+    def _is_generic_fix_text(text: Any) -> bool:
+        text = str(text or "").strip()
+        if not text:
+            return True
+        lower = text.lower()
+        generic_phrases = [
+            "repair the failing expression",
+            "using the traceback",
+            "fix the code",
+            "correct the error",
+            "modify the code",
+            "handle the error",
+            "check the input",
+            "use exact input profile",
+        ]
+        has_generic_phrase = any(phrase in lower for phrase in generic_phrases)
+        has_concrete_marker = any(marker in text for marker in ("`", "INPUT_TABLE_PATH_", "result_df", "# INPUT_FIELDS", "[", "]", "pd."))
+        return has_generic_phrase and not has_concrete_marker
+
+    @classmethod
+    def _infer_data_diagnosis(
+        cls,
+        execution_result: Dict[str, Any],
+        input_nodes: List[Dict[str, Any]] = None,
+        input_table_paths: Dict[str, str] = None
+    ) -> Dict[str, Any]:
         """Create an evidence-based fallback diagnosis before asking the model."""
         error = str(execution_result.get("error") or "")
         syntax_check = execution_result.get("syntax_check") or {}
         issues = execution_result.get("validation_issues") or []
+        columns_by_node = cls._collect_available_columns(input_nodes, input_table_paths)
+        missing_columns = cls._extract_missing_columns(error)
+        column_suggestion = cls._format_column_suggestions(missing_columns, columns_by_node)
         root_cause = "runtime_error"
         evidence = []
-        modification = "Repair the failing expression using the traceback and exact input profile."
+        modification = (
+            "Locate the exact expression shown in the traceback, replace only the failing pandas operation, "
+            "keep reading inputs through the provided `INPUT_TABLE_PATH_*` variables, and ensure the final "
+            "non-empty DataFrame is assigned to `result_df`. Update the `# INPUT_FIELDS` header to match "
+            "the repaired code's actual consumed columns."
+        )
 
         if syntax_check and not syntax_check.get("valid", True):
             root_cause = "syntax_error"
             evidence.append(str(syntax_check.get("error") or error))
-            modification = "Correct the reported Python syntax error before changing data logic."
+            modification = (
+                f"Fix the reported Python syntax error `{syntax_check.get('error') or error}` at the indicated "
+                "line/expression, then rerun the same transformation logic. Do not change the node's analytical "
+                "intent unless the syntax fix exposes a separate data-contract issue."
+            )
         elif "No such file" in error or "FileNotFoundError" in error:
             root_cause = "missing_input"
             evidence.append(error)
-            modification = "Use only the provided INPUT_TABLE_PATH_* variables and verify the upstream dependency."
+            expected_vars = ", ".join(f"`INPUT_TABLE_PATH_{node_id}`" for node_id in (columns_by_node or input_table_paths or {})) or "`INPUT_TABLE_PATH_<upstream_id>`"
+            modification = (
+                f"Replace any literal file path or unavailable input with the provided variable {expected_vars}. "
+                "If the required upstream artifact is absent, modify the dependency/upstream node instead of "
+                "inventing a path."
+            )
         elif "KeyError" in error:
             root_cause = "column_name"
             evidence.append(error)
-            modification = "Replace the missing field with the exact matching column from the input profile."
+            missing_text = ", ".join(f"`{column}`" for column in missing_columns) or "the missing column named in the KeyError"
+            modification = (
+                f"Replace references to {missing_text} with exact available input columns. {column_suggestion} "
+                "If no available column is semantically equivalent, keep this node honest: recommend modifying "
+                "the upstream D node to output the required field or modifying the requirement/plan; do not "
+                "create a fabricated constant column."
+            ).strip()
         elif any(token in error for token in ("TypeError", "ValueError", "could not convert", "Can only use")):
             root_cause = "data_type"
             evidence.append(error)
-            modification = "Normalize the involved columns to compatible types before the failing operation."
+            modification = (
+                "At the failing operation, explicitly convert the involved columns with `pd.to_numeric(..., errors='coerce')`, "
+                "`pd.to_datetime(...)`, or `.astype(str)` as appropriate for the task, then drop/fill only the rows needed "
+                "for that operation before assigning the final DataFrame to `result_df`."
+            )
         elif "result_df" in error or "did not produce" in error or "is not a DataFrame" in error:
             root_cause = "output_contract"
             evidence.append(error)
-            modification = "Assign the final pandas DataFrame to the mandatory variable result_df."
+            modification = (
+                "Ensure the final transformed pandas DataFrame is assigned exactly to `result_df` on all code paths. "
+                "If the current code stores the result in another variable, rename or copy that variable to `result_df` "
+                "after the final filter/groupby/merge."
+            )
         elif any(issue.get("type") == "empty_result" for issue in issues):
             root_cause = "empty_result"
             evidence.extend(str(issue.get("detail")) for issue in issues)
-            modification = "Correct filters, joins, or grouping so the intended transformation returns rows."
+            modification = (
+                "Relax or correct the specific filter/join keys that produced zero rows. Verify merge keys exist on both "
+                "inputs, normalize their dtype/string casing before the merge, and avoid filtering on values that are not "
+                "present in the input profile."
+            )
         elif any(issue.get("type") in ("nan_values", "inf_values") for issue in issues):
             root_cause = "invalid_values"
             evidence.extend(str(issue.get("detail")) for issue in issues)
-            modification = "Handle missing values and division-by-zero explicitly without disabling validation."
+            modification = (
+                "Before producing `result_df`, handle the columns named in validation issues: coerce invalid numerics, "
+                "guard denominators with `.replace(0, pd.NA)`, and drop/fill NaN/Inf only for the analytical fields "
+                "that the node outputs."
+            )
         elif any(issue.get("type") == "constant_analytical_output" for issue in issues):
             root_cause = "logic_error"
             evidence.extend(str(issue.get("detail")) for issue in issues)
@@ -792,8 +948,11 @@ class ErrorAgent:
             root_cause = "output_contract"
             evidence.extend(str(issue.get("detail")) for issue in issues)
             modification = (
-                "Preserve every required input/output field in the stable field "
-                "contract and do not introduce undeclared predecessors."
+                "Preserve the downstream-required output fields in the stable "
+                "field contract. Input fields may change if the node can still "
+                "produce the required outputs correctly; if an upstream table "
+                "does not contain the needed information, recommend modifying "
+                "the upstream node or the requirement instead of fabricating data."
             )
         elif error:
             evidence.append(error)
@@ -803,11 +962,31 @@ class ErrorAgent:
             "fix_strategy": "modify_code",
             "suggested_fixes": {
                 "code_modifications": modification,
+                "upstream_node_modifications": None,
+                "requirement_modifications": None,
                 "data_modifications": None
             },
+            "repair_scope": ["current_node"],
             "evidence": evidence,
             "explanation": "Local diagnosis inferred from the structured execution result."
         }
+
+    @classmethod
+    def _harden_data_suggested_fixes(
+        cls,
+        suggested_fixes: Dict[str, Any],
+        local_diagnosis: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Replace vague model suggestions with concrete local evidence-based suggestions."""
+        fixes = dict(suggested_fixes or {})
+        local_fixes = local_diagnosis.get("suggested_fixes") or {}
+        for key in ("code_modifications", "upstream_node_modifications", "requirement_modifications", "data_modifications"):
+            if key not in fixes:
+                fixes[key] = local_fixes.get(key)
+        if cls._is_generic_fix_text(fixes.get("code_modifications")):
+            fixes["code_modifications"] = local_fixes.get("code_modifications")
+            fixes["generic_suggestion_replaced"] = True
+        return fixes
 
     @staticmethod
     def _extract_python_code(text: str) -> str:
@@ -833,7 +1012,7 @@ class ErrorAgent:
         print(f"[ErrorAgent.analyze_data_error] node={node.get('id','?')} success={execution_result.get('success')}", flush=True)
         node_details = f"  {node['id']}: {node.get('name', '')} - {node.get('description', '')} | task: {node.get('task', '')}"
         input_tables_info = self._build_data_input_profiles(input_nodes, input_table_paths)
-        local_diagnosis = self._infer_data_diagnosis(execution_result)
+        local_diagnosis = self._infer_data_diagnosis(execution_result, input_nodes, input_table_paths)
         error_details = (
             self._format_data_error_details(execution_result)
             + "\n\n  Local pre-diagnosis: "
@@ -866,11 +1045,16 @@ class ErrorAgent:
                     "_prompt_messages": messages,
                     "_raw_response": _raw
                 }
+            suggested_fixes = self._harden_data_suggested_fixes(
+                result.get("suggested_fixes") or {},
+                local_diagnosis
+            )
             return {
                 "success": True,
                 "root_cause": result.get("root_cause", local_diagnosis["root_cause"]),
                 "fix_strategy": result.get("fix_strategy", "modify_code"),
-                "suggested_fixes": result.get("suggested_fixes") or local_diagnosis["suggested_fixes"],
+                "repair_scope": result.get("repair_scope", local_diagnosis.get("repair_scope", ["current_node"])),
+                "suggested_fixes": suggested_fixes,
                 "evidence": result.get("evidence") or local_diagnosis["evidence"],
                 "explanation": result.get("explanation", ""),
                 "diagnosis_source": "llm",

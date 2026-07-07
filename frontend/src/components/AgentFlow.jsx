@@ -24,8 +24,8 @@ const AGENT_META = {
     name: 'Interaction Agent',
     color: '#8b5cf6',
     icon: '🔄',
-    shape: 'rect',
-    desc: 'Generates interaction bindings between charts'
+    shape: 'diamond',
+    desc: 'Generates interaction specs for I-nodes'
   },
   error: {
     name: 'Error Agent',
@@ -43,7 +43,9 @@ const STATUS_META = {
   pending: { label: 'Pending', cls: 'status-pending' }
 }
 
-function AgentShape({ type, color, active, hasContent }) {
+const MAIN_AGENTS = ['plan', 'data', 'vis', 'interaction', 'error']
+
+function AgentShape({ type, color, active, icon }) {
   const size = 80
   const cx = 40, cy = 40
 
@@ -104,7 +106,7 @@ function AgentShape({ type, color, active, hasContent }) {
       )}
       <text x={cx} y={cy + 1} textAnchor="middle" dominantBaseline="central"
         fontSize="20" fill="#fff" className="agent-icon-text">
-        {AGENT_META[type]?.icon || '?'}
+        {icon || '?'}
       </text>
     </svg>
   )
@@ -139,33 +141,55 @@ function AgentItem({ item, isProcessing }) {
   )
 }
 
-function buildSyntheticItems(agentId, planNodes) {
+function buildSyntheticItems(agentId, planNodes, activeNodes) {
   if (agentId === 'plan') {
     return [
       { id: 'plan-refine', label: 'Refining requirements', status: 'success' },
       { id: 'plan-nodes', label: 'Generating nodes & dependencies', status: 'processing' }
     ]
   }
+
+  const findCurrent = (nodeList) => {
+    if (!nodeList || nodeList.length === 0) return null
+    if (activeNodes && activeNodes.length > 0) {
+      const found = nodeList.find(n => n.id === activeNodes[0])
+      if (found) return found
+    }
+    return nodeList[0]
+  }
+
   if (agentId === 'data' && planNodes?.D) {
-    return planNodes.D.map((n, idx) => ({
-      id: `data-${n.id}`,
-      label: `Process ${n.id}${n.name ? ': ' + n.name : ''}`,
-      status: idx === 0 ? 'processing' : 'pending'
-    }))
+    const curr = findCurrent(planNodes.D)
+    if (!curr) return []
+    return [{
+      id: `data-${curr.id}`,
+      label: `Process ${curr.id}${curr.name ? ': ' + curr.name : ''}`,
+      status: 'processing'
+    }]
   }
   if (agentId === 'vis' && planNodes?.V) {
-    return planNodes.V.map((n, idx) => ({
-      id: `vis-${n.id}`,
-      label: `Generate ${n.id}${n.name ? ': ' + n.name : ''}`,
-      status: idx === 0 ? 'processing' : 'pending'
-    }))
+    const curr = findCurrent(planNodes.V)
+    if (!curr) return []
+    return [{
+      id: `vis-${curr.id}`,
+      label: `Generate ${curr.id}${curr.name ? ': ' + curr.name : ''}`,
+      status: 'processing'
+    }]
   }
-  if (agentId === 'interaction' && planNodes?.I) {
-    return planNodes.I.map((n, idx) => ({
-      id: `interaction-${n.id}`,
-      label: `Process ${n.id}${n.name ? ': ' + n.name : ''}`,
-      status: idx === 0 ? 'processing' : 'pending'
-    }))
+  if (agentId === 'interaction') {
+    const nodes = planNodes?.I
+    if (!nodes || nodes.length === 0) return []
+    const curr = findCurrent(nodes)
+    if (!curr) return [{
+      id: 'interaction-generate',
+      label: 'Generating interaction specs',
+      status: 'processing'
+    }]
+    return [{
+      id: `interaction-${curr.id}`,
+      label: `Generate ${curr.id}${curr.name ? ': ' + curr.name : ''}`,
+      status: 'processing'
+    }]
   }
   if (agentId === 'error') {
     return [{ id: 'error-check', label: 'Checking for errors', status: 'processing' }]
@@ -173,39 +197,96 @@ function buildSyntheticItems(agentId, planNodes) {
   return []
 }
 
-function AgentFlow({ agents, connections, activeAgent, expandedAgent, onToggleExpand, generating, planNodes }) {
-  const agentOrder = ['plan', 'data', 'vis', 'interaction', 'error']
+function sortItems(items) {
+  const sorted = [...items]
+  sorted.sort((a, b) => {
+    if (a.status === 'processing' && b.status !== 'processing') return -1
+    if (a.status !== 'processing' && b.status === 'processing') return 1
+    return 0
+  })
+  return sorted
+}
 
-  const hasPlanNodes = (id, pn) => {
-    const map = { data: 'D', vis: 'V', interaction: 'I' }
-    const key = map[id]
-    return key ? (pn[key]?.length > 0) : false
+function summarizeItems(items) {
+  const counts = items.reduce((acc, item) => {
+    const key = item.status || 'pending'
+    acc[key] = (acc[key] || 0) + 1
+    return acc
+  }, {})
+  return counts
+}
+
+function getVisibleItems(items) {
+  if (!items || items.length === 0) return []
+  return items
+}
+
+function buildItemsFromNodeStatus(agentId, nodeList, nodeStatus) {
+  const items = []
+  for (const n of nodeList) {
+    const statusArr = nodeStatus[n.id]
+    if (!statusArr || !Array.isArray(statusArr)) continue
+    for (let i = 0; i < statusArr.length; i++) {
+      const entry = statusArr[i]
+      const baseLabel = agentId === 'data'
+        ? `Process ${n.id}${n.name ? ': ' + n.name : ''}`
+        : `Generate ${n.id}${n.name ? ': ' + n.name : ''}`
+      const label = entry.retryNodeId
+        ? `Regenerate ${entry.retryNodeId}${n.name ? ': ' + n.name : ''}`
+        : entry.attempt > 1
+        ? `${baseLabel} (attempt ${entry.attempt})`
+        : baseLabel
+      items.push({
+        id: `${agentId}-${n.id}-${i}`,
+        label,
+        status: entry.status,
+        input: entry.input,
+        output: entry.output,
+        error_detail: entry.error_detail
+      })
+    }
   }
+  return items
+}
 
-  const visibleAgents = generating
-    ? agentOrder
-    : (agents
-        ? agentOrder.filter(id => agents[id] || (planNodes && hasPlanNodes(id, planNodes)))
-        : [])
+function AgentFlow({ agents, activeAgent, activeNodes, nodeStatus, expandedAgent, onToggleExpand, generating, planNodes, dependencies, errorRetryEntries }) {
+  const showAll = generating || planNodes
 
-  if (visibleAgents.length === 0) return null
+  if (!showAll && !agents) return null
 
   const isExpanded = (id) => {
     if (generating) return id === activeAgent
     return expandedAgent === id
   }
 
-  const getAgentData = (id) => {
-    if (agents?.[id]) return agents[id]
-    if (!generating) return null
-    return { items: [] }
-  }
-
   const getItems = (id) => {
     const realAgent = agents?.[id]
-    if (realAgent?.items?.length > 0) return realAgent.items
-    if (!generating || id !== activeAgent) return []
-    return buildSyntheticItems(id, planNodes)
+    if (realAgent?.items?.length > 0) {
+      return sortItems(realAgent.items)
+    }
+
+    if (!generating) {
+      if (id === 'error' && errorRetryEntries && errorRetryEntries.length > 0) {
+        return sortItems(errorRetryEntries.map(e => ({ ...e })))
+      }
+      return []
+    }
+
+    if (id === 'error' && errorRetryEntries && errorRetryEntries.length > 0) {
+      return sortItems(errorRetryEntries.map(e => ({ ...e })))
+    }
+
+    if (id !== activeAgent) return []
+
+    if ((id === 'data' || id === 'vis') && nodeStatus && Object.keys(nodeStatus).length > 0) {
+      const nodeList = id === 'data' ? planNodes?.D : planNodes?.V
+      if (nodeList && nodeList.length > 0) {
+        const items = buildItemsFromNodeStatus(id, nodeList, nodeStatus)
+        if (items.length > 0) return sortItems(items)
+      }
+    }
+
+    return sortItems(buildSyntheticItems(id, planNodes, activeNodes))
   }
 
   return (
@@ -218,52 +299,45 @@ function AgentFlow({ agents, connections, activeAgent, expandedAgent, onToggleEx
       </div>
       <div className="agent-flow-body">
         <div className="agent-nodes-row">
-          {visibleAgents.map((id, idx) => {
-            const agent = getAgentData(id)
+          {MAIN_AGENTS.map((id) => {
             const meta = AGENT_META[id] || {}
             const isActive = activeAgent === id
             const exp = isExpanded(id)
             const items = getItems(id)
+            const counts = summarizeItems(items)
+            const visibleItems = getVisibleItems(items)
 
             return (
-              <div key={id} className="agent-node-wrapper">
-                {idx > 0 && (
-                  <div className={`agent-connector ${id === 'error' && items?.length > 0 ? 'connector-error' : ''}`}>
-                    <div className="connector-line" />
-                    <div className="connector-arrow" />
-                  </div>
-                )}
+              <div key={id} className={`agent-node-wrapper ${isActive ? 'agent-wrapper-active' : ''}`}>
                 <div
                   className={`agent-node ${isActive ? 'agent-active' : ''} ${exp ? 'agent-expanded' : ''}`}
                   onClick={() => onToggleExpand && onToggleExpand(id)}
                 >
-                  <AgentShape
-                    type={meta.shape || 'circle'}
-                    color={meta.color}
-                    active={isActive}
-                    hasContent={items.length > 0}
-                  />
+                  <AgentShape type={meta.shape || 'circle'} color={meta.color} active={isActive} icon={meta.icon} />
                   <div className="agent-name" style={{ color: meta.color }}>
                     {meta.name}
                   </div>
                   {isActive && generating && (
                     <div className="agent-status-label">{meta.desc}</div>
                   )}
-                  {items.length > 0 && !(isActive && generating) && (
-                    <div className="agent-item-count">
-                      {items.length} item{items.length > 1 ? 's' : ''}
+                  {items.length > 0 && (
+                    <div className="agent-summary-pills">
+                      {counts.success > 0 && <span className="agent-summary-pill summary-success">{counts.success}</span>}
+                      {counts.error > 0 && <span className="agent-summary-pill summary-error">{counts.error}</span>}
+                      {counts.processing > 0 && <span className="agent-summary-pill summary-processing">{counts.processing}</span>}
                     </div>
                   )}
                 </div>
 
-                {exp && items.length > 0 && (
+                {/* Detail panel */}
+                {(exp || isActive) && visibleItems.length > 0 && (
                   <div className="agent-detail-panel">
-                    {items.map(item => (
+                    {visibleItems.map(item => (
                       <AgentItem key={item.id} item={item} isProcessing={item.status === 'processing'} />
                     ))}
                   </div>
                 )}
-                {exp && items.length === 0 && (
+                {exp && visibleItems.length === 0 && (
                   <div className="agent-detail-panel agent-detail-empty">
                     {generating ? 'Waiting for tasks...' : 'No items yet'}
                   </div>

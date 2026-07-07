@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProject, updateProject, fetchDatabases, uploadDatabase, deleteDatabase, generateGoal, generatePlan, getPlan, processData, processSingleDNode, processSingleVNode, getNodeData, getNodeCode, getDataResult, getVisSpec, getAgentTrace, processInteractions, getDataFlow, getInteractionResult, resetProcessing } from '../api'
 import DependencyGraph from '../components/DependencyGraph'
-import ProjectInfoSection from '../components/ProjectInfoSection'
 import DatabaseSection from '../components/DatabaseSection'
 import NodeCard from '../components/NodeCard'
 import NodeDetailSection from '../components/NodeDetailSection'
@@ -39,8 +38,8 @@ function NodeGroup({ label, type, nodes }) {
 function RefinedRequirements({ requirements }) {
   if (!requirements || requirements.length === 0) return null
   return (
-    <div className="plan-subsection">
-      <h3>Refined Requirements</h3>
+    <div className="sidebar-subsection">
+      <h4 className="sidebar-subsection-title">Refined Requirements</h4>
       <div className="requirements-list">
         {requirements.map(req => (
           <div key={req.id} className="requirement-card">
@@ -92,6 +91,13 @@ function topologicalSort(nodeIds, dependencies) {
   return result
 }
 
+function getDependencyInput(nodeId, dependencies) {
+  const inputs = (dependencies || [])
+    .filter(dependency => dependency.to === nodeId)
+    .map(dependency => dependency.from)
+  return inputs.length > 0 ? inputs.join(', ') : 'database'
+}
+
 function ProjectDetail() {
   const { projectId } = useParams()
   const navigate = useNavigate()
@@ -127,10 +133,18 @@ function ProjectDetail() {
   const [activeAgent, setActiveAgent] = useState(null)
   const [activeNodes, setActiveNodes] = useState([])
   const agentTimerRef = useRef(null)
+  const flowRunRef = useRef(0)
+  const flowTimerRefs = useRef(new Set())
+  const flowBusyRef = useRef(false)
   const [isProcessingInteractions, setIsProcessingInteractions] = useState(false)
   const [interactionResults, setInteractionResults] = useState(null)
   const [viewDataUrls, setViewDataUrls] = useState(null)
   const [nodeDataFlow, setNodeDataFlow] = useState(null)
+  const [showNodes, setShowNodes] = useState(false)
+  const [showViews, setShowViews] = useState(false)
+  const [isFixing, setIsFixing] = useState(false)
+  const [nodeStatus, setNodeStatus] = useState({})
+  const [errorRetryEntries, setErrorRetryEntries] = useState([])
 
   useEffect(() => {
     loadProject()
@@ -140,11 +154,49 @@ function ProjectDetail() {
     loadAgentTrace()
 
     return () => {
+      flowRunRef.current += 1
       if (agentTimerRef.current) {
         clearTimeout(agentTimerRef.current)
       }
+      flowTimerRefs.current.forEach(timerId => clearTimeout(timerId))
+      flowTimerRefs.current.clear()
     }
   }, [projectId])
+
+  const clearFlowTimers = () => {
+    flowTimerRefs.current.forEach(timerId => clearTimeout(timerId))
+    flowTimerRefs.current.clear()
+  }
+
+  const startFlowRun = () => {
+    flowRunRef.current += 1
+    clearFlowTimers()
+    return flowRunRef.current
+  }
+
+  const isCurrentFlowRun = (runToken) => runToken === flowRunRef.current
+
+  const waitForFlowRun = (durationMs, runToken) => (
+    new Promise(resolve => {
+      if (!isCurrentFlowRun(runToken)) {
+        resolve(false)
+        return
+      }
+      const timerId = setTimeout(() => {
+        flowTimerRefs.current.delete(timerId)
+        resolve(isCurrentFlowRun(runToken))
+      }, durationMs)
+      flowTimerRefs.current.add(timerId)
+    })
+  )
+
+  const setActiveFlowState = (runToken, agentId, nodeIds = [], expandedId = agentId) => {
+    if (!isCurrentFlowRun(runToken)) return false
+    setActiveAgent(agentId)
+    setExpandedAgent(expandedId)
+    setActiveNodes(nodeIds)
+    return true
+  }
 
   const loadPlan = async () => {
     try {
@@ -259,6 +311,225 @@ function ProjectDetail() {
     setExpandedDb(expandedDb === dbName ? null : dbName)
   }
 
+  const startNodeRun = (nodeId, input, output) => {
+    setNodeStatus(previous => ({
+      ...previous,
+      [nodeId]: [{ status: 'processing', attempt: 1, input, output }]
+    }))
+  }
+
+  const summarizeValidationIssues = (issues = []) => {
+    if (!Array.isArray(issues) || issues.length === 0) return ''
+    return issues
+      .slice(0, 2)
+      .map(issue => issue.detail || issue.type)
+      .filter(Boolean)
+      .join('; ')
+  }
+
+  const getResultErrorSummary = (result) => {
+    return (
+      result?.error ||
+      result?.original_error ||
+      result?.error_report?.summary ||
+      result?.error_report?.original_error?.error ||
+      summarizeValidationIssues(result?.validation_issues) ||
+      summarizeValidationIssues(result?.error_report?.original_error?.validation_issues) ||
+      'Validation failed'
+    )
+  }
+
+  const clampReplayDelay = (durationMs, minMs, maxMs) => {
+    const value = Number(durationMs)
+    if (!Number.isFinite(value) || value <= 0) return minMs
+    return Math.min(Math.max(value, minMs), maxMs)
+  }
+
+  const getAttemptDiagnosisDelay = (attempt) => {
+    return clampReplayDelay(
+      attempt?.diagnosis_duration_ms || attempt?.phase_timings?.diagnosis_ms,
+      1400,
+      7000
+    )
+  }
+
+  const getAttemptRegenerationDelay = (attempt) => {
+    return clampReplayDelay(
+      attempt?.regeneration_duration_ms ||
+      attempt?.phase_timings?.regeneration_ms ||
+      attempt?.fix_generation_duration_ms ||
+      attempt?.phase_timings?.fix_generation_ms,
+      900,
+      5000
+    )
+  }
+
+  const normalizeRecoveryAttemptStatus = (attempt) => {
+    const status = String(attempt?.status || '').toLowerCase()
+    if (status === 'recovered' || status === 'success') return 'success'
+    if (status === 'processing' || status === 'running' || status === 'in_progress') return 'processing'
+    if (
+      !status ||
+      status.includes('failed') ||
+      status.includes('rejected') ||
+      status.includes('error') ||
+      status.includes('invalid')
+    ) {
+      return 'error'
+    }
+    return 'error'
+  }
+
+  const buildErrorAgentEntries = (nodeId, result, agentLabel) => {
+    const entries = []
+    const errorReport = result?.error_report
+    const recoveryAttempts = result?.recovery_attempts || errorReport?.recovery_attempts || []
+    const recoveryStatus = errorReport?.recovery_status || {}
+    const hasErrorFlow = Boolean(errorReport) || recoveryAttempts.length > 0 || result?.success === false
+
+    if (!hasErrorFlow) return entries
+
+    entries.push({
+      id: `error-detect-${nodeId}`,
+      label: `Detected issue in ${nodeId}`,
+      status: result?.success === false ? 'error' : 'success',
+      input: agentLabel,
+      output: 'Send to Error Agent',
+      error_detail: getResultErrorSummary(result)
+    })
+
+    if (errorReport?.summary) {
+      entries.push({
+        id: `error-diagnose-${nodeId}`,
+        label: `Diagnose ${nodeId}`,
+        status: 'success',
+        input: 'Error context',
+        output: 'Diagnosis',
+        error_detail: errorReport.summary
+      })
+    }
+
+    recoveryAttempts.forEach((attempt, index) => {
+      const attemptStatus = normalizeRecoveryAttemptStatus(attempt)
+      entries.push({
+        id: `error-retry-${nodeId}-${index}`,
+        label: `Regenerate ${nodeId} (attempt ${attempt.attempt || index + 1})`,
+        status: attemptStatus,
+        input: attempt.diagnosis?.root_cause || attempt.analysis?.root_cause || attempt.status || 'Diagnosis',
+        output: attemptStatus === 'success' ? 'Recovered output' : 'Retry result',
+        error_detail: attempt.error || attempt.execution_result?.error || attempt.result?.error || attempt.validation_error || attempt.fix_result?.error || attempt.fix?.error
+      })
+    })
+
+    if (errorReport) {
+      const recovered = recoveryStatus.recovered || result?.recovered
+      entries.push({
+        id: `error-final-${nodeId}`,
+        label: `${nodeId} recovery result`,
+        status: recovered ? 'success' : 'error',
+        input: `${recoveryStatus.attempt_count ?? recoveryAttempts.length} attempt(s)`,
+        output: recovered ? 'Recovered' : 'Needs attention',
+        error_detail: recovered ? null : getResultErrorSummary(result)
+      })
+    }
+
+    return entries
+  }
+
+  const handleNodeErrorFlow = async (nodeId, result, agentId, runToken) => {
+    const entries = buildErrorAgentEntries(nodeId, result, agentId === 'data' ? 'Data Agent' : 'Vis Agent')
+    if (entries.length === 0 || !isCurrentFlowRun(runToken)) return
+
+    const recoveryAttempts = result?.recovery_attempts || result?.error_report?.recovery_attempts || []
+    const detectionEntries = entries.filter(entry => !entry.label.startsWith('Regenerate'))
+    const retryEntries = entries.filter(entry => entry.label.startsWith('Regenerate'))
+
+    setErrorRetryEntries(previous => [...previous, ...detectionEntries])
+    if (!setActiveFlowState(runToken, 'error', [nodeId], 'error')) return
+    if (!await waitForFlowRun(800, runToken)) return
+
+    for (let index = 0; index < retryEntries.length; index++) {
+      if (!isCurrentFlowRun(runToken)) return
+      const entry = retryEntries[index]
+      const attempt = recoveryAttempts[index] || {}
+      const attemptNo = attempt.attempt || index + 1
+      const retryNodeId = `re_${nodeId}`
+
+      const diagnosisEntry = {
+        id: `error-diagnose-${nodeId}-${attemptNo}`,
+        label: `Diagnose ${nodeId} (attempt ${attemptNo})`,
+        status: 'processing',
+        input: 'Error context',
+        output: 'Root cause analysis',
+        error_detail: attempt.diagnosis?.explanation || attempt.analysis?.explanation || getResultErrorSummary(result)
+      }
+      setErrorRetryEntries(previous => [...previous, diagnosisEntry])
+      if (!setActiveFlowState(runToken, 'error', [nodeId], 'error')) return
+      if (!await waitForFlowRun(getAttemptDiagnosisDelay(attempt), runToken)) return
+      setErrorRetryEntries(previous => previous.map(item => (
+        item.id === diagnosisEntry.id ? { ...diagnosisEntry, status: attempt.status === 'diagnosis_failed' ? 'error' : 'success' } : item
+      )))
+
+      setErrorRetryEntries(previous => [...previous, { ...entry, status: 'processing' }])
+      if (!setActiveFlowState(runToken, agentId, [retryNodeId], agentId)) return
+      setNodeStatus(previous => ({
+        ...previous,
+        [nodeId]: [
+          ...(previous[nodeId] || []),
+          {
+            status: 'processing',
+            attempt: attemptNo + 1,
+            retryNodeId,
+            input: entry.input,
+            output: entry.output
+          }
+        ]
+      }))
+      if (!await waitForFlowRun(getAttemptRegenerationDelay(attempt), runToken)) return
+
+      setErrorRetryEntries(previous => previous.map(item => (
+        item.id === entry.id ? entry : item
+      )))
+      setNodeStatus(previous => {
+        const nodeEntries = [...(previous[nodeId] || [])]
+        const lastIndex = nodeEntries.length - 1
+        if (lastIndex >= 0) {
+          nodeEntries[lastIndex] = {
+            ...nodeEntries[lastIndex],
+            status: entry.status,
+            error_detail: entry.error_detail
+          }
+        }
+        return {
+          ...previous,
+          [nodeId]: nodeEntries
+        }
+      })
+
+      if (entry.status !== 'success' && index < retryEntries.length - 1) {
+        if (!setActiveFlowState(runToken, 'error', [nodeId], 'error')) return
+      }
+    }
+
+    setActiveFlowState(
+      runToken,
+      result?.success === false ? 'error' : agentId,
+      result?.success === false ? [nodeId] : [],
+      result?.success === false ? 'error' : agentId
+    )
+  }
+
+  const finishNodeRun = (nodeId, result) => {
+    setNodeStatus(previous => ({
+      ...previous,
+      [nodeId]: [{
+        ...(previous[nodeId]?.[0] || {}),
+        status: result?.success === false ? 'error' : 'success',
+        error_detail: result?.error
+      }]
+    }))
+  }
+
   const handleGeneratePlan = async () => {
     if (isPlanning || isGenerating || isProcessingData || isProcessingInteractions) {
       return
@@ -295,6 +566,12 @@ function ProjectDetail() {
   }
 
   const handleGenerate = async () => {
+    if (flowBusyRef.current || isPlanning || isGenerating || isProcessingData || isProcessingInteractions) {
+      return
+    }
+    flowBusyRef.current = true
+    const runToken = startFlowRun()
+
     // Clear all previously generated content
     setDataResult(null)
     setVisSpec(null)
@@ -304,9 +581,12 @@ function ProjectDetail() {
     setSelectedGraphNode(null)
     setAgentTrace(null)
     setActiveNodes([])
+    setNodeStatus({})
+    setErrorRetryEntries([])
 
     // Clear backend processing artifacts (keep plan)
     try { await resetProcessing(projectId) } catch (_) {}
+    if (!isCurrentFlowRun(runToken)) return
 
     setIsGenerating(true)
     setError(null)
@@ -317,6 +597,7 @@ function ProjectDetail() {
     if (!planData) {
       try {
         const result = await generatePlan(projectId)
+        if (!isCurrentFlowRun(runToken)) return
         setPlanResult(result)
         planData = result
         if (result.goal && project.goal !== result.goal) {
@@ -324,9 +605,12 @@ function ProjectDetail() {
           setEditGoal(result.goal)
         }
       } catch (err) {
-        setError(`Plan generation failed: ${err.message}`)
-        setIsGenerating(false)
-        setActiveAgent(null)
+        if (isCurrentFlowRun(runToken)) {
+          setError(`Plan generation failed: ${err.message}`)
+          setIsGenerating(false)
+          setActiveAgent(null)
+          flowBusyRef.current = false
+        }
         return
       }
     }
@@ -347,7 +631,12 @@ function ProjectDetail() {
     try {
       for (const nodeId of dNodes) {
         setActiveNodes([nodeId])
+        startNodeRun(nodeId, getDependencyInput(nodeId, planData?.dependencies), `${nodeId}.csv`)
         const result = await processSingleDNode(projectId, nodeId)
+        if (!isCurrentFlowRun(runToken)) return
+        finishNodeRun(nodeId, result)
+        await handleNodeErrorFlow(nodeId, result, 'data', runToken)
+        if (!isCurrentFlowRun(runToken)) return
         allProcessedNodes[nodeId] = result
         loadDataFlow()
       }
@@ -357,7 +646,12 @@ function ProjectDetail() {
         setActiveAgent('vis')
         for (const nodeId of vNodes) {
           setActiveNodes([nodeId])
+          startNodeRun(nodeId, getDependencyInput(nodeId, planData?.dependencies), `${nodeId}.json`)
           const result = await processSingleVNode(projectId, nodeId)
+          if (!isCurrentFlowRun(runToken)) return
+          finishNodeRun(nodeId, result)
+          await handleNodeErrorFlow(nodeId, result, 'vis', runToken)
+          if (!isCurrentFlowRun(runToken)) return
           allProcessedNodes[nodeId] = result
           loadDataFlow()
         }
@@ -365,6 +659,7 @@ function ProjectDetail() {
 
       // Load accumulated result
       const result = await getDataResult(projectId)
+      if (!isCurrentFlowRun(runToken)) return
       setDataResult(result)
 
       // Step 4: Process interactions (if I nodes exist)
@@ -374,9 +669,11 @@ function ProjectDetail() {
         setActiveNodes(iNodes.map(n => n.id))
         try {
           const interactionResult = await processInteractions(projectId)
+          if (!isCurrentFlowRun(runToken)) return
           setInteractionResults(interactionResult.interaction_results || {})
           setViewDataUrls(interactionResult.view_data_urls || {})
           const updated = await getDataResult(projectId)
+          if (!isCurrentFlowRun(runToken)) return
           setDataResult(updated)
           loadDataFlow()
         } catch (interr) {
@@ -384,18 +681,29 @@ function ProjectDetail() {
         }
       }
     } catch (err) {
-      setError(`Data processing failed: ${err.message}`)
+      if (isCurrentFlowRun(runToken)) {
+        setError(`Data processing failed: ${err.message}`)
+      }
     } finally {
-      loadDataFlow()
-      setActiveAgent(null)
-      setActiveNodes([])
-      setIsProcessingData(false)
-      setIsGenerating(false)
-      loadAgentTrace()
+      if (isCurrentFlowRun(runToken)) {
+        loadDataFlow()
+        setActiveAgent(null)
+        setActiveNodes([])
+        setIsProcessingData(false)
+        setIsGenerating(false)
+        flowBusyRef.current = false
+        loadAgentTrace()
+      }
     }
   }
 
   const handleProcessData = async () => {
+    if (flowBusyRef.current || isPlanning || isGenerating || isProcessingData || isProcessingInteractions) {
+      return
+    }
+    flowBusyRef.current = true
+    const runToken = startFlowRun()
+
     // Clear previously generated data results
     setDataResult(null)
     setVisSpec(null)
@@ -405,9 +713,12 @@ function ProjectDetail() {
     setSelectedGraphNode(null)
     setAgentTrace(null)
     setActiveNodes([])
+    setNodeStatus({})
+    setErrorRetryEntries([])
 
     // Clear backend processing artifacts (keep plan)
     try { await resetProcessing(projectId) } catch (_) {}
+    if (!isCurrentFlowRun(runToken)) return
 
     setIsProcessingData(true)
     setError(null)
@@ -423,7 +734,12 @@ function ProjectDetail() {
     try {
       for (const nodeId of dNodes) {
         setActiveNodes([nodeId])
-        await processSingleDNode(projectId, nodeId)
+        startNodeRun(nodeId, getDependencyInput(nodeId, planResult?.dependencies), `${nodeId}.csv`)
+        const result = await processSingleDNode(projectId, nodeId)
+        if (!isCurrentFlowRun(runToken)) return
+        finishNodeRun(nodeId, result)
+        await handleNodeErrorFlow(nodeId, result, 'data', runToken)
+        if (!isCurrentFlowRun(runToken)) return
         loadDataFlow()
       }
 
@@ -431,12 +747,18 @@ function ProjectDetail() {
         setActiveAgent('vis')
         for (const nodeId of vNodes) {
           setActiveNodes([nodeId])
-          await processSingleVNode(projectId, nodeId)
+          startNodeRun(nodeId, getDependencyInput(nodeId, planResult?.dependencies), `${nodeId}.json`)
+          const result = await processSingleVNode(projectId, nodeId)
+          if (!isCurrentFlowRun(runToken)) return
+          finishNodeRun(nodeId, result)
+          await handleNodeErrorFlow(nodeId, result, 'vis', runToken)
+          if (!isCurrentFlowRun(runToken)) return
           loadDataFlow()
         }
       }
 
       const result = await getDataResult(projectId)
+      if (!isCurrentFlowRun(runToken)) return
       setDataResult(result)
 
       const iNodes = planResult?.nodes?.I
@@ -445,9 +767,11 @@ function ProjectDetail() {
         setActiveNodes(iNodes.map(n => n.id))
         try {
           const interactionResult = await processInteractions(projectId)
+          if (!isCurrentFlowRun(runToken)) return
           setInteractionResults(interactionResult.interaction_results || {})
           setViewDataUrls(interactionResult.view_data_urls || {})
           const updated = await getDataResult(projectId)
+          if (!isCurrentFlowRun(runToken)) return
           setDataResult(updated)
           loadDataFlow()
         } catch (interr) {
@@ -455,13 +779,18 @@ function ProjectDetail() {
         }
       }
     } catch (err) {
-      setError(`Failed to process data: ${err.message}`)
+      if (isCurrentFlowRun(runToken)) {
+        setError(`Failed to process data: ${err.message}`)
+      }
     } finally {
-      loadDataFlow()
-      setActiveAgent(null)
-      setActiveNodes([])
-      setIsProcessingData(false)
-      loadAgentTrace()
+      if (isCurrentFlowRun(runToken)) {
+        loadDataFlow()
+        setActiveAgent(null)
+        setActiveNodes([])
+        setIsProcessingData(false)
+        flowBusyRef.current = false
+        loadAgentTrace()
+      }
     }
   }
 
@@ -470,6 +799,30 @@ function ProjectDetail() {
       const flow = await getDataFlow(projectId)
       setNodeDataFlow(flow)
     } catch (_) {}
+  }
+
+  const handleProcessInteractions = async () => {
+    if (isPlanning || isGenerating || isProcessingData || isProcessingInteractions) return
+
+    setIsProcessingInteractions(true)
+    setError(null)
+    setActiveAgent('interaction')
+    setActiveNodes((planResult?.nodes?.I || []).map(node => node.id))
+    try {
+      const result = await processInteractions(projectId)
+      setInteractionResults(result.interaction_results || {})
+      setViewDataUrls(result.view_data_urls || {})
+      const updated = await getDataResult(projectId)
+      setDataResult(updated)
+      await loadDataFlow()
+      await loadAgentTrace()
+    } catch (err) {
+      setError(`Interaction processing failed: ${err.message}`)
+    } finally {
+      setIsProcessingInteractions(false)
+      setActiveAgent(null)
+      setActiveNodes([])
+    }
   }
 
   const handleNodeSelect = async (node) => {
@@ -591,170 +944,221 @@ function ProjectDetail() {
     )
   }
 
-  const allNodes = planResult?.nodes
-    ? Object.values(planResult.nodes).flat()
-    : []
+  const hasPlan = Boolean(planResult?.nodes)
+  const isBusy = isPlanning || isGenerating || isProcessingData || isProcessingInteractions
 
   return (
     <div className="project-detail-container">
       <div className="project-detail-header">
         <button className="back-button" onClick={() => navigate('/')}>
-          ← Back to Projects
+          ← Back
         </button>
-        <h1>Project Details</h1>
+        <h1>{project.name}</h1>
       </div>
 
       {error && <div className="error-message">{error}</div>}
 
-      <ProjectInfoSection
-        project={project}
-        isEditing={isEditing}
-        editName={editName}
-        editGoal={editGoal}
-        onStartEdit={() => setIsEditing(true)}
-        onCancel={handleCancel}
-        onSave={handleSave}
-        onNameChange={setEditName}
-        onGoalChange={setEditGoal}
-      />
-
-      <DatabaseSection
-        databases={databases}
-        expandedDb={expandedDb}
-        isUploading={isUploading}
-        onUpload={handleFileUpload}
-        onDelete={handleDeleteDatabase}
-        onToggleExpand={toggleDbExpand}
-        fileInputRef={fileInputRef}
-      />
-
-      <div className="plan-section">
-        <div className="section-header">
-          <h2>Analysis Plan</h2>
-          <button
-            className="primary-button"
-            onClick={handleGeneratePlan}
-            disabled={isPlanning || isGenerating || isProcessingData || isProcessingInteractions || databases.length === 0}
-          >
-            {isPlanning ? 'Generating...' : planResult ? 'Regenerate' : 'Generate Plan'}
-          </button>
-        </div>
-
-        {planResult && (
-          <div className="plan-content">
-            <RefinedRequirements requirements={planResult.refined_requirements} />
-
-            {planResult.nodes && (
-              <div className="plan-subsection">
-                <h3>Nodes</h3>
-                <NodeGroup label={NODE_TYPE_LABELS.d} type="d" nodes={planResult.nodes.d} />
-                <NodeGroup label={NODE_TYPE_LABELS.D} type="D" nodes={planResult.nodes.D} />
-                <NodeGroup label={NODE_TYPE_LABELS.V} type="V" nodes={planResult.nodes.V} />
-                <NodeGroup label={NODE_TYPE_LABELS.I} type="I" nodes={planResult.nodes.I} />
+      <div className="project-layout">
+        <aside className="project-sidebar">
+          <div className="sidebar-section">
+            <div className="sidebar-section-title">Project Goal</div>
+            {isEditing ? (
+              <div className="edit-form">
+                <div className="form-group">
+                  <input
+                    value={editName}
+                    onChange={event => setEditName(event.target.value)}
+                    placeholder="Project name"
+                  />
+                </div>
+                <div className="form-group">
+                  <textarea
+                    value={editGoal}
+                    onChange={event => setEditGoal(event.target.value)}
+                    placeholder="Project goal / description"
+                    rows={4}
+                  />
+                </div>
+                <div className="edit-actions">
+                  <button className="cancel-button" onClick={handleCancel}>Cancel</button>
+                  <button className="save-button" onClick={handleSave}>Save</button>
+                </div>
+              </div>
+            ) : (
+              <div className="sidebar-goal-display" onClick={() => setIsEditing(true)} title="Click to edit">
+                <p>{project.goal || 'No goal set. Click to edit.'}</p>
               </div>
             )}
+          </div>
 
-            {planResult.dependencies && planResult.dependencies.length > 0 && (
-              <div className="plan-subsection">
+          <div className="sidebar-section sidebar-db-section">
+            <DatabaseSection
+              databases={databases}
+              expandedDb={expandedDb}
+              isUploading={isUploading}
+              onUpload={handleFileUpload}
+              onDelete={handleDeleteDatabase}
+              onToggleExpand={toggleDbExpand}
+              fileInputRef={fileInputRef}
+            />
+          </div>
+
+          {hasPlan && (
+            <RefinedRequirements requirements={planResult.refined_requirements} />
+          )}
+
+          <div className="sidebar-actions">
+            <button
+              className="sidebar-button plan-button"
+              onClick={handleGeneratePlan}
+              disabled={isBusy || databases.length === 0}
+            >
+              {isPlanning ? (
+                <><span className="sidebar-button-spinner" /> Planning...</>
+              ) : (
+                'Generate Plan'
+              )}
+            </button>
+            <button
+              className="sidebar-button generate-button"
+              onClick={handleGenerate}
+              disabled={isBusy || !hasPlan || !planResult.nodes?.D?.length}
+            >
+              {isGenerating || isProcessingData ? (
+                <><span className="sidebar-button-spinner" /> Generating...</>
+              ) : (
+                'Generate'
+              )}
+            </button>
+            <button
+              className="sidebar-button fix-button"
+              onClick={() => setIsFixing(!isFixing)}
+              disabled={isBusy || !hasPlan}
+            >
+              {isFixing ? 'Fix Mode On' : 'Fix'}
+            </button>
+          </div>
+        </aside>
+
+        <main className="project-main">
+          {!hasPlan ? (
+            <div className="plan-empty">
+              <p>No plan generated yet. Upload a database and click "Generate Plan".</p>
+            </div>
+          ) : (
+            <>
+              <div className="main-section">
+                <div className="main-section-header">
+                  <h3>Nodes Overview</h3>
+                  <button className="toggle-button" onClick={() => setShowNodes(!showNodes)}>
+                    {showNodes ? 'Hide' : 'Show'} Nodes
+                  </button>
+                </div>
+                {showNodes && (
+                  <div className="nodes-grid-compact">
+                    <NodeGroup label={NODE_TYPE_LABELS.d} type="d" nodes={planResult.nodes.d} />
+                    <NodeGroup label={NODE_TYPE_LABELS.D} type="D" nodes={planResult.nodes.D} />
+                    <NodeGroup label={NODE_TYPE_LABELS.V} type="V" nodes={planResult.nodes.V} />
+                    <NodeGroup label={NODE_TYPE_LABELS.I} type="I" nodes={planResult.nodes.I} />
+                  </div>
+                )}
+              </div>
+
+              <div className="main-section">
                 <AgentFlow
                   agents={agentTrace?.agents || null}
                   connections={agentTrace?.connections || null}
                   activeAgent={activeAgent}
-                  expandedAgent={expandedAgent}
-                  onToggleExpand={(id) => setExpandedAgent(expandedAgent === id ? null : id)}
-                  generating={isGenerating || isProcessingData}
-                  planNodes={planResult?.nodes}
-                />
-
-                <div className="section-header" style={{ marginTop: '20px' }}>
-                  <h3>Dependency Graph</h3>
-                  <button
-                    className="primary-button"
-                    onClick={handleGenerate}
-                    disabled={isPlanning || isGenerating || isProcessingData || isProcessingInteractions || !planResult.nodes?.D?.length}
-                    style={{ fontSize: '0.85rem', padding: '6px 12px' }}
-                  >
-                    {isGenerating || isProcessingData ? 'Generating...' : 'Generate'}
-                  </button>
-                </div>
-                <DependencyGraph
-                  nodes={planResult.nodes}
-                  dependencies={planResult.dependencies}
-                  onNodeSelect={handleNodeSelect}
-                  selectedNodeId={selectedGraphNode?.id || null}
                   activeNodes={activeNodes}
-                  disabled={isPlanning || isGenerating || isProcessingData || isProcessingInteractions}
-                />
-
-                {selectedGraphNode && (
-                  <NodeDetailSection
-                    node={selectedGraphNode}
-                    nodeTableData={nodeTableData}
-                    isLoadingNodeData={isLoadingNodeData}
-                    dataResult={dataResult}
-                    visSpec={visSpec}
-                    showCode={showCode}
-                    nodeCode={nodeCode}
-                    isLoadingNodeCode={isLoadingNodeCode}
-                    onToggleCode={() => handleShowCode(selectedGraphNode.id)}
-                    showVisCode={showVisCode}
-                    onToggleVisCode={() => handleShowVisCode(selectedGraphNode.id)}
-                    chartContainerRef={chartContainerRef}
-                    dataFlow={nodeDataFlow?.[selectedGraphNode.id] || null}
-                    interactionSpec={interactionSpec}
-                    showInteractionCode={showInteractionCode}
-                    onToggleInteractionCode={() => setShowInteractionCode(!showInteractionCode)}
-                  />
-                )}
-
-                <DataFlowTable
-                  nodeDataFlow={nodeDataFlow}
-                  planNodes={planResult?.nodes}
+                  nodeStatus={nodeStatus}
+                  expandedAgent={expandedAgent}
+                  onToggleExpand={id => setExpandedAgent(expandedAgent === id ? null : id)}
+                  generating={isBusy}
+                  planNodes={planResult.nodes}
+                  dependencies={planResult.dependencies}
+                  errorRetryEntries={errorRetryEntries}
                 />
               </div>
-            )}
-          </div>
-        )}
 
-        {dataResult?.processed_vis && Object.keys(dataResult.processed_vis).length > 0 && (
-          <div className="plan-section">
-            <div className="section-header">
-              <h2>Visualizations Dashboard</h2>
-              <button
-                className="primary-button"
-                onClick={async () => {
-                  setIsProcessingInteractions(true)
-                  try {
-                    const result = await processInteractions(projectId)
-                    setInteractionResults(result.interaction_results || {})
-                    setViewDataUrls(result.view_data_urls || {})
-                    const updated = await getDataResult(projectId)
-                    setDataResult(updated)
-                  } catch (err) {
-                    setError(`Interaction processing failed: ${err.message}`)
-                  } finally {
-                    setIsProcessingInteractions(false)
-                  }
-                }}
-                disabled={isProcessingInteractions}
-                style={{ fontSize: '0.85rem', padding: '6px 12px' }}
-              >
-                {isProcessingInteractions ? 'Processing...' : 'Process Interactions'}
-              </button>
-            </div>
-            <ChartPreview
-              processedVis={dataResult.processed_vis}
-              interactionResults={interactionResults}
-              viewDataUrls={viewDataUrls}
-            />
-          </div>
-        )}
+              {planResult.dependencies?.length > 0 && (
+                <div className="main-section">
+                  <div className="graph-section-header">
+                    <h3>Dependency Graph</h3>
+                    <button
+                      className="primary-button"
+                      onClick={handleGenerate}
+                      disabled={isBusy || !planResult.nodes?.D?.length}
+                    >
+                      {isGenerating || isProcessingData ? 'Generating...' : 'Generate'}
+                    </button>
+                  </div>
+                  <DependencyGraph
+                    nodes={planResult.nodes}
+                    dependencies={planResult.dependencies}
+                    onNodeSelect={handleNodeSelect}
+                    selectedNodeId={selectedGraphNode?.id || null}
+                    activeNodes={activeNodes}
+                    disabled={isBusy}
+                  />
 
-        {!planResult && !isPlanning && (
-          <div className="plan-empty">
-            <p>No plan generated yet. Click "Generate Plan" to create one.</p>
-          </div>
-        )}
+                  {selectedGraphNode && (
+                    <NodeDetailSection
+                      node={selectedGraphNode}
+                      nodeTableData={nodeTableData}
+                      isLoadingNodeData={isLoadingNodeData}
+                      dataResult={dataResult}
+                      visSpec={visSpec}
+                      showCode={showCode}
+                      nodeCode={nodeCode}
+                      isLoadingNodeCode={isLoadingNodeCode}
+                      onToggleCode={() => handleShowCode(selectedGraphNode.id)}
+                      showVisCode={showVisCode}
+                      onToggleVisCode={() => handleShowVisCode(selectedGraphNode.id)}
+                      chartContainerRef={chartContainerRef}
+                      dataFlow={nodeDataFlow?.[selectedGraphNode.id] || null}
+                      interactionSpec={interactionSpec}
+                      showInteractionCode={showInteractionCode}
+                      onToggleInteractionCode={() => setShowInteractionCode(!showInteractionCode)}
+                    />
+                  )}
+
+                  <DataFlowTable nodeDataFlow={nodeDataFlow} planNodes={planResult.nodes} />
+                </div>
+              )}
+
+              <div className="main-section">
+                <div className="main-section-header">
+                  <h3>All Views</h3>
+                  <div className="main-section-actions">
+                    {dataResult?.processed_vis && Object.keys(dataResult.processed_vis).length > 0 && (
+                      <button
+                        className="primary-button"
+                        onClick={handleProcessInteractions}
+                        disabled={isBusy || !planResult.nodes?.I?.length}
+                      >
+                        {isProcessingInteractions ? 'Processing...' : 'Process Interactions'}
+                      </button>
+                    )}
+                    <button className="toggle-button" onClick={() => setShowViews(!showViews)}>
+                      {showViews ? 'Hide' : 'Show'} Views
+                    </button>
+                  </div>
+                </div>
+                {showViews && (
+                  dataResult?.processed_vis && Object.keys(dataResult.processed_vis).length > 0 ? (
+                    <ChartPreview
+                      processedVis={dataResult.processed_vis}
+                      interactionResults={interactionResults}
+                      viewDataUrls={viewDataUrls}
+                    />
+                  ) : (
+                    <div className="node-empty-box">No visualizations generated yet.</div>
+                  )
+                )}
+              </div>
+            </>
+          )}
+        </main>
       </div>
     </div>
   )

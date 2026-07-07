@@ -1,0 +1,1668 @@
+{
+  "timestamp": "2026-07-07T11:37:31.453417",
+  "node_id": "V2",
+  "source_tag": "vis_generate",
+  "summary": "syntax_error: V2 uses undeclared input tables: ['d1']; execution_error: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']; field_not_found: 0 issue(s) in []; constant_quantitative_axis: 0 issue(s) in []; field_contract_violation: 0 issue(s) in []; field_contract_violation: 2 issue(s) in ['formation_type', 'frequency']; field_contract_violation: 1 issue(s) in ['formation_type']",
+  "recovery_status": {
+    "recovered": false,
+    "attempt_count": 5,
+    "final_success": false,
+    "final_validation_issue_count": 5
+  },
+  "original_error": {
+    "error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+    "error_traceback": null,
+    "syntax_check": {
+      "valid": false,
+      "issues_count": 2,
+      "error_type": "field_contract_violation",
+      "error": "V2 uses undeclared input tables: ['d1']"
+    },
+    "validation_issues": [
+      {
+        "type": "field_not_found",
+        "detail": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']"
+      },
+      {
+        "type": "constant_quantitative_axis",
+        "detail": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot."
+      },
+      {
+        "type": "field_contract_violation",
+        "columns": [],
+        "count": 0,
+        "detail": "V2 uses undeclared input tables: ['d1']"
+      },
+      {
+        "type": "field_contract_violation",
+        "columns": [
+          "formation_type",
+          "frequency"
+        ],
+        "count": 2,
+        "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+      },
+      {
+        "type": "field_contract_violation",
+        "columns": [
+          "formation_type"
+        ],
+        "count": 1,
+        "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+      }
+    ],
+    "columns": [],
+    "row_count": 0
+  },
+  "final_execution_result": {
+    "node_id": "V2",
+    "success": false,
+    "error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+    "syntax_check": {
+      "valid": false,
+      "issues_count": 2,
+      "error_type": "field_contract_violation",
+      "error": "V2 uses undeclared input tables: ['d1']"
+    },
+    "validation_issues": [
+      {
+        "type": "field_not_found",
+        "detail": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']"
+      },
+      {
+        "type": "constant_quantitative_axis",
+        "detail": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot."
+      },
+      {
+        "type": "field_contract_violation",
+        "columns": [],
+        "count": 0,
+        "detail": "V2 uses undeclared input tables: ['d1']"
+      },
+      {
+        "type": "field_contract_violation",
+        "columns": [
+          "formation_type",
+          "frequency"
+        ],
+        "count": 2,
+        "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+      },
+      {
+        "type": "field_contract_violation",
+        "columns": [
+          "formation_type"
+        ],
+        "count": 1,
+        "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+      }
+    ],
+    "spec_path": null
+  },
+  "recovery_attempts": [
+    {
+      "attempt": 1,
+      "status": "retry_failed",
+      "analysis": {
+        "success": true,
+        "root_cause": "data_fields",
+        "fix_strategy": "modify_data_and_vis",
+        "suggested_fixes": {
+          "plan_modifications": null,
+          "data_modifications": "Ensure the upstream data table provides the 'formation_type' field as required by the visualization. Verify that the column name matches exactly, including any potential hidden characters like the BOM character '\\ufeff' in the original column name.",
+          "vis_modifications": "Update the encoding to use the correct field name. If the actual column name is '\\ufeffformation_type', update the 'field' property in the x-axis encoding to match this exact name. Also ensure that the 'mark' type is set to 'bar' as specified in the plan."
+        },
+        "explanation": "The error indicates that the visualization must preserve the 'formation_type' field from the upstream data. The spec references 'formation_type' in the encoding, but the actual column name in the data might be different (e.g., includes a BOM character '\\ufeff'). This mismatch causes the validation failure.",
+        "_prompt_messages": [
+          {
+            "role": "system",
+            "content": "You are a Vega-Lite visualization expert and debugger."
+          },
+          {
+            "role": "user",
+            "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type (from plan)\nbar\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      },\n      \"scale\": {\n        \"domain\": [\n          14.1,\n          55.9\n        ],\n        \"zero\": false,\n        \"nice\": true\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: V2 must preserve visualization fields from I1: ['formation_type']\n  syntax: V2 must preserve visualization fields from I1: ['formation_type']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+          }
+        ],
+        "_raw_response": "```json\n{\n  \"root_cause\": \"data_fields\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure the upstream data table provides the 'formation_type' field as required by the visualization. Verify that the column name matches exactly, including any potential hidden characters like the BOM character '\\\\ufeff' in the original column name.\",\n    \"vis_modifications\": \"Update the encoding to use the correct field name. If the actual column name is '\\\\ufeffformation_type', update the 'field' property in the x-axis encoding to match this exact name. Also ensure that the 'mark' type is set to 'bar' as specified in the plan.\"\n  },\n  \"explanation\": \"The error indicates that the visualization must preserve the 'formation_type' field from the upstream data. The spec references 'formation_type' in the encoding, but the actual column name in the data might be different (e.g., includes a BOM character '\\\\ufeff'). This mismatch causes the validation failure.\"\n}\n```"
+      },
+      "fix_result": {
+        "success": true,
+        "spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Brazil Formation Distribution Bar Chart",
+          "description": "V2",
+          "data": {
+            "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv"
+          },
+          "width": "container",
+          "mark": "bar",
+          "encoding": {
+            "x": {
+              "field": "﻿formation_type",
+              "type": "nominal",
+              "axis": {
+                "title": "Formation Type"
+              }
+            },
+            "y": {
+              "field": "frequency",
+              "type": "quantitative",
+              "axis": {
+                "title": "Frequency"
+              },
+              "scale": {
+                "domain": [
+                  14.1,
+                  55.9
+                ],
+                "zero": false,
+                "nice": true
+              }
+            }
+          },
+          "height": "container",
+          "autosize": {
+            "type": "fit",
+            "contains": "padding"
+          },
+          "config": {
+            "background": "rgba(0, 0, 0, 0)",
+            "padding": 10
+          },
+          "transform": [],
+          "params": []
+        },
+        "metadata": {
+          "marktype": "bar",
+          "used_tables": [
+            "d1"
+          ],
+          "used_fields": [
+            "﻿formation_type",
+            "frequency"
+          ],
+          "encoding_fields": {
+            "x": "﻿formation_type",
+            "y": "frequency"
+          }
+        },
+        "error": null,
+        "_prompt_messages": [
+          {
+            "role": "system",
+            "content": "You are a Vega-Lite visualization expert."
+          },
+          {
+            "role": "user",
+            "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type\nbar\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      },\n      \"scale\": {\n        \"domain\": [\n          14.1,\n          55.9\n        ],\n        \"zero\": false,\n        \"nice\": true\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: V2 must preserve visualization fields from I1: ['formation_type']\n  syntax: V2 must preserve visualization fields from I1: ['formation_type']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_fields. Fix strategy: modify_data_and_vis. Suggestion: Update the encoding to use the correct field name. If the actual column name is '\\ufeffformation_type', update the 'field' property in the x-axis encoding to match this exact name. Also ensure that the 'mark' type is set to 'bar' as specified in the plan..\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+          }
+        ],
+        "_raw_response": "{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Brazil Formation Distribution Bar Chart\",\n    \"description\": \"V2\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n    },\n    \"width\": \"container\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"\\ufeffformation_type\",\n        \"type\": \"nominal\",\n        \"axis\": {\n          \"title\": \"Formation Type\"\n        }\n      },\n      \"y\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"axis\": {\n          \"title\": \"Frequency\"\n        },\n        \"scale\": {\n          \"domain\": [\n            14.1,\n            55.9\n          ],\n          \"zero\": false,\n          \"nice\": true\n        }\n      }\n    },\n    \"height\": \"container\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": [],\n    \"params\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"bar\",\n    \"used_tables\": [\"d1\"],\n    \"used_fields\": [\"\\ufeffformation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"\\ufeffformation_type\",\n      \"y\": \"frequency\"\n    }\n  }\n}"
+      },
+      "diagnosis_duration_ms": 3584,
+      "fix_generation_duration_ms": 4252,
+      "phase_timings": {
+        "diagnosis_ms": 3584,
+        "fix_generation_ms": 4252,
+        "validation_ms": 6,
+        "regeneration_ms": 4259
+      },
+      "validation_duration_ms": 6,
+      "error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+      "validation_issues": [
+        {
+          "type": "field_not_found",
+          "detail": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']"
+        },
+        {
+          "type": "constant_quantitative_axis",
+          "detail": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot."
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [],
+          "count": 0,
+          "detail": "V2 uses undeclared input tables: ['d1']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [
+            "formation_type",
+            "frequency"
+          ],
+          "count": 2,
+          "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [
+            "formation_type"
+          ],
+          "count": 1,
+          "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+        }
+      ],
+      "regeneration_duration_ms": 4259
+    },
+    {
+      "attempt": 2,
+      "status": "retry_failed",
+      "analysis": {
+        "success": true,
+        "root_cause": "data_fields",
+        "fix_strategy": "modify_data_and_vis",
+        "suggested_fixes": {
+          "plan_modifications": null,
+          "data_modifications": "Ensure the upstream data table 'd1' contains the correct field names 'formation_type' and 'frequency' without any leading or trailing whitespace characters.",
+          "vis_modifications": "Update the encoding fields in the Vega-Lite spec to use 'formation_type' (without the leading whitespace) and ensure 'frequency' is correctly referenced. Also, remove the 'scale.domain' setting for the y-axis since it's causing a flat plot."
+        },
+        "explanation": "The error indicates that the field '﻿formation_type' (with leading whitespace) does not exist in the input tables. The available fields show 'formation_type' without whitespace, suggesting a typo or formatting issue. Additionally, the y-axis 'frequency' has no variation, likely due to incorrect data or scale settings.",
+        "_prompt_messages": [
+          {
+            "role": "system",
+            "content": "You are a Vega-Lite visualization expert and debugger."
+          },
+          {
+            "role": "user",
+            "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type (from plan)\nbar\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"﻿formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      },\n      \"scale\": {\n        \"domain\": [\n          14.1,\n          55.9\n        ],\n        \"zero\": false,\n        \"nice\": true\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  validation: Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+          }
+        ],
+        "_raw_response": "```json\n{\n  \"root_cause\": \"data_fields\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure the upstream data table 'd1' contains the correct field names 'formation_type' and 'frequency' without any leading or trailing whitespace characters.\",\n    \"vis_modifications\": \"Update the encoding fields in the Vega-Lite spec to use 'formation_type' (without the leading whitespace) and ensure 'frequency' is correctly referenced. Also, remove the 'scale.domain' setting for the y-axis since it's causing a flat plot.\"\n  },\n  \"explanation\": \"The error indicates that the field '﻿formation_type' (with leading whitespace) does not exist in the input tables. The available fields show 'formation_type' without whitespace, suggesting a typo or formatting issue. Additionally, the y-axis 'frequency' has no variation, likely due to incorrect data or scale settings.\"\n}\n```"
+      },
+      "fix_result": {
+        "success": true,
+        "spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Brazil Formation Distribution Bar Chart",
+          "description": "V2",
+          "data": {
+            "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv"
+          },
+          "width": "container",
+          "mark": "bar",
+          "encoding": {
+            "x": {
+              "field": "formation_type",
+              "type": "nominal",
+              "axis": {
+                "title": "Formation Type"
+              }
+            },
+            "y": {
+              "field": "frequency",
+              "type": "quantitative",
+              "axis": {
+                "title": "Frequency"
+              }
+            }
+          },
+          "height": "container",
+          "autosize": {
+            "type": "fit",
+            "contains": "padding"
+          },
+          "config": {
+            "background": "rgba(0, 0, 0, 0)",
+            "padding": 10
+          },
+          "transform": [],
+          "params": []
+        },
+        "metadata": {
+          "marktype": "bar",
+          "used_tables": [
+            "d1"
+          ],
+          "used_fields": [
+            "formation_type",
+            "frequency"
+          ],
+          "encoding_fields": {
+            "x": "formation_type",
+            "y": "frequency"
+          }
+        },
+        "error": null,
+        "_prompt_messages": [
+          {
+            "role": "system",
+            "content": "You are a Vega-Lite visualization expert."
+          },
+          {
+            "role": "user",
+            "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type\nbar\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"﻿formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      },\n      \"scale\": {\n        \"domain\": [\n          14.1,\n          55.9\n        ],\n        \"zero\": false,\n        \"nice\": true\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  validation: Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_fields. Fix strategy: modify_data_and_vis. Suggestion: Update the encoding fields in the Vega-Lite spec to use 'formation_type' (without the leading whitespace) and ensure 'frequency' is correctly referenced. Also, remove the 'scale.domain' setting for the y-axis since it's causing a flat plot..\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+          }
+        ],
+        "_raw_response": "```json\n{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Brazil Formation Distribution Bar Chart\",\n    \"description\": \"V2\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n    },\n    \"width\": \"container\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"formation_type\",\n        \"type\": \"nominal\",\n        \"axis\": {\n          \"title\": \"Formation Type\"\n        }\n      },\n      \"y\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"axis\": {\n          \"title\": \"Frequency\"\n        }\n      }\n    },\n    \"height\": \"container\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": [],\n    \"params\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"bar\",\n    \"used_tables\": [\"d1\"],\n    \"used_fields\": [\"formation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"formation_type\",\n      \"y\": \"frequency\"\n    }\n  }\n}\n```"
+      },
+      "diagnosis_duration_ms": 3643,
+      "fix_generation_duration_ms": 5010,
+      "phase_timings": {
+        "diagnosis_ms": 3643,
+        "fix_generation_ms": 5010,
+        "validation_ms": 3,
+        "regeneration_ms": 5014
+      },
+      "validation_duration_ms": 3,
+      "error": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+      "validation_issues": [
+        {
+          "type": "constant_quantitative_axis",
+          "detail": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot."
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [],
+          "count": 0,
+          "detail": "V2 uses undeclared input tables: ['d1']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [
+            "formation_type",
+            "frequency"
+          ],
+          "count": 2,
+          "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [
+            "formation_type"
+          ],
+          "count": 1,
+          "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+        }
+      ],
+      "regeneration_duration_ms": 5014
+    },
+    {
+      "attempt": 3,
+      "status": "retry_failed",
+      "analysis": {
+        "success": true,
+        "root_cause": "data_processing",
+        "fix_strategy": "modify_data_and_vis",
+        "suggested_fixes": {
+          "plan_modifications": null,
+          "data_modifications": "Ensure the upstream data table (d1) contains valid, non-null values for the 'frequency' field. Verify that the data processing step (D2) correctly computes and outputs the 'formation_type' and 'frequency' columns with appropriate values.",
+          "vis_modifications": "Add an aggregate function to the 'y' encoding to ensure it calculates the frequency properly. Update the 'y' encoding to use 'sum' or 'count' depending on the data. For example: \"y\": {\"field\": \"frequency\", \"type\": \"quantitative\", \"aggregate\": \"sum\"}"
+        },
+        "explanation": "The error indicates that the 'frequency' field has only 0 distinct non-null values, suggesting the upstream data may not have been processed correctly. The visualization spec references 'formation_type' and 'frequency' fields, which are declared in D2, but the data might be missing or improperly formatted. Adding an aggregate function to the 'y' encoding could help if the data is structured as raw records rather than pre-aggregated frequencies.",
+        "_prompt_messages": [
+          {
+            "role": "system",
+            "content": "You are a Vega-Lite visualization expert and debugger."
+          },
+          {
+            "role": "user",
+            "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type (from plan)\nbar\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+          }
+        ],
+        "_raw_response": "```json\n{\n  \"root_cause\": \"data_processing\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure the upstream data table (d1) contains valid, non-null values for the 'frequency' field. Verify that the data processing step (D2) correctly computes and outputs the 'formation_type' and 'frequency' columns with appropriate values.\",\n    \"vis_modifications\": \"Add an aggregate function to the 'y' encoding to ensure it calculates the frequency properly. Update the 'y' encoding to use 'sum' or 'count' depending on the data. For example: \\\"y\\\": {\\\"field\\\": \\\"frequency\\\", \\\"type\\\": \\\"quantitative\\\", \\\"aggregate\\\": \\\"sum\\\"}\"\n  },\n  \"explanation\": \"The error indicates that the 'frequency' field has only 0 distinct non-null values, suggesting the upstream data may not have been processed correctly. The visualization spec references 'formation_type' and 'frequency' fields, which are declared in D2, but the data might be missing or improperly formatted. Adding an aggregate function to the 'y' encoding could help if the data is structured as raw records rather than pre-aggregated frequencies.\"\n}\n```"
+      },
+      "fix_result": {
+        "success": true,
+        "spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Brazil Formation Distribution Bar Chart",
+          "description": "V2",
+          "data": {
+            "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv"
+          },
+          "width": "container",
+          "mark": "bar",
+          "encoding": {
+            "x": {
+              "field": "﻿formation_type",
+              "type": "nominal",
+              "axis": {
+                "title": "Formation Type"
+              }
+            },
+            "y": {
+              "field": "frequency",
+              "type": "quantitative",
+              "aggregate": "sum",
+              "axis": {
+                "title": "Frequency"
+              }
+            }
+          },
+          "height": "container",
+          "autosize": {
+            "type": "fit",
+            "contains": "padding"
+          },
+          "config": {
+            "background": "rgba(0, 0, 0, 0)",
+            "padding": 10
+          },
+          "transform": [],
+          "params": []
+        },
+        "metadata": {
+          "marktype": "bar",
+          "used_tables": [
+            "d1"
+          ],
+          "used_fields": [
+            "﻿formation_type",
+            "frequency"
+          ],
+          "encoding_fields": {
+            "x": "﻿formation_type",
+            "y": "frequency"
+          }
+        },
+        "error": null,
+        "_prompt_messages": [
+          {
+            "role": "system",
+            "content": "You are a Vega-Lite visualization expert."
+          },
+          {
+            "role": "user",
+            "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type\nbar\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_processing. Fix strategy: modify_data_and_vis. Suggestion: Add an aggregate function to the 'y' encoding to ensure it calculates the frequency properly. Update the 'y' encoding to use 'sum' or 'count' depending on the data. For example: \"y\": {\"field\": \"frequency\", \"type\": \"quantitative\", \"aggregate\": \"sum\"}.\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+          }
+        ],
+        "_raw_response": "```json\n{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Brazil Formation Distribution Bar Chart\",\n    \"description\": \"V2\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n    },\n    \"width\": \"container\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"\\ufeffformation_type\",\n        \"type\": \"nominal\",\n        \"axis\": {\n          \"title\": \"Formation Type\"\n        }\n      },\n      \"y\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"aggregate\": \"sum\",\n        \"axis\": {\n          \"title\": \"Frequency\"\n        }\n      }\n    },\n    \"height\": \"container\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": [],\n    \"params\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"bar\",\n    \"used_tables\": [\"d1\"],\n    \"used_fields\": [\"\\ufeffformation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"\\ufeffformation_type\",\n      \"y\": \"frequency\"\n    }\n  }\n}\n```"
+      },
+      "diagnosis_duration_ms": 2821,
+      "fix_generation_duration_ms": 4534,
+      "phase_timings": {
+        "diagnosis_ms": 2821,
+        "fix_generation_ms": 4534,
+        "validation_ms": 4,
+        "regeneration_ms": 4538
+      },
+      "validation_duration_ms": 4,
+      "error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+      "validation_issues": [
+        {
+          "type": "field_not_found",
+          "detail": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [],
+          "count": 0,
+          "detail": "V2 uses undeclared input tables: ['d1']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [
+            "formation_type",
+            "frequency"
+          ],
+          "count": 2,
+          "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [
+            "formation_type"
+          ],
+          "count": 1,
+          "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+        }
+      ],
+      "regeneration_duration_ms": 4538
+    },
+    {
+      "attempt": 4,
+      "status": "retry_failed",
+      "analysis": {
+        "success": true,
+        "root_cause": "data_fields",
+        "fix_strategy": "modify_data_and_vis",
+        "suggested_fixes": {
+          "plan_modifications": null,
+          "data_modifications": "Ensure the upstream data table 'd1' contains the correct field names 'formation_type' and 'frequency' without any leading or trailing whitespace characters.",
+          "vis_modifications": "Update the encoding fields in the Vega-Lite spec to use the correct field names. Replace '﻿formation_type' with 'formation_type' (without the leading invisible character) and ensure 'frequency' is correctly referenced."
+        },
+        "explanation": "The error indicates that the field '﻿formation_type' does not exist in the input tables. The actual available fields include 'formation_type' (without the leading invisible character). This suggests a typo or encoding issue in the field name in the spec. The root cause is 'data_fields' as the field name in the spec does not match the actual data.",
+        "_prompt_messages": [
+          {
+            "role": "system",
+            "content": "You are a Vega-Lite visualization expert and debugger."
+          },
+          {
+            "role": "user",
+            "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type (from plan)\nbar\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"﻿formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"aggregate\": \"sum\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+          }
+        ],
+        "_raw_response": "```json\n{\n  \"root_cause\": \"data_fields\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure the upstream data table 'd1' contains the correct field names 'formation_type' and 'frequency' without any leading or trailing whitespace characters.\",\n    \"vis_modifications\": \"Update the encoding fields in the Vega-Lite spec to use the correct field names. Replace '﻿formation_type' with 'formation_type' (without the leading invisible character) and ensure 'frequency' is correctly referenced.\"\n  },\n  \"explanation\": \"The error indicates that the field '﻿formation_type' does not exist in the input tables. The actual available fields include 'formation_type' (without the leading invisible character). This suggests a typo or encoding issue in the field name in the spec. The root cause is 'data_fields' as the field name in the spec does not match the actual data.\"\n}\n```"
+      },
+      "fix_result": {
+        "success": true,
+        "spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Brazil Formation Distribution Bar Chart",
+          "description": "V2",
+          "data": {
+            "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv"
+          },
+          "width": "container",
+          "mark": "bar",
+          "encoding": {
+            "x": {
+              "field": "formation_type",
+              "type": "nominal",
+              "axis": {
+                "title": "Formation Type"
+              }
+            },
+            "y": {
+              "field": "frequency",
+              "type": "quantitative",
+              "aggregate": "sum",
+              "axis": {
+                "title": "Frequency"
+              }
+            }
+          },
+          "height": "container",
+          "autosize": {
+            "type": "fit",
+            "contains": "padding"
+          },
+          "config": {
+            "background": "rgba(0, 0, 0, 0)",
+            "padding": 10
+          },
+          "transform": [],
+          "params": []
+        },
+        "metadata": {
+          "marktype": "bar",
+          "used_tables": [
+            "d1"
+          ],
+          "used_fields": [
+            "formation_type",
+            "frequency"
+          ],
+          "encoding_fields": {
+            "x": "formation_type",
+            "y": "frequency"
+          }
+        },
+        "error": null,
+        "_prompt_messages": [
+          {
+            "role": "system",
+            "content": "You are a Vega-Lite visualization expert."
+          },
+          {
+            "role": "user",
+            "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type\nbar\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"﻿formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"aggregate\": \"sum\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_fields. Fix strategy: modify_data_and_vis. Suggestion: Update the encoding fields in the Vega-Lite spec to use the correct field names. Replace '﻿formation_type' with 'formation_type' (without the leading invisible character) and ensure 'frequency' is correctly referenced..\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+          }
+        ],
+        "_raw_response": "```json\n{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Brazil Formation Distribution Bar Chart\",\n    \"description\": \"V2\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n    },\n    \"width\": \"container\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"formation_type\",\n        \"type\": \"nominal\",\n        \"axis\": {\n          \"title\": \"Formation Type\"\n        }\n      },\n      \"y\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"aggregate\": \"sum\",\n        \"axis\": {\n          \"title\": \"Frequency\"\n        }\n      }\n    },\n    \"height\": \"container\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": [],\n    \"params\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"bar\",\n    \"used_tables\": [\"d1\"],\n    \"used_fields\": [\"formation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"formation_type\",\n      \"y\": \"frequency\"\n    }\n  }\n}\n```"
+      },
+      "diagnosis_duration_ms": 3021,
+      "fix_generation_duration_ms": 3630,
+      "phase_timings": {
+        "diagnosis_ms": 3021,
+        "fix_generation_ms": 3630,
+        "validation_ms": 3,
+        "regeneration_ms": 3634
+      },
+      "validation_duration_ms": 3,
+      "error": "V2 uses undeclared input tables: ['d1']",
+      "validation_issues": [
+        {
+          "type": "field_contract_violation",
+          "columns": [],
+          "count": 0,
+          "detail": "V2 uses undeclared input tables: ['d1']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [
+            "formation_type",
+            "frequency"
+          ],
+          "count": 2,
+          "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [
+            "formation_type"
+          ],
+          "count": 1,
+          "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+        }
+      ],
+      "regeneration_duration_ms": 3634
+    },
+    {
+      "attempt": 5,
+      "status": "retry_failed",
+      "analysis": {
+        "success": true,
+        "root_cause": "data_fields",
+        "fix_strategy": "modify_data_and_vis",
+        "suggested_fixes": {
+          "plan_modifications": null,
+          "data_modifications": "Ensure that the upstream data table 'd1' contains the required columns 'formation_type' and 'frequency' as specified in the validation errors.",
+          "vis_modifications": "Update the data source to reference the correct table name. Ensure that the 'formation_type' and 'frequency' fields are correctly used in the encoding. Remove the 'aggregate' property from the 'y' encoding since the data already contains pre-aggregated 'frequency' values."
+        },
+        "explanation": "The validation errors indicate that the chart references an undeclared input table 'd1' and that the fields 'formation_type' and 'frequency' must be preserved. The spec incorrectly assumes that 'frequency' needs to be aggregated, but since it's already a pre-aggregated field, the 'aggregate' property should be removed. Additionally, the data source should correctly reference the declared table.",
+        "_prompt_messages": [
+          {
+            "role": "system",
+            "content": "You are a Vega-Lite visualization expert and debugger."
+          },
+          {
+            "role": "user",
+            "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type (from plan)\nbar\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"aggregate\": \"sum\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: V2 uses undeclared input tables: ['d1']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+          }
+        ],
+        "_raw_response": "```json\n{\n  \"root_cause\": \"data_fields\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure that the upstream data table 'd1' contains the required columns 'formation_type' and 'frequency' as specified in the validation errors.\",\n    \"vis_modifications\": \"Update the data source to reference the correct table name. Ensure that the 'formation_type' and 'frequency' fields are correctly used in the encoding. Remove the 'aggregate' property from the 'y' encoding since the data already contains pre-aggregated 'frequency' values.\"\n  },\n  \"explanation\": \"The validation errors indicate that the chart references an undeclared input table 'd1' and that the fields 'formation_type' and 'frequency' must be preserved. The spec incorrectly assumes that 'frequency' needs to be aggregated, but since it's already a pre-aggregated field, the 'aggregate' property should be removed. Additionally, the data source should correctly reference the declared table.\"\n}\n```"
+      },
+      "fix_result": {
+        "success": true,
+        "spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Brazil Formation Distribution Bar Chart",
+          "description": "V2",
+          "data": {
+            "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv"
+          },
+          "width": "container",
+          "mark": "bar",
+          "encoding": {
+            "x": {
+              "field": "﻿formation_type",
+              "type": "nominal",
+              "axis": {
+                "title": "Formation Type"
+              }
+            },
+            "y": {
+              "field": "frequency",
+              "type": "quantitative",
+              "axis": {
+                "title": "Frequency"
+              }
+            }
+          },
+          "height": "container",
+          "autosize": {
+            "type": "fit",
+            "contains": "padding"
+          },
+          "config": {
+            "background": "rgba(0, 0, 0, 0)",
+            "padding": 10
+          },
+          "transform": [],
+          "params": []
+        },
+        "metadata": {
+          "marktype": "bar",
+          "used_tables": [
+            "d1"
+          ],
+          "used_fields": [
+            "﻿formation_type",
+            "frequency"
+          ],
+          "encoding_fields": {
+            "x": "﻿formation_type",
+            "y": "frequency"
+          }
+        },
+        "error": null,
+        "_prompt_messages": [
+          {
+            "role": "system",
+            "content": "You are a Vega-Lite visualization expert."
+          },
+          {
+            "role": "user",
+            "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type\nbar\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"aggregate\": \"sum\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: V2 uses undeclared input tables: ['d1']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_fields. Fix strategy: modify_data_and_vis. Suggestion: Update the data source to reference the correct table name. Ensure that the 'formation_type' and 'frequency' fields are correctly used in the encoding. Remove the 'aggregate' property from the 'y' encoding since the data already contains pre-aggregated 'frequency' values..\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+          }
+        ],
+        "_raw_response": "```json\n{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Brazil Formation Distribution Bar Chart\",\n    \"description\": \"V2\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n    },\n    \"width\": \"container\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"\\ufeffformation_type\",\n        \"type\": \"nominal\",\n        \"axis\": {\n          \"title\": \"Formation Type\"\n        }\n      },\n      \"y\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"axis\": {\n          \"title\": \"Frequency\"\n        }\n      }\n    },\n    \"height\": \"container\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": [],\n    \"params\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"bar\",\n    \"used_tables\": [\"d1\"],\n    \"used_fields\": [\"\\ufeffformation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"\\ufeffformation_type\",\n      \"y\": \"frequency\"\n    }\n  }\n}\n```"
+      },
+      "diagnosis_duration_ms": 3330,
+      "fix_generation_duration_ms": 4047,
+      "phase_timings": {
+        "diagnosis_ms": 3330,
+        "fix_generation_ms": 4047,
+        "validation_ms": 5,
+        "regeneration_ms": 4053
+      },
+      "validation_duration_ms": 5,
+      "error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+      "validation_issues": [
+        {
+          "type": "field_not_found",
+          "detail": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']"
+        },
+        {
+          "type": "constant_quantitative_axis",
+          "detail": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot."
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [],
+          "count": 0,
+          "detail": "V2 uses undeclared input tables: ['d1']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [
+            "formation_type",
+            "frequency"
+          ],
+          "count": 2,
+          "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [
+            "formation_type"
+          ],
+          "count": 1,
+          "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+        }
+      ],
+      "regeneration_duration_ms": 4053
+    }
+  ],
+  "error_context": {
+    "node": {
+      "id": "V2",
+      "name": "Brazil_Formation_Distribution_Bar",
+      "description": "Bar chart showing the distribution of formation types used by Brazil",
+      "chart_type": "bar"
+    },
+    "input_nodes": [
+      {
+        "id": "D2",
+        "name": "Brazil_Formation_Distribution",
+        "description": "Calculate the frequency of each formation type used by Brazil",
+        "task": "Aggregate the 'formation_type' column from d2 to count the frequency of each unique formation type."
+      }
+    ],
+    "input_table_paths": {
+      "d1": "C:\\Users\\hzp20\\Desktop\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\databases\\Argentina_Formation.csv",
+      "d2": "C:\\Users\\hzp20\\Desktop\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\databases\\Brazil_Formation.csv",
+      "D1": "C:\\Users\\hzp20\\Desktop\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D1.csv",
+      "D2": "C:\\Users\\hzp20\\Desktop\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D2.csv",
+      "D3": "C:\\Users\\hzp20\\Desktop\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D3.csv",
+      "D4": "C:\\Users\\hzp20\\Desktop\\CMV_Agent\\data\\projects\\08dc76c5-c2cb-41a9-8ae1-6de740709ff8\\data_tables\\D4.csv"
+    },
+    "execution_result": {
+      "node_id": "V2",
+      "success": false,
+      "error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+      "syntax_check": {
+        "valid": false,
+        "issues_count": 2,
+        "error_type": "field_contract_violation",
+        "error": "V2 uses undeclared input tables: ['d1']"
+      },
+      "validation_issues": [
+        {
+          "type": "field_not_found",
+          "detail": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']"
+        },
+        {
+          "type": "constant_quantitative_axis",
+          "detail": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot."
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [],
+          "count": 0,
+          "detail": "V2 uses undeclared input tables: ['d1']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [
+            "formation_type",
+            "frequency"
+          ],
+          "count": 2,
+          "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+        },
+        {
+          "type": "field_contract_violation",
+          "columns": [
+            "formation_type"
+          ],
+          "count": 1,
+          "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+        }
+      ],
+      "spec_path": null
+    },
+    "recovery_attempts": [
+      {
+        "attempt": 1,
+        "status": "retry_failed",
+        "analysis": {
+          "success": true,
+          "root_cause": "data_fields",
+          "fix_strategy": "modify_data_and_vis",
+          "suggested_fixes": {
+            "plan_modifications": null,
+            "data_modifications": "Ensure the upstream data table provides the 'formation_type' field as required by the visualization. Verify that the column name matches exactly, including any potential hidden characters like the BOM character '\\ufeff' in the original column name.",
+            "vis_modifications": "Update the encoding to use the correct field name. If the actual column name is '\\ufeffformation_type', update the 'field' property in the x-axis encoding to match this exact name. Also ensure that the 'mark' type is set to 'bar' as specified in the plan."
+          },
+          "explanation": "The error indicates that the visualization must preserve the 'formation_type' field from the upstream data. The spec references 'formation_type' in the encoding, but the actual column name in the data might be different (e.g., includes a BOM character '\\ufeff'). This mismatch causes the validation failure.",
+          "_prompt_messages": [
+            {
+              "role": "system",
+              "content": "You are a Vega-Lite visualization expert and debugger."
+            },
+            {
+              "role": "user",
+              "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type (from plan)\nbar\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      },\n      \"scale\": {\n        \"domain\": [\n          14.1,\n          55.9\n        ],\n        \"zero\": false,\n        \"nice\": true\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: V2 must preserve visualization fields from I1: ['formation_type']\n  syntax: V2 must preserve visualization fields from I1: ['formation_type']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+            }
+          ],
+          "_raw_response": "```json\n{\n  \"root_cause\": \"data_fields\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure the upstream data table provides the 'formation_type' field as required by the visualization. Verify that the column name matches exactly, including any potential hidden characters like the BOM character '\\\\ufeff' in the original column name.\",\n    \"vis_modifications\": \"Update the encoding to use the correct field name. If the actual column name is '\\\\ufeffformation_type', update the 'field' property in the x-axis encoding to match this exact name. Also ensure that the 'mark' type is set to 'bar' as specified in the plan.\"\n  },\n  \"explanation\": \"The error indicates that the visualization must preserve the 'formation_type' field from the upstream data. The spec references 'formation_type' in the encoding, but the actual column name in the data might be different (e.g., includes a BOM character '\\\\ufeff'). This mismatch causes the validation failure.\"\n}\n```"
+        },
+        "fix_result": {
+          "success": true,
+          "spec": {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "title": "Brazil Formation Distribution Bar Chart",
+            "description": "V2",
+            "data": {
+              "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv"
+            },
+            "width": "container",
+            "mark": "bar",
+            "encoding": {
+              "x": {
+                "field": "﻿formation_type",
+                "type": "nominal",
+                "axis": {
+                  "title": "Formation Type"
+                }
+              },
+              "y": {
+                "field": "frequency",
+                "type": "quantitative",
+                "axis": {
+                  "title": "Frequency"
+                },
+                "scale": {
+                  "domain": [
+                    14.1,
+                    55.9
+                  ],
+                  "zero": false,
+                  "nice": true
+                }
+              }
+            },
+            "height": "container",
+            "autosize": {
+              "type": "fit",
+              "contains": "padding"
+            },
+            "config": {
+              "background": "rgba(0, 0, 0, 0)",
+              "padding": 10
+            },
+            "transform": [],
+            "params": []
+          },
+          "metadata": {
+            "marktype": "bar",
+            "used_tables": [
+              "d1"
+            ],
+            "used_fields": [
+              "﻿formation_type",
+              "frequency"
+            ],
+            "encoding_fields": {
+              "x": "﻿formation_type",
+              "y": "frequency"
+            }
+          },
+          "error": null,
+          "_prompt_messages": [
+            {
+              "role": "system",
+              "content": "You are a Vega-Lite visualization expert."
+            },
+            {
+              "role": "user",
+              "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type\nbar\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      },\n      \"scale\": {\n        \"domain\": [\n          14.1,\n          55.9\n        ],\n        \"zero\": false,\n        \"nice\": true\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: V2 must preserve visualization fields from I1: ['formation_type']\n  syntax: V2 must preserve visualization fields from I1: ['formation_type']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_fields. Fix strategy: modify_data_and_vis. Suggestion: Update the encoding to use the correct field name. If the actual column name is '\\ufeffformation_type', update the 'field' property in the x-axis encoding to match this exact name. Also ensure that the 'mark' type is set to 'bar' as specified in the plan..\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+            }
+          ],
+          "_raw_response": "{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Brazil Formation Distribution Bar Chart\",\n    \"description\": \"V2\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n    },\n    \"width\": \"container\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"\\ufeffformation_type\",\n        \"type\": \"nominal\",\n        \"axis\": {\n          \"title\": \"Formation Type\"\n        }\n      },\n      \"y\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"axis\": {\n          \"title\": \"Frequency\"\n        },\n        \"scale\": {\n          \"domain\": [\n            14.1,\n            55.9\n          ],\n          \"zero\": false,\n          \"nice\": true\n        }\n      }\n    },\n    \"height\": \"container\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": [],\n    \"params\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"bar\",\n    \"used_tables\": [\"d1\"],\n    \"used_fields\": [\"\\ufeffformation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"\\ufeffformation_type\",\n      \"y\": \"frequency\"\n    }\n  }\n}"
+        },
+        "diagnosis_duration_ms": 3584,
+        "fix_generation_duration_ms": 4252,
+        "phase_timings": {
+          "diagnosis_ms": 3584,
+          "fix_generation_ms": 4252,
+          "validation_ms": 6,
+          "regeneration_ms": 4259
+        },
+        "validation_duration_ms": 6,
+        "error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+        "validation_issues": [
+          {
+            "type": "field_not_found",
+            "detail": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']"
+          },
+          {
+            "type": "constant_quantitative_axis",
+            "detail": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot."
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [],
+            "count": 0,
+            "detail": "V2 uses undeclared input tables: ['d1']"
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [
+              "formation_type",
+              "frequency"
+            ],
+            "count": 2,
+            "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [
+              "formation_type"
+            ],
+            "count": 1,
+            "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+          }
+        ],
+        "regeneration_duration_ms": 4259
+      },
+      {
+        "attempt": 2,
+        "status": "retry_failed",
+        "analysis": {
+          "success": true,
+          "root_cause": "data_fields",
+          "fix_strategy": "modify_data_and_vis",
+          "suggested_fixes": {
+            "plan_modifications": null,
+            "data_modifications": "Ensure the upstream data table 'd1' contains the correct field names 'formation_type' and 'frequency' without any leading or trailing whitespace characters.",
+            "vis_modifications": "Update the encoding fields in the Vega-Lite spec to use 'formation_type' (without the leading whitespace) and ensure 'frequency' is correctly referenced. Also, remove the 'scale.domain' setting for the y-axis since it's causing a flat plot."
+          },
+          "explanation": "The error indicates that the field '﻿formation_type' (with leading whitespace) does not exist in the input tables. The available fields show 'formation_type' without whitespace, suggesting a typo or formatting issue. Additionally, the y-axis 'frequency' has no variation, likely due to incorrect data or scale settings.",
+          "_prompt_messages": [
+            {
+              "role": "system",
+              "content": "You are a Vega-Lite visualization expert and debugger."
+            },
+            {
+              "role": "user",
+              "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type (from plan)\nbar\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"﻿formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      },\n      \"scale\": {\n        \"domain\": [\n          14.1,\n          55.9\n        ],\n        \"zero\": false,\n        \"nice\": true\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  validation: Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+            }
+          ],
+          "_raw_response": "```json\n{\n  \"root_cause\": \"data_fields\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure the upstream data table 'd1' contains the correct field names 'formation_type' and 'frequency' without any leading or trailing whitespace characters.\",\n    \"vis_modifications\": \"Update the encoding fields in the Vega-Lite spec to use 'formation_type' (without the leading whitespace) and ensure 'frequency' is correctly referenced. Also, remove the 'scale.domain' setting for the y-axis since it's causing a flat plot.\"\n  },\n  \"explanation\": \"The error indicates that the field '﻿formation_type' (with leading whitespace) does not exist in the input tables. The available fields show 'formation_type' without whitespace, suggesting a typo or formatting issue. Additionally, the y-axis 'frequency' has no variation, likely due to incorrect data or scale settings.\"\n}\n```"
+        },
+        "fix_result": {
+          "success": true,
+          "spec": {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "title": "Brazil Formation Distribution Bar Chart",
+            "description": "V2",
+            "data": {
+              "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv"
+            },
+            "width": "container",
+            "mark": "bar",
+            "encoding": {
+              "x": {
+                "field": "formation_type",
+                "type": "nominal",
+                "axis": {
+                  "title": "Formation Type"
+                }
+              },
+              "y": {
+                "field": "frequency",
+                "type": "quantitative",
+                "axis": {
+                  "title": "Frequency"
+                }
+              }
+            },
+            "height": "container",
+            "autosize": {
+              "type": "fit",
+              "contains": "padding"
+            },
+            "config": {
+              "background": "rgba(0, 0, 0, 0)",
+              "padding": 10
+            },
+            "transform": [],
+            "params": []
+          },
+          "metadata": {
+            "marktype": "bar",
+            "used_tables": [
+              "d1"
+            ],
+            "used_fields": [
+              "formation_type",
+              "frequency"
+            ],
+            "encoding_fields": {
+              "x": "formation_type",
+              "y": "frequency"
+            }
+          },
+          "error": null,
+          "_prompt_messages": [
+            {
+              "role": "system",
+              "content": "You are a Vega-Lite visualization expert."
+            },
+            {
+              "role": "user",
+              "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type\nbar\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"﻿formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      },\n      \"scale\": {\n        \"domain\": [\n          14.1,\n          55.9\n        ],\n        \"zero\": false,\n        \"nice\": true\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  validation: Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_fields. Fix strategy: modify_data_and_vis. Suggestion: Update the encoding fields in the Vega-Lite spec to use 'formation_type' (without the leading whitespace) and ensure 'frequency' is correctly referenced. Also, remove the 'scale.domain' setting for the y-axis since it's causing a flat plot..\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+            }
+          ],
+          "_raw_response": "```json\n{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Brazil Formation Distribution Bar Chart\",\n    \"description\": \"V2\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n    },\n    \"width\": \"container\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"formation_type\",\n        \"type\": \"nominal\",\n        \"axis\": {\n          \"title\": \"Formation Type\"\n        }\n      },\n      \"y\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"axis\": {\n          \"title\": \"Frequency\"\n        }\n      }\n    },\n    \"height\": \"container\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": [],\n    \"params\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"bar\",\n    \"used_tables\": [\"d1\"],\n    \"used_fields\": [\"formation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"formation_type\",\n      \"y\": \"frequency\"\n    }\n  }\n}\n```"
+        },
+        "diagnosis_duration_ms": 3643,
+        "fix_generation_duration_ms": 5010,
+        "phase_timings": {
+          "diagnosis_ms": 3643,
+          "fix_generation_ms": 5010,
+          "validation_ms": 3,
+          "regeneration_ms": 5014
+        },
+        "validation_duration_ms": 3,
+        "error": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+        "validation_issues": [
+          {
+            "type": "constant_quantitative_axis",
+            "detail": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot."
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [],
+            "count": 0,
+            "detail": "V2 uses undeclared input tables: ['d1']"
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [
+              "formation_type",
+              "frequency"
+            ],
+            "count": 2,
+            "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [
+              "formation_type"
+            ],
+            "count": 1,
+            "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+          }
+        ],
+        "regeneration_duration_ms": 5014
+      },
+      {
+        "attempt": 3,
+        "status": "retry_failed",
+        "analysis": {
+          "success": true,
+          "root_cause": "data_processing",
+          "fix_strategy": "modify_data_and_vis",
+          "suggested_fixes": {
+            "plan_modifications": null,
+            "data_modifications": "Ensure the upstream data table (d1) contains valid, non-null values for the 'frequency' field. Verify that the data processing step (D2) correctly computes and outputs the 'formation_type' and 'frequency' columns with appropriate values.",
+            "vis_modifications": "Add an aggregate function to the 'y' encoding to ensure it calculates the frequency properly. Update the 'y' encoding to use 'sum' or 'count' depending on the data. For example: \"y\": {\"field\": \"frequency\", \"type\": \"quantitative\", \"aggregate\": \"sum\"}"
+          },
+          "explanation": "The error indicates that the 'frequency' field has only 0 distinct non-null values, suggesting the upstream data may not have been processed correctly. The visualization spec references 'formation_type' and 'frequency' fields, which are declared in D2, but the data might be missing or improperly formatted. Adding an aggregate function to the 'y' encoding could help if the data is structured as raw records rather than pre-aggregated frequencies.",
+          "_prompt_messages": [
+            {
+              "role": "system",
+              "content": "You are a Vega-Lite visualization expert and debugger."
+            },
+            {
+              "role": "user",
+              "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type (from plan)\nbar\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+            }
+          ],
+          "_raw_response": "```json\n{\n  \"root_cause\": \"data_processing\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure the upstream data table (d1) contains valid, non-null values for the 'frequency' field. Verify that the data processing step (D2) correctly computes and outputs the 'formation_type' and 'frequency' columns with appropriate values.\",\n    \"vis_modifications\": \"Add an aggregate function to the 'y' encoding to ensure it calculates the frequency properly. Update the 'y' encoding to use 'sum' or 'count' depending on the data. For example: \\\"y\\\": {\\\"field\\\": \\\"frequency\\\", \\\"type\\\": \\\"quantitative\\\", \\\"aggregate\\\": \\\"sum\\\"}\"\n  },\n  \"explanation\": \"The error indicates that the 'frequency' field has only 0 distinct non-null values, suggesting the upstream data may not have been processed correctly. The visualization spec references 'formation_type' and 'frequency' fields, which are declared in D2, but the data might be missing or improperly formatted. Adding an aggregate function to the 'y' encoding could help if the data is structured as raw records rather than pre-aggregated frequencies.\"\n}\n```"
+        },
+        "fix_result": {
+          "success": true,
+          "spec": {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "title": "Brazil Formation Distribution Bar Chart",
+            "description": "V2",
+            "data": {
+              "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv"
+            },
+            "width": "container",
+            "mark": "bar",
+            "encoding": {
+              "x": {
+                "field": "﻿formation_type",
+                "type": "nominal",
+                "axis": {
+                  "title": "Formation Type"
+                }
+              },
+              "y": {
+                "field": "frequency",
+                "type": "quantitative",
+                "aggregate": "sum",
+                "axis": {
+                  "title": "Frequency"
+                }
+              }
+            },
+            "height": "container",
+            "autosize": {
+              "type": "fit",
+              "contains": "padding"
+            },
+            "config": {
+              "background": "rgba(0, 0, 0, 0)",
+              "padding": 10
+            },
+            "transform": [],
+            "params": []
+          },
+          "metadata": {
+            "marktype": "bar",
+            "used_tables": [
+              "d1"
+            ],
+            "used_fields": [
+              "﻿formation_type",
+              "frequency"
+            ],
+            "encoding_fields": {
+              "x": "﻿formation_type",
+              "y": "frequency"
+            }
+          },
+          "error": null,
+          "_prompt_messages": [
+            {
+              "role": "system",
+              "content": "You are a Vega-Lite visualization expert."
+            },
+            {
+              "role": "user",
+              "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type\nbar\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_processing. Fix strategy: modify_data_and_vis. Suggestion: Add an aggregate function to the 'y' encoding to ensure it calculates the frequency properly. Update the 'y' encoding to use 'sum' or 'count' depending on the data. For example: \"y\": {\"field\": \"frequency\", \"type\": \"quantitative\", \"aggregate\": \"sum\"}.\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+            }
+          ],
+          "_raw_response": "```json\n{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Brazil Formation Distribution Bar Chart\",\n    \"description\": \"V2\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n    },\n    \"width\": \"container\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"\\ufeffformation_type\",\n        \"type\": \"nominal\",\n        \"axis\": {\n          \"title\": \"Formation Type\"\n        }\n      },\n      \"y\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"aggregate\": \"sum\",\n        \"axis\": {\n          \"title\": \"Frequency\"\n        }\n      }\n    },\n    \"height\": \"container\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": [],\n    \"params\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"bar\",\n    \"used_tables\": [\"d1\"],\n    \"used_fields\": [\"\\ufeffformation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"\\ufeffformation_type\",\n      \"y\": \"frequency\"\n    }\n  }\n}\n```"
+        },
+        "diagnosis_duration_ms": 2821,
+        "fix_generation_duration_ms": 4534,
+        "phase_timings": {
+          "diagnosis_ms": 2821,
+          "fix_generation_ms": 4534,
+          "validation_ms": 4,
+          "regeneration_ms": 4538
+        },
+        "validation_duration_ms": 4,
+        "error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+        "validation_issues": [
+          {
+            "type": "field_not_found",
+            "detail": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']"
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [],
+            "count": 0,
+            "detail": "V2 uses undeclared input tables: ['d1']"
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [
+              "formation_type",
+              "frequency"
+            ],
+            "count": 2,
+            "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [
+              "formation_type"
+            ],
+            "count": 1,
+            "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+          }
+        ],
+        "regeneration_duration_ms": 4538
+      },
+      {
+        "attempt": 4,
+        "status": "retry_failed",
+        "analysis": {
+          "success": true,
+          "root_cause": "data_fields",
+          "fix_strategy": "modify_data_and_vis",
+          "suggested_fixes": {
+            "plan_modifications": null,
+            "data_modifications": "Ensure the upstream data table 'd1' contains the correct field names 'formation_type' and 'frequency' without any leading or trailing whitespace characters.",
+            "vis_modifications": "Update the encoding fields in the Vega-Lite spec to use the correct field names. Replace '﻿formation_type' with 'formation_type' (without the leading invisible character) and ensure 'frequency' is correctly referenced."
+          },
+          "explanation": "The error indicates that the field '﻿formation_type' does not exist in the input tables. The actual available fields include 'formation_type' (without the leading invisible character). This suggests a typo or encoding issue in the field name in the spec. The root cause is 'data_fields' as the field name in the spec does not match the actual data.",
+          "_prompt_messages": [
+            {
+              "role": "system",
+              "content": "You are a Vega-Lite visualization expert and debugger."
+            },
+            {
+              "role": "user",
+              "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type (from plan)\nbar\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"﻿formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"aggregate\": \"sum\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+            }
+          ],
+          "_raw_response": "```json\n{\n  \"root_cause\": \"data_fields\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure the upstream data table 'd1' contains the correct field names 'formation_type' and 'frequency' without any leading or trailing whitespace characters.\",\n    \"vis_modifications\": \"Update the encoding fields in the Vega-Lite spec to use the correct field names. Replace '﻿formation_type' with 'formation_type' (without the leading invisible character) and ensure 'frequency' is correctly referenced.\"\n  },\n  \"explanation\": \"The error indicates that the field '﻿formation_type' does not exist in the input tables. The actual available fields include 'formation_type' (without the leading invisible character). This suggests a typo or encoding issue in the field name in the spec. The root cause is 'data_fields' as the field name in the spec does not match the actual data.\"\n}\n```"
+        },
+        "fix_result": {
+          "success": true,
+          "spec": {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "title": "Brazil Formation Distribution Bar Chart",
+            "description": "V2",
+            "data": {
+              "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv"
+            },
+            "width": "container",
+            "mark": "bar",
+            "encoding": {
+              "x": {
+                "field": "formation_type",
+                "type": "nominal",
+                "axis": {
+                  "title": "Formation Type"
+                }
+              },
+              "y": {
+                "field": "frequency",
+                "type": "quantitative",
+                "aggregate": "sum",
+                "axis": {
+                  "title": "Frequency"
+                }
+              }
+            },
+            "height": "container",
+            "autosize": {
+              "type": "fit",
+              "contains": "padding"
+            },
+            "config": {
+              "background": "rgba(0, 0, 0, 0)",
+              "padding": 10
+            },
+            "transform": [],
+            "params": []
+          },
+          "metadata": {
+            "marktype": "bar",
+            "used_tables": [
+              "d1"
+            ],
+            "used_fields": [
+              "formation_type",
+              "frequency"
+            ],
+            "encoding_fields": {
+              "x": "formation_type",
+              "y": "frequency"
+            }
+          },
+          "error": null,
+          "_prompt_messages": [
+            {
+              "role": "system",
+              "content": "You are a Vega-Lite visualization expert."
+            },
+            {
+              "role": "user",
+              "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type\nbar\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"﻿formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"aggregate\": \"sum\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_fields. Fix strategy: modify_data_and_vis. Suggestion: Update the encoding fields in the Vega-Lite spec to use the correct field names. Replace '﻿formation_type' with 'formation_type' (without the leading invisible character) and ensure 'frequency' is correctly referenced..\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+            }
+          ],
+          "_raw_response": "```json\n{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Brazil Formation Distribution Bar Chart\",\n    \"description\": \"V2\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n    },\n    \"width\": \"container\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"formation_type\",\n        \"type\": \"nominal\",\n        \"axis\": {\n          \"title\": \"Formation Type\"\n        }\n      },\n      \"y\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"aggregate\": \"sum\",\n        \"axis\": {\n          \"title\": \"Frequency\"\n        }\n      }\n    },\n    \"height\": \"container\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": [],\n    \"params\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"bar\",\n    \"used_tables\": [\"d1\"],\n    \"used_fields\": [\"formation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"formation_type\",\n      \"y\": \"frequency\"\n    }\n  }\n}\n```"
+        },
+        "diagnosis_duration_ms": 3021,
+        "fix_generation_duration_ms": 3630,
+        "phase_timings": {
+          "diagnosis_ms": 3021,
+          "fix_generation_ms": 3630,
+          "validation_ms": 3,
+          "regeneration_ms": 3634
+        },
+        "validation_duration_ms": 3,
+        "error": "V2 uses undeclared input tables: ['d1']",
+        "validation_issues": [
+          {
+            "type": "field_contract_violation",
+            "columns": [],
+            "count": 0,
+            "detail": "V2 uses undeclared input tables: ['d1']"
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [
+              "formation_type",
+              "frequency"
+            ],
+            "count": 2,
+            "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [
+              "formation_type"
+            ],
+            "count": 1,
+            "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+          }
+        ],
+        "regeneration_duration_ms": 3634
+      },
+      {
+        "attempt": 5,
+        "status": "retry_failed",
+        "analysis": {
+          "success": true,
+          "root_cause": "data_fields",
+          "fix_strategy": "modify_data_and_vis",
+          "suggested_fixes": {
+            "plan_modifications": null,
+            "data_modifications": "Ensure that the upstream data table 'd1' contains the required columns 'formation_type' and 'frequency' as specified in the validation errors.",
+            "vis_modifications": "Update the data source to reference the correct table name. Ensure that the 'formation_type' and 'frequency' fields are correctly used in the encoding. Remove the 'aggregate' property from the 'y' encoding since the data already contains pre-aggregated 'frequency' values."
+          },
+          "explanation": "The validation errors indicate that the chart references an undeclared input table 'd1' and that the fields 'formation_type' and 'frequency' must be preserved. The spec incorrectly assumes that 'frequency' needs to be aggregated, but since it's already a pre-aggregated field, the 'aggregate' property should be removed. Additionally, the data source should correctly reference the declared table.",
+          "_prompt_messages": [
+            {
+              "role": "system",
+              "content": "You are a Vega-Lite visualization expert and debugger."
+            },
+            {
+              "role": "user",
+              "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type (from plan)\nbar\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"aggregate\": \"sum\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: V2 uses undeclared input tables: ['d1']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+            }
+          ],
+          "_raw_response": "```json\n{\n  \"root_cause\": \"data_fields\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure that the upstream data table 'd1' contains the required columns 'formation_type' and 'frequency' as specified in the validation errors.\",\n    \"vis_modifications\": \"Update the data source to reference the correct table name. Ensure that the 'formation_type' and 'frequency' fields are correctly used in the encoding. Remove the 'aggregate' property from the 'y' encoding since the data already contains pre-aggregated 'frequency' values.\"\n  },\n  \"explanation\": \"The validation errors indicate that the chart references an undeclared input table 'd1' and that the fields 'formation_type' and 'frequency' must be preserved. The spec incorrectly assumes that 'frequency' needs to be aggregated, but since it's already a pre-aggregated field, the 'aggregate' property should be removed. Additionally, the data source should correctly reference the declared table.\"\n}\n```"
+        },
+        "fix_result": {
+          "success": true,
+          "spec": {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "title": "Brazil Formation Distribution Bar Chart",
+            "description": "V2",
+            "data": {
+              "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv"
+            },
+            "width": "container",
+            "mark": "bar",
+            "encoding": {
+              "x": {
+                "field": "﻿formation_type",
+                "type": "nominal",
+                "axis": {
+                  "title": "Formation Type"
+                }
+              },
+              "y": {
+                "field": "frequency",
+                "type": "quantitative",
+                "axis": {
+                  "title": "Frequency"
+                }
+              }
+            },
+            "height": "container",
+            "autosize": {
+              "type": "fit",
+              "contains": "padding"
+            },
+            "config": {
+              "background": "rgba(0, 0, 0, 0)",
+              "padding": 10
+            },
+            "transform": [],
+            "params": []
+          },
+          "metadata": {
+            "marktype": "bar",
+            "used_tables": [
+              "d1"
+            ],
+            "used_fields": [
+              "﻿formation_type",
+              "frequency"
+            ],
+            "encoding_fields": {
+              "x": "﻿formation_type",
+              "y": "frequency"
+            }
+          },
+          "error": null,
+          "_prompt_messages": [
+            {
+              "role": "system",
+              "content": "You are a Vega-Lite visualization expert."
+            },
+            {
+              "role": "user",
+              "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type\nbar\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"aggregate\": \"sum\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: V2 uses undeclared input tables: ['d1']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_fields. Fix strategy: modify_data_and_vis. Suggestion: Update the data source to reference the correct table name. Ensure that the 'formation_type' and 'frequency' fields are correctly used in the encoding. Remove the 'aggregate' property from the 'y' encoding since the data already contains pre-aggregated 'frequency' values..\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+            }
+          ],
+          "_raw_response": "```json\n{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Brazil Formation Distribution Bar Chart\",\n    \"description\": \"V2\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n    },\n    \"width\": \"container\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"\\ufeffformation_type\",\n        \"type\": \"nominal\",\n        \"axis\": {\n          \"title\": \"Formation Type\"\n        }\n      },\n      \"y\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"axis\": {\n          \"title\": \"Frequency\"\n        }\n      }\n    },\n    \"height\": \"container\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": [],\n    \"params\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"bar\",\n    \"used_tables\": [\"d1\"],\n    \"used_fields\": [\"\\ufeffformation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"\\ufeffformation_type\",\n      \"y\": \"frequency\"\n    }\n  }\n}\n```"
+        },
+        "diagnosis_duration_ms": 3330,
+        "fix_generation_duration_ms": 4047,
+        "phase_timings": {
+          "diagnosis_ms": 3330,
+          "fix_generation_ms": 4047,
+          "validation_ms": 5,
+          "regeneration_ms": 4053
+        },
+        "validation_duration_ms": 5,
+        "error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+        "validation_issues": [
+          {
+            "type": "field_not_found",
+            "detail": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']"
+          },
+          {
+            "type": "constant_quantitative_axis",
+            "detail": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot."
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [],
+            "count": 0,
+            "detail": "V2 uses undeclared input tables: ['d1']"
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [
+              "formation_type",
+              "frequency"
+            ],
+            "count": 2,
+            "detail": "V2 must preserve visualization fields from D2: ['formation_type', 'frequency']"
+          },
+          {
+            "type": "field_contract_violation",
+            "columns": [
+              "formation_type"
+            ],
+            "count": 1,
+            "detail": "V2 must preserve visualization fields from I1: ['formation_type']"
+          }
+        ],
+        "regeneration_duration_ms": 4053
+      }
+    ]
+  },
+  "analysis_result": {
+    "success": true,
+    "root_cause": "data_fields",
+    "fix_strategy": "modify_data_and_vis",
+    "suggested_fixes": {
+      "plan_modifications": null,
+      "data_modifications": "Ensure that the upstream data table 'd1' contains the required columns 'formation_type' and 'frequency' as specified in the validation errors.",
+      "vis_modifications": "Update the data source to reference the correct table name. Ensure that the 'formation_type' and 'frequency' fields are correctly used in the encoding. Remove the 'aggregate' property from the 'y' encoding since the data already contains pre-aggregated 'frequency' values."
+    },
+    "explanation": "The validation errors indicate that the chart references an undeclared input table 'd1' and that the fields 'formation_type' and 'frequency' must be preserved. The spec incorrectly assumes that 'frequency' needs to be aggregated, but since it's already a pre-aggregated field, the 'aggregate' property should be removed. Additionally, the data source should correctly reference the declared table.",
+    "_prompt_messages": [
+      {
+        "role": "system",
+        "content": "You are a Vega-Lite visualization expert and debugger."
+      },
+      {
+        "role": "user",
+        "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type (from plan)\nbar\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"aggregate\": \"sum\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: V2 uses undeclared input tables: ['d1']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+      }
+    ],
+    "_raw_response": "```json\n{\n  \"root_cause\": \"data_fields\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure that the upstream data table 'd1' contains the required columns 'formation_type' and 'frequency' as specified in the validation errors.\",\n    \"vis_modifications\": \"Update the data source to reference the correct table name. Ensure that the 'formation_type' and 'frequency' fields are correctly used in the encoding. Remove the 'aggregate' property from the 'y' encoding since the data already contains pre-aggregated 'frequency' values.\"\n  },\n  \"explanation\": \"The validation errors indicate that the chart references an undeclared input table 'd1' and that the fields 'formation_type' and 'frequency' must be preserved. The spec incorrectly assumes that 'frequency' needs to be aggregated, but since it's already a pre-aggregated field, the 'aggregate' property should be removed. Additionally, the data source should correctly reference the declared table.\"\n}\n```"
+  },
+  "fix_result": {
+    "success": true,
+    "spec": {
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "title": "Brazil Formation Distribution Bar Chart",
+      "description": "V2",
+      "data": {
+        "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv"
+      },
+      "width": "container",
+      "mark": "bar",
+      "encoding": {
+        "x": {
+          "field": "﻿formation_type",
+          "type": "nominal",
+          "axis": {
+            "title": "Formation Type"
+          }
+        },
+        "y": {
+          "field": "frequency",
+          "type": "quantitative",
+          "axis": {
+            "title": "Frequency"
+          }
+        }
+      },
+      "height": "container",
+      "autosize": {
+        "type": "fit",
+        "contains": "padding"
+      },
+      "config": {
+        "background": "rgba(0, 0, 0, 0)",
+        "padding": 10
+      },
+      "transform": [],
+      "params": []
+    },
+    "metadata": {
+      "marktype": "bar",
+      "used_tables": [
+        "d1"
+      ],
+      "used_fields": [
+        "﻿formation_type",
+        "frequency"
+      ],
+      "encoding_fields": {
+        "x": "﻿formation_type",
+        "y": "frequency"
+      }
+    },
+    "error": null,
+    "_prompt_messages": [
+      {
+        "role": "system",
+        "content": "You are a Vega-Lite visualization expert."
+      },
+      {
+        "role": "user",
+        "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type\nbar\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"aggregate\": \"sum\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: V2 uses undeclared input tables: ['d1']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_fields. Fix strategy: modify_data_and_vis. Suggestion: Update the data source to reference the correct table name. Ensure that the 'formation_type' and 'frequency' fields are correctly used in the encoding. Remove the 'aggregate' property from the 'y' encoding since the data already contains pre-aggregated 'frequency' values..\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+      }
+    ],
+    "_raw_response": "```json\n{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Brazil Formation Distribution Bar Chart\",\n    \"description\": \"V2\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n    },\n    \"width\": \"container\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"\\ufeffformation_type\",\n        \"type\": \"nominal\",\n        \"axis\": {\n          \"title\": \"Formation Type\"\n        }\n      },\n      \"y\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"axis\": {\n          \"title\": \"Frequency\"\n        }\n      }\n    },\n    \"height\": \"container\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": [],\n    \"params\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"bar\",\n    \"used_tables\": [\"d1\"],\n    \"used_fields\": [\"\\ufeffformation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"\\ufeffformation_type\",\n      \"y\": \"frequency\"\n    }\n  }\n}\n```"
+  },
+  "diagnosis": {
+    "root_cause": "data_fields",
+    "fix_strategy": "modify_data_and_vis",
+    "suggested_fixes": {
+      "plan_modifications": null,
+      "data_modifications": "Ensure that the upstream data table 'd1' contains the required columns 'formation_type' and 'frequency' as specified in the validation errors.",
+      "vis_modifications": "Update the data source to reference the correct table name. Ensure that the 'formation_type' and 'frequency' fields are correctly used in the encoding. Remove the 'aggregate' property from the 'y' encoding since the data already contains pre-aggregated 'frequency' values."
+    },
+    "evidence": null,
+    "explanation": "The validation errors indicate that the chart references an undeclared input table 'd1' and that the fields 'formation_type' and 'frequency' must be preserved. The spec incorrectly assumes that 'frequency' needs to be aggregated, but since it's already a pre-aggregated field, the 'aggregate' property should be removed. Additionally, the data source should correctly reference the declared table.",
+    "diagnosis_source": null,
+    "local_diagnosis": null,
+    "llm_error": null,
+    "llm_parse_error": null,
+    "analysis_prompt_messages": [
+      {
+        "role": "system",
+        "content": "You are a Vega-Lite visualization expert and debugger."
+      },
+      {
+        "role": "user",
+        "content": "You are a Vega-Lite visualization expert. Diagnose errors in a generated chart spec and suggest fixes.\n\n## V Node Info\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type (from plan)\nbar\n\n## Upstream Data Tables Info\nColumns available from each upstream table:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Vega-Lite Spec Generated\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"aggregate\": \"sum\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Validation / Execution Errors\n  error: V2 uses undeclared input tables: ['d1']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Task\nAnalyze why the visualization spec failed. Follow this diagnostic checklist:\n\n### Step 1 — Check data field existence\n- Does every field referenced in `encoding` exist in the upstream tables?\n- Are there typos in field names (e.g., \"sepal_lenth\" instead of \"sepal_length\")?\n- If fields are missing, the root cause is `data_fields`.\n\n### Step 2 — Check encoding structure\n- Are required channels present? (x and y for bar/line/point, theta and radius for arc, etc.)\n- Is the `mark` type valid and compatible with the encoding?\n- Are aggregate functions used correctly with appropriate data types?\n- If encoding or mark is wrong, the root cause is `vis_spec`.\n\n### Step 3 — Check chart_type alignment\n- Does the actual mark in the spec match the `chart_type` from the plan?\n  (e.g., plan says \"bar chart\" but spec uses \"area\" mark)\n- If the plan's chart_type is fundamentally wrong for the data/question, root cause is `plan_config`.\n- If the plan asks for a chart type that doesn't match the node description, also flag `plan_config`.\n\n### Step 4 — Check upstream data\n- Could the D node have failed to produce the correct columns?\n- Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?\n- If the upstream D node didn't produce needed data, root cause is `data_processing`.\n\n### Step 5 — JSON syntax\n- Is the spec valid JSON? Any missing commas, brackets, quotes?\n- Are Vega-Lite keywords misspelled? (e.g., \"aggreagte\" instead of \"aggregate\")\n\n## Output Format\nOutput ONLY valid JSON with NO additional explanation outside the JSON:\n\n```json\n{\n  \"root_cause\": \"vis_spec\" | \"data_fields\" | \"plan_config\" | \"data_processing\",\n  \"fix_strategy\": \"modify_vis\" | \"modify_data\" | \"modify_plan\" | \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null | \"description of plan changes needed\",\n    \"data_modifications\": null | \"description of data changes needed\",\n    \"vis_modifications\": null | \"detailed description of how to fix the spec, including exact field names, mark type, and encoding changes\"\n  },\n  \"explanation\": \"Concise reasoning for the diagnosis, referencing specific error messages and spec elements\"\n}\n```\n"
+      }
+    ],
+    "analysis_raw_response": "```json\n{\n  \"root_cause\": \"data_fields\",\n  \"fix_strategy\": \"modify_data_and_vis\",\n  \"suggested_fixes\": {\n    \"plan_modifications\": null,\n    \"data_modifications\": \"Ensure that the upstream data table 'd1' contains the required columns 'formation_type' and 'frequency' as specified in the validation errors.\",\n    \"vis_modifications\": \"Update the data source to reference the correct table name. Ensure that the 'formation_type' and 'frequency' fields are correctly used in the encoding. Remove the 'aggregate' property from the 'y' encoding since the data already contains pre-aggregated 'frequency' values.\"\n  },\n  \"explanation\": \"The validation errors indicate that the chart references an undeclared input table 'd1' and that the fields 'formation_type' and 'frequency' must be preserved. The spec incorrectly assumes that 'frequency' needs to be aggregated, but since it's already a pre-aggregated field, the 'aggregate' property should be removed. Additionally, the data source should correctly reference the declared table.\"\n}\n```"
+  },
+  "fix": {
+    "applied_fix_success": true,
+    "fixed_code": null,
+    "metadata": {
+      "marktype": "bar",
+      "used_tables": [
+        "d1"
+      ],
+      "used_fields": [
+        "﻿formation_type",
+        "frequency"
+      ],
+      "encoding_fields": {
+        "x": "﻿formation_type",
+        "y": "frequency"
+      }
+    },
+    "error": null,
+    "syntax_check": null,
+    "fix_prompt_messages": [
+      {
+        "role": "system",
+        "content": "You are a Vega-Lite visualization expert."
+      },
+      {
+        "role": "user",
+        "content": "You are a Vega-Lite expert. Fix the visualization spec based on the diagnosis below.\n\n## V Node\n  V2 (bar): Brazil_Formation_Distribution_Bar - Bar chart showing the distribution of formation types used by Brazil\n\n## Chart Type\nbar\n\n## Upstream Data Info\nEach input table with its exact columns:\n  D2: columns=['\\ufeffformation_type', 'frequency']\n\n## Previous Failed Spec\n```json\n{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"title\": \"Brazil Formation Distribution Bar Chart\",\n  \"description\": \"V2\",\n  \"data\": {\n    \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n  },\n  \"width\": \"container\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"formation_type\",\n      \"type\": \"nominal\",\n      \"axis\": {\n        \"title\": \"Formation Type\"\n      }\n    },\n    \"y\": {\n      \"field\": \"frequency\",\n      \"type\": \"quantitative\",\n      \"aggregate\": \"sum\",\n      \"axis\": {\n        \"title\": \"Frequency\"\n      }\n    }\n  },\n  \"height\": \"container\",\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"config\": {\n    \"background\": \"rgba(0, 0, 0, 0)\",\n    \"padding\": 10\n  },\n  \"transform\": [],\n  \"params\": []\n}\n```\n\n## Error Details\n  error: V2 uses undeclared input tables: ['d1']\n  syntax: V2 uses undeclared input tables: ['d1']\n  validation: V2 uses undeclared input tables: ['d1']\n  validation: V2 must preserve visualization fields from D2: ['formation_type', 'frequency']\n  validation: V2 must preserve visualization fields from I1: ['formation_type']\n\n## Diagnosis & Fix Suggestion\nRoot cause: data_fields. Fix strategy: modify_data_and_vis. Suggestion: Update the data source to reference the correct table name. Ensure that the 'formation_type' and 'frequency' fields are correctly used in the encoding. Remove the 'aggregate' property from the 'y' encoding since the data already contains pre-aggregated 'frequency' values..\n\n## Task\nGenerate a corrected Vega-Lite spec. Follow these rules strictly:\n\n1. **Field names must be exact**: Only use fields listed in the upstream data info above. Check spelling carefully.\n2. **Valid Vega-Lite v5 syntax**: Use only documented properties from the Vega-Lite specification.\n3. **Minimal transforms**: Avoid `transform` unless absolutely necessary for binning, filtering, or calculating.\n4. **Mark compatibility**: Ensure the mark type supports the encoding channels used (e.g., don't put `theta` on a bar chart).\n5. **Simple over complex**: Prefer straightforward, working charts. A simple bar/line/point chart that renders is better than a complex layered chart that fails.\n6. **Include only the spec** — do not add extra properties outside the standard Vega-Lite schema.\n\nOutput a JSON object with keys \"spec\" and \"metadata\". The metadata must include:\n- `marktype`: string, the mark type used\n- `used_tables`: array of table IDs used\n- `used_fields`: array of all field names referenced in the spec\n- `encoding_fields`: object mapping channel names to field names, e.g. {\"x\": \"species\", \"y\": \"count\"}\n\n```json\n{\n  \"spec\": { /* Vega-Lite spec */ },\n  \"metadata\": {\n    \"marktype\": \"...\",\n    \"used_tables\": [\"...\"],\n    \"used_fields\": [\"...\"],\n    \"encoding_fields\": {\"x\": \"...\", \"y\": \"...\"}\n  }\n}\n```\n"
+      }
+    ],
+    "fix_raw_response": "```json\n{\n  \"spec\": {\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"title\": \"Brazil Formation Distribution Bar Chart\",\n    \"description\": \"V2\",\n    \"data\": {\n      \"url\": \"http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/d1.csv\"\n    },\n    \"width\": \"container\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n      \"x\": {\n        \"field\": \"\\ufeffformation_type\",\n        \"type\": \"nominal\",\n        \"axis\": {\n          \"title\": \"Formation Type\"\n        }\n      },\n      \"y\": {\n        \"field\": \"frequency\",\n        \"type\": \"quantitative\",\n        \"axis\": {\n          \"title\": \"Frequency\"\n        }\n      }\n    },\n    \"height\": \"container\",\n    \"autosize\": {\n      \"type\": \"fit\",\n      \"contains\": \"padding\"\n    },\n    \"config\": {\n      \"background\": \"rgba(0, 0, 0, 0)\",\n      \"padding\": 10\n    },\n    \"transform\": [],\n    \"params\": []\n  },\n  \"metadata\": {\n    \"marktype\": \"bar\",\n    \"used_tables\": [\"d1\"],\n    \"used_fields\": [\"\\ufeffformation_type\", \"frequency\"],\n    \"encoding_fields\": {\n      \"x\": \"\\ufeffformation_type\",\n      \"y\": \"frequency\"\n    }\n  }\n}\n```"
+  }
+}

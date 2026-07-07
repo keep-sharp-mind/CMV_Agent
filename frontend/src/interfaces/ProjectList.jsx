@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { fetchProjects, createProject, deleteProject } from '../api'
 
 function ProjectList({ onSelectProject }) {
@@ -9,6 +8,7 @@ function ProjectList({ onSelectProject }) {
   const [newProjectGoal, setNewProjectGoal] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [createError, setCreateError] = useState(null)
 
   useEffect(() => {
     loadProjects()
@@ -29,18 +29,31 @@ function ProjectList({ onSelectProject }) {
     if (!newProjectName.trim()) return
 
     setIsLoading(true)
+    setCreateError(null)
     try {
       const project = await createProject(newProjectName.trim(), newProjectGoal.trim())
-      setProjects([...projects, project])
+      setProjects(currentProjects => [...currentProjects, project])
       setShowModal(false)
       setNewProjectName('')
       setNewProjectGoal('')
+      setError(null)
       onSelectProject(project)
     } catch (err) {
-      setError(`Failed to create project: ${err.message}`)
+      setCreateError(err.message || 'Unable to create the project. Please try again.')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const openCreateModal = () => {
+    setCreateError(null)
+    setShowModal(true)
+  }
+
+  const closeCreateModal = () => {
+    if (isLoading) return
+    setCreateError(null)
+    setShowModal(false)
   }
 
   const handleDeleteProject = async (e, projectId) => {
@@ -68,7 +81,7 @@ function ProjectList({ onSelectProject }) {
     <div className="project-list-container">
       <div className="project-list-header">
         <h2>CMV Projects</h2>
-        <button className="new-button" onClick={() => setShowModal(true)}>
+        <button type="button" className="new-button" onClick={openCreateModal}>
           + New Project
         </button>
       </div>
@@ -113,11 +126,11 @@ function ProjectList({ onSelectProject }) {
       )}
 
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="modal-overlay" onClick={closeCreateModal}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Create New Project</h3>
-              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+              <button type="button" className="modal-close" onClick={closeCreateModal} disabled={isLoading}>×</button>
             </div>
             <form onSubmit={handleCreateProject}>
               <div className="form-group">
@@ -139,8 +152,13 @@ function ProjectList({ onSelectProject }) {
                   rows={4}
                 />
               </div>
+              {createError && (
+                <div className="modal-error" role="alert">
+                  Failed to create project: {createError}
+                </div>
+              )}
               <div className="modal-actions">
-                <button type="button" className="cancel-button" onClick={() => setShowModal(false)}>
+                <button type="button" className="cancel-button" onClick={closeCreateModal} disabled={isLoading}>
                   Cancel
                 </button>
                 <button type="submit" className="submit-button" disabled={isLoading || !newProjectName.trim()}>

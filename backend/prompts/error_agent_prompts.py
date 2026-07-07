@@ -53,6 +53,8 @@ Analyze why the visualization spec failed. Follow this diagnostic checklist:
 - Could the D node have failed to produce the correct columns?
 - Are there type mismatches (e.g., trying to aggregate a string field as if it were numeric)?
 - If the upstream D node didn't produce needed data, root cause is `data_processing`.
+- If the chart needs a field that no upstream output currently contains, explicitly decide whether to modify this V node, modify the upstream D node, or modify the requirement/plan.
+- During regeneration, do not force a V node to preserve every previous input field. Only preserve fields that downstream I nodes actually require.
 
 ### Step 5 — JSON syntax
 - Is the spec valid JSON? Any missing commas, brackets, quotes?
@@ -61,14 +63,21 @@ Analyze why the visualization spec failed. Follow this diagnostic checklist:
 ## Output Format
 Output ONLY valid JSON with NO additional explanation outside the JSON:
 
+Suggested fixes must be operationally specific. Do NOT write generic advice such as
+"fix the spec", "repair the failing expression", "use the traceback", "check the data",
+or "modify the code". Every non-null suggested fix must name the concrete field,
+encoding channel, mark, aggregate, upstream node, or plan property to change.
+
 ```json
 {{
   "root_cause": "vis_spec" | "data_fields" | "plan_config" | "data_processing",
   "fix_strategy": "modify_vis" | "modify_data" | "modify_plan" | "modify_data_and_vis",
+  "repair_scope": ["current_node" | "upstream_node" | "requirement_or_plan"],
   "suggested_fixes": {{
-    "plan_modifications": null | "description of plan changes needed",
-    "data_modifications": null | "description of data changes needed",
-    "vis_modifications": null | "detailed description of how to fix the spec, including exact field names, mark type, and encoding changes"
+    "plan_modifications": null | "specific plan field to change, e.g. change V2.chart_type from line to bar because x=`category`, y=`count`",
+    "upstream_node_modifications": null | "specific upstream D/V node and exact field it must expose, e.g. D1 must output `county_fips` for V2",
+    "data_modifications": null | "specific upstream data change, including node id and exact columns/derived fields",
+    "vis_modifications": null | "specific Vega-Lite edits, including exact field names, mark type, encoding channel, aggregate/type changes"
   }},
   "explanation": "Concise reasoning for the diagnosis, referencing specific error messages and spec elements"
 }}
@@ -201,15 +210,23 @@ These charts respond to the interaction:
 ## Output Format
 Provide a detailed diagnosis and fix suggestions. Output ONLY valid JSON:
 
+Suggested fixes must be operationally specific. Do NOT write generic advice such as
+"fix interaction", "fix JS", "repair code", "check link fields", or "update the spec".
+Every non-null suggested fix must name the concrete source/target view id, link_field,
+selection signal/window variable, dataset name, Vega-Lite channel, or JS expression to change.
+
 ```json
 {{
   "root_cause": "interaction_code" | "vis_spec" | "plan_config" | "data_fields" | "spec_modification",
   "fix_strategy": "modify_interaction" | "modify_vis" | "modify_plan" | "modify_data",
+  "repair_scope": ["current_node" | "upstream_node" | "requirement_or_plan"],
   "suggested_fixes": {{
-    "plan_modifications": null | "changes to I-node trigger/effect or V-I dependencies",
-    "data_modifications": null | "if link fields are missing from data, describe what to add",
-    "vis_modifications": [] | [{{"v_id": "V1", "fix_hint": "..."}}, ...],
-    "interaction_modifications": "detailed description of JS code or spec changes needed, including exact variable names and logic fixes"
+    "plan_modifications": null | "specific I-node trigger/effect/dependency change, naming source and target view ids",
+    "upstream_node_modifications": null | "specific upstream V/D node and exact field it should expose",
+    "requirement_modifications": null | "specific infeasible interaction requirement to revise/remove and why",
+    "data_modifications": null | "specific missing link field or derived field to add, with upstream node id",
+    "vis_modifications": [] | [{{"v_id": "V1", "fix_hint": "specific Vega-Lite/channel/data field edit"}}, ...],
+    "interaction_modifications": "specific JS/spec edits, including exact variable names such as I_Data_<IID>_<VID>, bg_<IID>_<VID>, fg_<IID>_<VID>, link_field, and filtering logic"
   }},
   "explanation": "Concise reasoning referencing specific error messages and spec elements"
 }}
@@ -334,13 +351,23 @@ Exact profiles of each upstream input (path variable, columns, dtypes, null coun
 ## Output Format
 Output ONLY valid JSON:
 
+Suggested fixes must be operationally specific. Do NOT write generic advice such as
+"repair the failing expression", "use the traceback", "fix the code", "check columns",
+or "handle the error". Every non-null suggested fix must name exact column names,
+input node ids, pandas operations, variables, or output fields. If the exact replacement
+field is uncertain, list the closest available candidates and say which upstream node
+or requirement should change if none is semantically valid.
+
 ```json
 {{
   "root_cause": "missing_input" | "column_name" | "data_type" | "syntax_error" | "runtime_error" | "empty_result" | "invalid_values" | "logic_error" | "output_contract",
-  "fix_strategy": "modify_code" | "modify_data_selection",
+  "fix_strategy": "modify_code" | "modify_data_selection" | "modify_upstream" | "modify_requirement",
+  "repair_scope": ["current_node" | "upstream_node" | "requirement_or_plan"],
   "suggested_fixes": {{
-    "code_modifications": "Detailed description of how to fix the code, including exact line changes and corrected column names",
-    "data_modifications": null | "If upstream data changes needed"
+    "code_modifications": "specific pandas/code edits, naming exact failing expression, columns, variables, and required result_df/# INPUT_FIELDS updates",
+    "upstream_node_modifications": null | "specific upstream D node and exact output fields it should produce",
+    "requirement_modifications": null | "specific requirement to revise/remove if the requested field cannot be produced",
+    "data_modifications": null | "specific upstream data/field change needed, naming node id and columns"
   }},
   "evidence": ["Exact error/traceback/column evidence supporting the diagnosis"],
   "explanation": "Concise reasoning for the diagnosis"
@@ -383,6 +410,8 @@ Generate corrected Python code. Rules:
 7. Handle missing values, numeric conversion, merge keys, empty groups, and division-by-zero explicitly when relevant.
 8. Do not catch broad exceptions merely to hide failures. Do not write files, print output, install packages, access the network, or call `exit()`.
 9. Return one JSON object containing executable code and metadata.
+10. During regeneration, preserve downstream-required output fields, not every previous input field. Input fields may change if the repaired node still produces the required outputs correctly.
+11. If the required output cannot be produced from available inputs, do not fabricate it; the diagnosis should recommend modifying an upstream node or the requirement/plan.
 
 ```json
 {{

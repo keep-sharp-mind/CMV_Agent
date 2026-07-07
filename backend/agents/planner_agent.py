@@ -37,6 +37,8 @@ class PlannerAgent:
             "node_id": node_id,
             "required_inputs": flow.get("predecessor_fields") or {},
             "required_outputs": flow.get("out_fields") or [],
+            "predicted_inputs": flow.get("predicted_in_fields") or [],
+            "predicted_outputs": flow.get("predicted_out_fields") or [],
             "allowed_predecessors": [
                 edge.get("from")
                 for edge in (flow.get("incoming_edges") or [])
@@ -58,14 +60,9 @@ class PlannerAgent:
         if not isinstance(contract, dict) or not contract:
             return []
 
-        required_inputs = {
-            str(source): cls._normalize_field_values(fields)
-            for source, fields in (contract.get("required_inputs") or {}).items()
-        }
         required_outputs = cls._normalize_field_values(
             contract.get("required_outputs")
         )
-        allowed_predecessors = set(contract.get("allowed_predecessors") or [])
         issues = []
 
         def add(detail: str, fields=None):
@@ -77,25 +74,6 @@ class PlannerAgent:
             })
 
         if node_type == "D":
-            code = artifact.get("code") or ""
-            declared = cls._parse_input_fields_comment(code)
-            declared_sources = (
-                set(declared) | set(cls._get_referenced_input_nodes(code))
-            )
-            extra_sources = declared_sources - allowed_predecessors
-            if extra_sources:
-                add(
-                    f"{node_id} reads undeclared predecessors: "
-                    f"{sorted(extra_sources)}"
-                )
-            for source, fields in required_inputs.items():
-                missing = fields - cls._normalize_field_values(declared.get(source))
-                if missing:
-                    add(
-                        f"{node_id} must preserve input fields from {source}: "
-                        f"{sorted(missing)}",
-                        missing
-                    )
             output_fields = {
                 str(column.get("column_name"))
                 for column in (artifact.get("columns") or [])
@@ -111,24 +89,6 @@ class PlannerAgent:
 
         elif node_type == "V":
             metadata = artifact.get("metadata") or {}
-            declared = metadata.get("input_fields_by_table") or {}
-            used_tables = set(metadata.get("used_tables") or declared.keys())
-            spec_table = (artifact.get("spec") or {}).get("table")
-            if spec_table:
-                used_tables.add(spec_table)
-            extra_sources = used_tables - allowed_predecessors
-            if extra_sources:
-                add(
-                    f"{node_id} uses undeclared input tables: {sorted(extra_sources)}"
-                )
-            for source, fields in required_inputs.items():
-                missing = fields - cls._normalize_field_values(declared.get(source))
-                if missing:
-                    add(
-                        f"{node_id} must preserve visualization fields from "
-                        f"{source}: {sorted(missing)}",
-                        missing
-                    )
             used_fields = cls._normalize_field_values(metadata.get("used_fields"))
             missing_outputs = required_outputs - used_fields
             if missing_outputs:
@@ -140,49 +100,11 @@ class PlannerAgent:
 
         elif node_type == "I":
             spec = artifact.get("interaction_spec") or artifact
-            actual_inputs = {}
-            for source in spec.get("source_views") or []:
-                if isinstance(source, dict) and source.get("id"):
-                    actual_inputs.setdefault(source["id"], set()).add(
-                        source.get("link_field")
-                    )
-            extra_sources = set(actual_inputs) - allowed_predecessors
-            if extra_sources:
-                add(
-                    f"{node_id} uses undeclared source views: "
-                    f"{sorted(extra_sources)}"
-                )
-            for source, fields in required_inputs.items():
-                missing = fields - cls._normalize_field_values(
-                    actual_inputs.get(source)
-                )
-                if missing:
-                    add(
-                        f"{node_id} must preserve source link fields from "
-                        f"{source}: {sorted(missing)}",
-                        missing
-                    )
             controlled_fields = {
                 item.get("field")
                 for item in (spec.get("controlled_view") or [])
                 if isinstance(item, dict) and item.get("field")
             }
-            allowed_targets = {
-                edge.get("to")
-                for edge in (contract.get("outgoing_edges") or [])
-                if isinstance(edge, dict) and edge.get("to")
-            }
-            actual_targets = {
-                item.get("view")
-                for item in (spec.get("controlled_view") or [])
-                if isinstance(item, dict) and item.get("view")
-            }
-            extra_targets = actual_targets - allowed_targets
-            if extra_targets:
-                add(
-                    f"{node_id} controls undeclared target views: "
-                    f"{sorted(extra_targets)}"
-                )
             missing_outputs = required_outputs - controlled_fields
             if missing_outputs:
                 add(
@@ -370,12 +292,14 @@ class PlannerAgent:
                 explicit = explicit_sources.get(source, set())
                 source_fields = available_fields.get(source, set())
                 shared = source_fields & target_view_fields
-                fields = explicit or shared
                 if explicit:
+                    fields = explicit
                     evidence = "interaction_spec.source_views.link_field"
                 elif shared:
-                    evidence = "interaction_shared_field_fallback"
+                    fields = shared
+                    evidence = "predicted_interaction_shared_field"
                 else:
+                    fields = set()
                     evidence = "no_field_evidence"
                 edge_fields[key] = self._normalize_field_values(fields)
                 edge_evidence[key] = evidence
@@ -386,12 +310,14 @@ class PlannerAgent:
                 key = self._edge_key(edge)
                 explicit = explicit_targets.get(target, set())
                 shared = source_edge_union & available_fields.get(target, set())
-                fields = explicit or shared
                 if explicit:
+                    fields = explicit
                     evidence = "interaction_spec.controlled_view.field"
                 elif shared:
-                    evidence = "interaction_shared_field_fallback"
+                    fields = shared
+                    evidence = "predicted_interaction_shared_field"
                 else:
+                    fields = set()
                     evidence = "no_field_evidence"
                 edge_fields[key] = self._normalize_field_values(fields)
                 edge_evidence[key] = evidence
@@ -443,15 +369,25 @@ class PlannerAgent:
             ]
 
             in_field_map: Dict[str, Set[str]] = {}
+            predicted_in_field_map: Dict[str, Set[str]] = {}
             for edge in incoming[node_id]:
-                in_field_map.setdefault(edge["from"], set()).update(
-                    edge_fields.get(self._edge_key(edge), set())
+                key = self._edge_key(edge)
+                target_map = (
+                    predicted_in_field_map
+                    if str(edge_evidence.get(key, "")).startswith("predicted_")
+                    else in_field_map
+                )
+                target_map.setdefault(edge["from"], set()).update(
+                    edge_fields.get(key, set())
                 )
             out_fields = set()
+            predicted_out_fields = set()
             for edge in outgoing[node_id]:
-                out_fields.update(
-                    edge_fields.get(self._edge_key(edge), set())
-                )
+                key = self._edge_key(edge)
+                if str(edge_evidence.get(key, "")).startswith("predicted_"):
+                    predicted_out_fields.update(edge_fields.get(key, set()))
+                else:
+                    out_fields.update(edge_fields.get(key, set()))
 
             ancestor_map = collect_ancestor_fields(node_id)
             result[node_id] = {
@@ -460,6 +396,8 @@ class PlannerAgent:
                 "direct_in_fields": self._qualify_field_map(in_field_map),
                 # Direct edge contract: A.out_fields emits exactly A->B fields.
                 "out_fields": sorted(out_fields),
+                "predicted_in_fields": self._qualify_field_map(predicted_in_field_map),
+                "predicted_out_fields": sorted(predicted_out_fields),
                 "predecessors": sorted(in_field_map),
                 "undeclared_predecessors": sorted(
                     undeclared_predecessors.get(node_id, set())

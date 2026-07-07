@@ -9,6 +9,7 @@ import re
 import copy
 import traceback
 import math
+import time
 from typing import List, Dict, Any, Optional
 from model import get_model_client, ModelClient
 from agents.error_agent import get_error_agent
@@ -661,49 +662,158 @@ class VisAgent:
                 # Attempt auto-recovery: analyze error → fix spec → re-validate
                 analysis = None
                 fix_result = None
+                recovery_attempts = []
                 try:
-                    analysis = error_agent.analyze_vis_error(
-                        node, spec, input_nodes, input_table_paths, error_context["execution_result"]
-                    )
-                    out["error_analysis"] = analysis
+                    current_spec = spec
+                    current_metadata = metadata
+                    current_execution = error_context["execution_result"]
 
-                    if analysis.get("success"):
-                        fix_result = error_agent.fix_vis_spec(
-                            node, spec, input_nodes, input_table_paths,
-                            error_context["execution_result"],
-                            f"Root cause: {analysis.get('root_cause')}. Fix strategy: {analysis.get('fix_strategy')}. Suggestion: {analysis.get('suggested_fixes', {}).get('vis_modifications', '')}."
+                    for attempt_number in range(1, 6):
+                        diagnosis_execution = dict(current_execution)
+                        if recovery_attempts:
+                            diagnosis_execution["previous_recovery_attempts"] = [
+                                {
+                                    "attempt": item.get("attempt"),
+                                    "status": item.get("status"),
+                                    "root_cause": (item.get("analysis") or {}).get("root_cause"),
+                                    "fix_strategy": (item.get("analysis") or {}).get("fix_strategy"),
+                                    "suggested_fixes": (item.get("analysis") or {}).get("suggested_fixes"),
+                                    "fix_error": (item.get("fix_result") or {}).get("error"),
+                                    "retry_error": item.get("error"),
+                                    "validation_issues": item.get("validation_issues", [])
+                                }
+                                for item in recovery_attempts
+                            ]
+                        diagnosis_started = time.perf_counter()
+                        analysis = error_agent.analyze_vis_error(
+                            node, current_spec, input_nodes, input_table_paths, diagnosis_execution
                         )
-                        out["error_recovery"] = fix_result
+                        diagnosis_duration_ms = int((time.perf_counter() - diagnosis_started) * 1000)
+                        out["error_analysis"] = analysis
 
-                        if fix_result.get("success") and fix_result.get("spec"):
-                            fixed_spec = fix_result["spec"]
-                            fixed_metadata = fix_result.get("metadata", {})
-                            re_validation = self.validate_visualization(fixed_spec, fixed_metadata, input_table_paths)
-                            re_validation = apply_field_contract(
-                                re_validation, fixed_spec, fixed_metadata
+                        if not analysis.get("success"):
+                            recovery_attempts.append({
+                                "attempt": attempt_number,
+                                "status": "diagnosis_failed",
+                                "analysis": analysis,
+                                "error": analysis.get("error") or analysis.get("llm_error") or analysis.get("llm_parse_error"),
+                                "diagnosis_duration_ms": diagnosis_duration_ms,
+                                "phase_timings": {
+                                    "diagnosis_ms": diagnosis_duration_ms
+                                }
+                            })
+                            break
+
+                        regeneration_started = time.perf_counter()
+                        fix_result = error_agent.fix_vis_spec(
+                            node, current_spec, input_nodes, input_table_paths,
+                            diagnosis_execution,
+                            (
+                                f"Root cause: {analysis.get('root_cause')}. "
+                                f"Fix strategy: {analysis.get('fix_strategy')}. "
+                                f"Suggestion: {analysis.get('suggested_fixes', {}).get('vis_modifications', '')}. "
+                                f"Previous failed attempts: {json.dumps(diagnosis_execution.get('previous_recovery_attempts', []), ensure_ascii=False, default=str)}. "
+                                "If a previous spec modification failed, choose a materially different encoding/mark/field strategy instead of repeating it."
                             )
+                        )
+                        fix_generation_duration_ms = int((time.perf_counter() - regeneration_started) * 1000)
+                        out["error_recovery"] = fix_result
+                        attempt = {
+                            "attempt": attempt_number,
+                            "status": "fix_generated" if fix_result.get("success") else "fix_generation_failed",
+                            "analysis": analysis,
+                            "fix_result": fix_result,
+                            "diagnosis_duration_ms": diagnosis_duration_ms,
+                            "fix_generation_duration_ms": fix_generation_duration_ms,
+                            "phase_timings": {
+                                "diagnosis_ms": diagnosis_duration_ms,
+                                "fix_generation_ms": fix_generation_duration_ms
+                            }
+                        }
 
-                            if re_validation.get("valid"):
-                                if project_id:
-                                    fixed_spec = self.convert_view_spec(node_id, fixed_spec, project_id, input_table_paths, metadata=fixed_metadata)
-                                out["spec"] = fixed_spec
-                                out["metadata"] = fixed_metadata
-                                out["spec_json"] = json.dumps(fixed_spec, ensure_ascii=False, indent=2)
-                                out["success"] = True
-                                out["error"] = None
-                                out["validation_issues"] = []
-                                out["syntax_check"] = re_validation.get("syntax_check")
-                                out["recovered"] = True
-                                spec_path = os.path.join(output_dir, f"{node_id}.json")
-                                try:
-                                    os.makedirs(output_dir, exist_ok=True)
-                                    with open(spec_path, "w", encoding="utf-8") as f:
-                                        json.dump(fixed_spec, f, ensure_ascii=False, indent=2)
-                                    out["spec_path"] = spec_path
-                                except Exception as e:
-                                    out["error"] = f"Failed to save spec: {e}"
+                        if not fix_result.get("success") or not fix_result.get("spec"):
+                            attempt["status"] = "fix_generation_failed"
+                            attempt["error"] = fix_result.get("error") or "ErrorAgent did not return a fixed spec"
+                            attempt["regeneration_duration_ms"] = int((time.perf_counter() - regeneration_started) * 1000)
+                            attempt["phase_timings"]["regeneration_ms"] = attempt["regeneration_duration_ms"]
+                            recovery_attempts.append(attempt)
+                            break
+
+                        fixed_spec = fix_result["spec"]
+                        fixed_metadata = fix_result.get("metadata", {})
+                        validation_started = time.perf_counter()
+                        re_validation = self.validate_visualization(fixed_spec, fixed_metadata, input_table_paths)
+                        re_validation = apply_field_contract(
+                            re_validation, fixed_spec, fixed_metadata
+                        )
+                        validation_duration_ms = int((time.perf_counter() - validation_started) * 1000)
+                        attempt["validation_duration_ms"] = validation_duration_ms
+                        attempt["phase_timings"]["validation_ms"] = validation_duration_ms
+
+                        if re_validation.get("valid"):
+                            if project_id:
+                                fixed_spec = self.convert_view_spec(node_id, fixed_spec, project_id, input_table_paths, metadata=fixed_metadata)
+                            out["spec"] = fixed_spec
+                            out["metadata"] = fixed_metadata
+                            out["spec_json"] = json.dumps(fixed_spec, ensure_ascii=False, indent=2)
+                            out["success"] = True
+                            out["error"] = None
+                            out["validation_issues"] = []
+                            out["syntax_check"] = re_validation.get("syntax_check")
+                            out["recovered"] = True
+                            spec_path = os.path.join(output_dir, f"{node_id}.json")
+                            try:
+                                os.makedirs(output_dir, exist_ok=True)
+                                with open(spec_path, "w", encoding="utf-8") as f:
+                                    json.dump(fixed_spec, f, ensure_ascii=False, indent=2)
+                                out["spec_path"] = spec_path
+                            except Exception as e:
+                                out["error"] = f"Failed to save spec: {e}"
+                            attempt["status"] = "recovered" if out.get("success") else "retry_failed"
+                            attempt["regeneration_duration_ms"] = int((time.perf_counter() - regeneration_started) * 1000)
+                            attempt["phase_timings"]["regeneration_ms"] = attempt["regeneration_duration_ms"]
+                            recovery_attempts.append(attempt)
+                            break
+
+                        attempt["status"] = "retry_failed"
+                        attempt["error"] = (
+                            re_validation.get("issues", [{}])[0].get("detail")
+                            if re_validation.get("issues") else
+                            "Regenerated spec failed validation"
+                        )
+                        attempt["validation_issues"] = re_validation.get("issues", [])
+                        attempt["regeneration_duration_ms"] = int((time.perf_counter() - regeneration_started) * 1000)
+                        attempt["phase_timings"]["regeneration_ms"] = attempt["regeneration_duration_ms"]
+                        recovery_attempts.append(attempt)
+                        current_spec = fixed_spec
+                        current_metadata = fixed_metadata
+                        current_execution = {
+                            "node_id": node_id,
+                            "success": False,
+                            "error": attempt["error"],
+                            "syntax_check": re_validation.get("syntax_check"),
+                            "validation_issues": re_validation.get("issues", []),
+                            "spec_path": None
+                        }
+
+                    if not out.get("success") and recovery_attempts:
+                        out["spec"] = current_spec
+                        out["metadata"] = current_metadata
+                        out["spec_json"] = json.dumps(current_spec, ensure_ascii=False, indent=2)
+                        out["error"] = current_execution.get("error")
+                        out["syntax_check"] = current_execution.get("syntax_check")
+                        out["validation_issues"] = current_execution.get("validation_issues", [])
+                        error_context["execution_result"] = current_execution
                 except Exception:
                     out["error_recovery"] = {"error": "Failed to attempt auto-recovery"}
+                    recovery_attempts.append({
+                        "attempt": len(recovery_attempts) + 1,
+                        "status": "retry_failed",
+                        "error": "Failed to attempt auto-recovery"
+                    })
+
+                out["recovery_attempts"] = recovery_attempts
+                error_context["recovery_attempts"] = recovery_attempts
 
                 # Save error record with diagnosis and fix results
                 try:

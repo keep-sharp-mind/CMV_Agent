@@ -488,6 +488,51 @@ class PlannerDataFlowTests(unittest.TestCase):
                         target_flow["in_fields"]
                     )
 
+    def test_v_to_i_fields_wait_for_interaction_artifact(self):
+        plan = {
+            "nodes": {
+                "d": [{"id": "d1", "source_table": "demo.source"}],
+                "D": [{"id": "D1"}],
+                "V": [{"id": "V1"}, {"id": "V2"}],
+                "I": [{"id": "I1"}]
+            },
+            "dependencies": [
+                {"from": "d1", "to": "D1", "type": "d->D"},
+                {"from": "D1", "to": "V1", "type": "D->V"},
+                {"from": "D1", "to": "V2", "type": "D->V"},
+                {"from": "V1", "to": "I1", "type": "V->I"},
+                {"from": "I1", "to": "V2", "type": "I->V"}
+            ]
+        }
+        schema = [{
+            "db_name": "demo",
+            "tables": [{
+                "table_name": "source",
+                "columns": [{"column_name": "team"}, {"column_name": "score"}]
+            }]
+        }]
+        processed_nodes = {
+            "D1": {
+                "code": "result_df = pd.read_csv(INPUT_TABLE_PATH_d1)[['team', 'score']]",
+                "columns": [{"column_name": "team"}, {"column_name": "score"}]
+            }
+        }
+        processed_vis = {
+            "V1": {"spec": {"encoding": {"x": {"field": "team"}}}},
+            "V2": {"spec": {"encoding": {"x": {"field": "team"}}}}
+        }
+
+        flow = PlannerAgent().analyze_data_flow(
+            plan, schema, processed_vis, processed_nodes, interaction_results={}
+        )
+
+        self.assertEqual([], flow["V1"]["out_fields"])
+        self.assertEqual([], flow["I1"]["in_fields"])
+        self.assertEqual([], flow["I1"]["out_fields"])
+        self.assertEqual(["team"], flow["V1"]["predicted_out_fields"])
+        self.assertEqual(["V1.team"], flow["I1"]["predicted_in_fields"])
+        self.assertEqual(["team"], flow["I1"]["predicted_out_fields"])
+
 
 class SaveDataFlowIntegrationTests(unittest.TestCase):
     def test_save_data_flow_accepts_list_vis_and_interaction_artifact(self):

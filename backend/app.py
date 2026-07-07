@@ -20,6 +20,84 @@ MAX_CONTENT_LENGTH = 100 * 1024 * 1024  # 100MB
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 
 
+def _summarize_result_error(result):
+    """Return a compact error/validation summary for trace and UI consumers."""
+    if not isinstance(result, dict):
+        return ""
+    if result.get("error"):
+        return str(result.get("error"))
+    error_report = result.get("error_report") or {}
+    if isinstance(error_report, dict):
+        if error_report.get("summary"):
+            return str(error_report.get("summary"))
+        original_error = error_report.get("original_error") or {}
+        if isinstance(original_error, dict) and original_error.get("error"):
+            return str(original_error.get("error"))
+    issues = result.get("validation_issues")
+    if not issues and isinstance(error_report, dict):
+        original_error = error_report.get("original_error") or {}
+        issues = original_error.get("validation_issues") if isinstance(original_error, dict) else None
+    if isinstance(issues, list) and issues:
+        return "; ".join(
+            str(issue.get("detail") or issue.get("type"))
+            for issue in issues[:2]
+            if isinstance(issue, dict) and (issue.get("detail") or issue.get("type"))
+        )
+    return ""
+
+
+def _append_error_recovery_trace(project_dir, node_id, node_type, label, input_desc, result):
+    """Record Error Agent diagnosis and regeneration attempts in trace.json."""
+    error_report = (result or {}).get("error_report") or {}
+    recovery_attempts = (result or {}).get("recovery_attempts") or error_report.get("recovery_attempts") or []
+    has_error_flow = bool(error_report) or bool(recovery_attempts) or (result or {}).get("success") is False
+    if not has_error_flow:
+        return
+
+    from trace_manager import append_trace_entry, make_trace_entry
+
+    summary = _summarize_result_error(result) or "Validation failed"
+    append_trace_entry(project_dir, make_trace_entry(
+        step=f"error_{node_id}",
+        node_type="Error",
+        label=f"Diagnose {label}",
+        input_desc=f"{node_type} {node_id}",
+        output_desc="diagnosis",
+        status="error",
+        previous_error=summary,
+        details={
+            "source_node": node_id,
+            "source_type": node_type,
+            "summary": summary,
+            "recovery_status": error_report.get("recovery_status", {})
+        }
+    ))
+
+    for index, attempt in enumerate(recovery_attempts):
+        attempt_no = attempt.get("attempt", index + 1) if isinstance(attempt, dict) else index + 1
+        attempt_status = attempt.get("status", "retry") if isinstance(attempt, dict) else "retry"
+        recovered = attempt_status == "recovered"
+        append_trace_entry(project_dir, make_trace_entry(
+            step=f"retry_{node_id}_{attempt_no}",
+            node_type=node_type,
+            label=f"Regenerate {label}",
+            input_desc=input_desc,
+            output_desc=f"{node_id} regenerated",
+            status="recovered" if recovered else "error",
+            is_retry=True,
+            previous_error=summary,
+            details={
+                "source_node": node_id,
+                "attempt": attempt_no,
+                "attempt_status": attempt_status,
+                "error": attempt.get("error") if isinstance(attempt, dict) else None,
+                "diagnosis_duration_ms": attempt.get("diagnosis_duration_ms") if isinstance(attempt, dict) else None,
+                "regeneration_duration_ms": attempt.get("regeneration_duration_ms") if isinstance(attempt, dict) else None,
+                "phase_timings": attempt.get("phase_timings", {}) if isinstance(attempt, dict) else {}
+            }
+        ))
+
+
 def get_or_init_agent() -> CMVAgent:
     """获取或初始化Agent"""
     agent = get_agent()
@@ -1112,6 +1190,14 @@ def process_single_d_node(project_id, node_id):
             input_desc=input_desc, output_desc=output_desc,
             status="success" if result.get("success") else "error"
         ))
+        _append_error_recovery_trace(
+            project_dir,
+            node_id,
+            "D",
+            target_node.get("name", node_id),
+            input_desc,
+            result
+        )
         _save_data_flow(project_store, project_id, plan_data)
 
         print(f"[process_single_d_node] RETURN success={result.get('success')} node={node_id}", flush=True)
@@ -1522,6 +1608,14 @@ def process_single_v_node(project_id, node_id):
             input_desc=input_desc, output_desc=output_desc,
             status=status
         ))
+        _append_error_recovery_trace(
+            project_dir,
+            node_id,
+            "V",
+            target_node.get("name", node_id),
+            input_desc,
+            result
+        )
         if result.get("recovered") and result.get("error_report"):
             # Add a separate trace entry for the error→retry path
             append_trace_entry(project_dir, make_trace_entry(
@@ -1868,6 +1962,25 @@ def get_agent_trace(project_id):
                             "status": "error",
                             "error_detail": err_data.get("summary", "")
                         })
+                        for index, attempt in enumerate(err_data.get("recovery_attempts", []) or []):
+                            attempt_status = attempt.get("status", "retry")
+                            error_items.append({
+                                "id": f"retry-{node_id or fname}-{index}",
+                                "label": f"Regenerate {node_id or fname} (attempt {attempt.get('attempt', index + 1)})",
+                                "input": "Error Agent diagnosis",
+                                "output": (
+                                    f"Recovered output ({attempt.get('regeneration_duration_ms')} ms)"
+                                    if attempt_status == "recovered" and attempt.get("regeneration_duration_ms")
+                                    else "Recovered output" if attempt_status == "recovered"
+                                    else f"Retry result ({attempt.get('regeneration_duration_ms')} ms)" if attempt.get("regeneration_duration_ms")
+                                    else "Retry result"
+                                ),
+                                "status": "success" if attempt_status == "recovered" else "error",
+                                "error_detail": attempt.get("error"),
+                                "diagnosis_duration_ms": attempt.get("diagnosis_duration_ms"),
+                                "regeneration_duration_ms": attempt.get("regeneration_duration_ms"),
+                                "phase_timings": attempt.get("phase_timings", {})
+                            })
                     except (json.JSONDecodeError, KeyError):
                         pass
 

@@ -220,12 +220,15 @@ function NodeDetailSection({
         <div className="node-data-flow">
           <div className="node-data-flow-header">Data Flow</div>
           <div className="node-data-flow-body">
-            {dataFlow.in_fields?.length > 0 ? (
+            {dataFlow.in_fields?.length > 0 || dataFlow.predicted_in_fields?.length > 0 ? (
               <div className="node-data-flow-col">
                 <strong>In Fields</strong>
                 <div className="node-data-flow-tags">
-                  {dataFlow.in_fields.map((f, i) => (
+                  {dataFlow.in_fields?.map((f, i) => (
                     <span key={i} className="data-flow-tag in">{f}</span>
+                  ))}
+                  {dataFlow.predicted_in_fields?.map((f, i) => (
+                    <span key={`pin-${i}`} className="data-flow-tag predicted" title="Predicted shared-field fallback">{f}</span>
                   ))}
                 </div>
               </div>
@@ -235,12 +238,15 @@ function NodeDetailSection({
                 <div className="node-data-flow-tags"><span className="data-flow-tag in" style={{opacity:0.5}}>—</span></div>
               </div>
             )}
-            {dataFlow.out_fields?.length > 0 ? (
+            {dataFlow.out_fields?.length > 0 || dataFlow.predicted_out_fields?.length > 0 ? (
               <div className="node-data-flow-col">
                 <strong>Out Fields</strong>
                 <div className="node-data-flow-tags">
-                  {dataFlow.out_fields.map((f, i) => (
+                  {dataFlow.out_fields?.map((f, i) => (
                     <span key={i} className="data-flow-tag out">{f}</span>
+                  ))}
+                  {dataFlow.predicted_out_fields?.map((f, i) => (
+                    <span key={`pout-${i}`} className="data-flow-tag predicted" title="Predicted shared-field fallback">{f}</span>
                   ))}
                 </div>
               </div>

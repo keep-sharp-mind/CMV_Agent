@@ -7,6 +7,7 @@ import os
 import json
 import re
 import math
+import time
 import traceback
 from typing import List, Dict, Any, Optional
 from model import get_model_client, ModelClient
@@ -819,12 +820,28 @@ class DataAgent:
                         and not (execution.get("validation_issues") or [])
                     )
 
-                # A second evidence-driven pass materially improves recovery when
-                # the first fix exposes a new runtime or validation error.
-                for attempt_number in range(1, 3):
+                # Retry up to five times. Each failed regenerated result becomes
+                # the next evidence packet for ErrorAgent diagnosis.
+                for attempt_number in range(1, 6):
+                    diagnosis_input = dict(current_result)
+                    if recovery_attempts:
+                        diagnosis_input["previous_recovery_attempts"] = [
+                            {
+                                "attempt": item.get("attempt"),
+                                "status": item.get("status"),
+                                "root_cause": (item.get("diagnosis") or {}).get("root_cause"),
+                                "fix_strategy": (item.get("diagnosis") or {}).get("fix_strategy"),
+                                "suggested_fixes": (item.get("diagnosis") or {}).get("suggested_fixes"),
+                                "fix_error": (item.get("fix") or {}).get("error"),
+                                "execution_error": (item.get("execution_result") or {}).get("error"),
+                                "validation_issues": (item.get("execution_result") or {}).get("validation_issues", [])
+                            }
+                            for item in recovery_attempts
+                        ]
+                    diagnosis_started = time.perf_counter()
                     try:
                         analysis = error_agent.analyze_data_error(
-                            node, current_code, input_nodes, input_table_paths, current_result
+                            node, current_code, input_nodes, input_table_paths, diagnosis_input
                         )
                     except Exception as exc:
                         analysis = {
@@ -833,12 +850,17 @@ class DataAgent:
                             "explanation": str(exc),
                             "diagnosis_source": "exception"
                         }
+                    diagnosis_duration_ms = int((time.perf_counter() - diagnosis_started) * 1000)
 
                     attempt = {
                         "attempt": attempt_number,
                         "input_code": current_code,
                         "input_execution_result": current_result,
-                        "diagnosis": analysis
+                        "diagnosis": analysis,
+                        "diagnosis_duration_ms": diagnosis_duration_ms,
+                        "phase_timings": {
+                            "diagnosis_ms": diagnosis_duration_ms
+                        }
                     }
                     out["error_analysis"] = analysis
 
@@ -854,9 +876,12 @@ class DataAgent:
                         f"Evidence: {analysis.get('evidence', [])}. "
                         f"Explanation: {analysis.get('explanation', '')}. "
                         f"Code changes: {suggested_fixes.get('code_modifications', '')}. "
-                        f"Data changes: {suggested_fixes.get('data_modifications', '')}."
+                        f"Data changes: {suggested_fixes.get('data_modifications', '')}. "
+                        f"Previous failed attempts: {json.dumps(diagnosis_input.get('previous_recovery_attempts', []), ensure_ascii=False, default=str)}. "
+                        "If a previous modification failed, choose a materially different repair strategy instead of repeating it."
                     )
 
+                    regeneration_started = time.perf_counter()
                     try:
                         fix_result = error_agent.fix_data(
                             node,
@@ -872,13 +897,18 @@ class DataAgent:
                             "code": current_code,
                             "error": str(exc)
                         }
+                    fix_generation_duration_ms = int((time.perf_counter() - regeneration_started) * 1000)
 
                     attempt["fix"] = fix_result
+                    attempt["fix_generation_duration_ms"] = fix_generation_duration_ms
+                    attempt["phase_timings"]["fix_generation_ms"] = fix_generation_duration_ms
                     out["error_recovery"] = fix_result
                     fixed_code = fix_result.get("code")
 
                     if not fixed_code:
                         attempt["status"] = "fix_generation_failed"
+                        attempt["regeneration_duration_ms"] = int((time.perf_counter() - regeneration_started) * 1000)
+                        attempt["phase_timings"]["regeneration_ms"] = attempt["regeneration_duration_ms"]
                         recovery_attempts.append(attempt)
                         break
 
@@ -893,9 +923,12 @@ class DataAgent:
                         }
                         attempt["execution_result"] = current_result
                         attempt["status"] = "fix_rejected"
+                        attempt["regeneration_duration_ms"] = int((time.perf_counter() - regeneration_started) * 1000)
+                        attempt["phase_timings"]["regeneration_ms"] = attempt["regeneration_duration_ms"]
                         recovery_attempts.append(attempt)
                         continue
 
+                    execution_started = time.perf_counter()
                     current_result = self.execute_processing_code(
                         current_code,
                         candidate_output_path,
@@ -905,7 +938,12 @@ class DataAgent:
                     current_result = apply_field_contract(
                         current_result, current_code
                     )
+                    execution_duration_ms = int((time.perf_counter() - execution_started) * 1000)
                     attempt["execution_result"] = current_result
+                    attempt["execution_duration_ms"] = execution_duration_ms
+                    attempt["regeneration_duration_ms"] = int((time.perf_counter() - regeneration_started) * 1000)
+                    attempt["phase_timings"]["execution_ms"] = execution_duration_ms
+                    attempt["phase_timings"]["regeneration_ms"] = attempt["regeneration_duration_ms"]
                     attempt["status"] = "recovered" if is_clean(current_result) else "retry_failed"
                     recovery_attempts.append(attempt)
 
