@@ -1,0 +1,44 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Formation Matchup Heatmap between Argentina and Brazil",
+  "width": "container",
+  "height": "container",
+  "mark": "rect",
+  "encoding": {
+    "x": {
+      "field": "Brazil_2-3-5",
+      "type": "quantitative",
+      "title": "Brazil Formation: 2-3-5"
+    },
+    "y": {
+      "field": "Argentina_4-4-2",
+      "type": "quantitative",
+      "title": "Argentina Formation: 4-4-2"
+    },
+    "color": {
+      "field": "frequency",
+      "type": "quantitative",
+      "title": "Frequency",
+      "scale": {
+        "scheme": "greenblue"
+      },
+      "legend": {
+        "orient": "bottom"
+      }
+    }
+  },
+  "data": {
+    "url": "http://localhost:5000/data/08dc76c5-c2cb-41a9-8ae1-6de740709ff8/D4.csv"
+  },
+  "description": "V4",
+  "autosize": {
+    "type": "fit",
+    "contains": "padding"
+  },
+  "config": {
+    "background": "rgba(0, 0, 0, 0)",
+    "padding": 10
+  },
+  "params": [],
+  "transform": []
+}

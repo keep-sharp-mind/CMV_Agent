@@ -134,7 +134,6 @@
       "d2.formation_type"
     ],
     "out_fields": [
-      "formation_type",
       "frequency"
     ],
     "predecessors": [
@@ -174,7 +173,6 @@
         "to": "V2",
         "type": "D->V",
         "fields": [
-          "formation_type",
           "frequency"
         ],
         "evidence": "vega_lite_spec"
@@ -261,12 +259,8 @@
         "from": "D3",
         "to": "V3",
         "type": "D->V",
-        "fields": [
-          "count",
-          "formation_type",
-          "frame_id"
-        ],
-        "evidence": "vega_lite_spec"
+        "fields": [],
+        "evidence": "no_field_evidence"
       },
       {
         "from": "D3",
@@ -469,7 +463,6 @@
       "D1.frequency"
     ],
     "out_fields": [
-      "formation_type",
       "frequency"
     ],
     "predecessors": [
@@ -518,7 +511,6 @@
         "to": "I1",
         "type": "V->I",
         "fields": [
-          "formation_type",
           "frequency"
         ],
         "evidence": "interaction_shared_field_fallback"
@@ -1090,11 +1082,7 @@
       "D3.formation_type",
       "D3.frame_id"
     ],
-    "out_fields": [
-      "formation_3-4-3",
-      "formation_type",
-      "frequency"
-    ],
+    "out_fields": [],
     "predecessors": [
       "D3"
     ],
@@ -1153,12 +1141,8 @@
         "from": "D4",
         "to": "V4",
         "type": "D->V",
-        "fields": [
-          "formation_3-4-3",
-          "formation_type",
-          "frequency"
-        ],
-        "evidence": "vega_lite_spec"
+        "fields": [],
+        "evidence": "no_field_evidence"
       }
     ]
   }

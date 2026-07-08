@@ -6,6 +6,8 @@
       "formation_type",
       "frame_id"
     ],
+    "predicted_in_fields": [],
+    "predicted_out_fields": [],
     "predecessors": [],
     "undeclared_predecessors": [],
     "predecessor_fields": {},
@@ -42,6 +44,8 @@
       "formation_type",
       "frame_id"
     ],
+    "predicted_in_fields": [],
+    "predicted_out_fields": [],
     "predecessors": [],
     "undeclared_predecessors": [],
     "predecessor_fields": {},
@@ -82,6 +86,8 @@
       "formation_type",
       "frequency"
     ],
+    "predicted_in_fields": [],
+    "predicted_out_fields": [],
     "predecessors": [
       "d1"
     ],
@@ -134,8 +140,11 @@
       "d2.formation_type"
     ],
     "out_fields": [
+      "formation_type",
       "frequency"
     ],
+    "predicted_in_fields": [],
+    "predicted_out_fields": [],
     "predecessors": [
       "d2"
     ],
@@ -173,9 +182,10 @@
         "to": "V2",
         "type": "D->V",
         "fields": [
+          "formation_type",
           "frequency"
         ],
-        "evidence": "vega_lite_spec"
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
       }
     ]
   },
@@ -197,6 +207,8 @@
       "formation_type",
       "frame_id"
     ],
+    "predicted_in_fields": [],
+    "predicted_out_fields": [],
     "predecessors": [
       "d1",
       "d2"
@@ -259,8 +271,12 @@
         "from": "D3",
         "to": "V3",
         "type": "D->V",
-        "fields": [],
-        "evidence": "no_field_evidence"
+        "fields": [
+          "count",
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "vega_lite_spec"
       },
       {
         "from": "D3",
@@ -308,7 +324,12 @@
       "D3.formation_type",
       "D3.frame_id"
     ],
-    "out_fields": [],
+    "out_fields": [
+      "Argentina_4-4-2",
+      "Brazil_2-3-5"
+    ],
+    "predicted_in_fields": [],
+    "predicted_out_fields": [],
     "predecessors": [
       "D3"
     ],
@@ -367,8 +388,11 @@
         "from": "D4",
         "to": "V4",
         "type": "D->V",
-        "fields": [],
-        "evidence": "no_field_evidence"
+        "fields": [
+          "Argentina_4-4-2",
+          "Brazil_2-3-5"
+        ],
+        "evidence": "vega_lite_spec"
       }
     ]
   },
@@ -383,7 +407,11 @@
       "D3.formation_type",
       "D3.frame_id"
     ],
-    "out_fields": [],
+    "out_fields": [
+      "formation_type"
+    ],
+    "predicted_in_fields": [],
+    "predicted_out_fields": [],
     "predecessors": [
       "D3"
     ],
@@ -442,8 +470,10 @@
         "from": "D5",
         "to": "V5",
         "type": "D->V",
-        "fields": [],
-        "evidence": "no_field_evidence"
+        "fields": [
+          "formation_type"
+        ],
+        "evidence": "vega_lite_spec"
       }
     ]
   },
@@ -458,7 +488,12 @@
       "D3.formation_type",
       "D3.frame_id"
     ],
-    "out_fields": [],
+    "out_fields": [
+      "formation_consistency_variance",
+      "match_identifier"
+    ],
+    "predicted_in_fields": [],
+    "predicted_out_fields": [],
     "predecessors": [
       "D3"
     ],
@@ -517,8 +552,11 @@
         "from": "D6",
         "to": "V6",
         "type": "D->V",
-        "fields": [],
-        "evidence": "no_field_evidence"
+        "fields": [
+          "formation_consistency_variance",
+          "match_identifier"
+        ],
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
       }
     ]
   },
@@ -531,7 +569,10 @@
       "D1.formation_type",
       "D1.frequency"
     ],
-    "out_fields": [
+    "out_fields": [],
+    "predicted_in_fields": [],
+    "predicted_out_fields": [
+      "formation_type",
       "frequency"
     ],
     "predecessors": [
@@ -580,32 +621,35 @@
         "to": "I1",
         "type": "V->I",
         "fields": [
+          "formation_type",
           "frequency"
         ],
-        "evidence": "interaction_shared_field_fallback"
+        "evidence": "predicted_interaction_shared_field"
       }
     ]
   },
   "V2": {
     "in_fields": [
-      "D2.frequency",
-      "I1.frequency"
+      "D2.formation_type",
+      "D2.frequency"
     ],
     "direct_in_fields": [
-      "D2.frequency",
-      "I1.frequency"
+      "D2.formation_type",
+      "D2.frequency"
     ],
     "out_fields": [],
+    "predicted_in_fields": [
+      "I1.formation_type",
+      "I1.frequency"
+    ],
+    "predicted_out_fields": [],
     "predecessors": [
-      "D2",
-      "I1"
+      "D2"
     ],
     "undeclared_predecessors": [],
     "predecessor_fields": {
       "D2": [
-        "frequency"
-      ],
-      "I1": [
+        "formation_type",
         "frequency"
       ]
     },
@@ -623,12 +667,15 @@
         "frequency"
       ],
       "D2": [
+        "formation_type",
         "frequency"
       ],
       "I1": [
+        "formation_type",
         "frequency"
       ],
       "V1": [
+        "formation_type",
         "frequency"
       ],
       "d1": [
@@ -641,8 +688,11 @@
     "transitive_in_fields": [
       "D1.formation_type",
       "D1.frequency",
+      "D2.formation_type",
       "D2.frequency",
+      "I1.formation_type",
       "I1.frequency",
+      "V1.formation_type",
       "V1.frequency",
       "d1.formation_type",
       "d2.formation_type"
@@ -653,80 +703,51 @@
         "to": "V2",
         "type": "D->V",
         "fields": [
+          "formation_type",
           "frequency"
         ],
-        "evidence": "vega_lite_spec"
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
       },
       {
         "from": "I1",
         "to": "V2",
         "type": "I->V",
         "fields": [
+          "formation_type",
           "frequency"
         ],
-        "evidence": "interaction_shared_field_fallback"
+        "evidence": "predicted_interaction_shared_field"
       }
     ],
     "outgoing_edges": []
   },
   "V3": {
-    "in_fields": [],
-    "direct_in_fields": [],
+    "in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id"
+    ],
+    "direct_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id"
+    ],
     "out_fields": [],
+    "predicted_in_fields": [],
+    "predicted_out_fields": [],
     "predecessors": [
       "D3"
     ],
     "undeclared_predecessors": [],
     "predecessor_fields": {
-      "D3": []
-    },
-    "ancestors": [
-      "D3",
-      "d1",
-      "d2"
-    ],
-    "ancestor_fields": {
-      "D3": [],
-      "d1": [
-        "formation_type",
-        "frame_id"
-      ],
-      "d2": [
+      "D3": [
+        "count",
         "formation_type",
         "frame_id"
       ]
     },
-    "transitive_in_fields": [
-      "d1.formation_type",
-      "d1.frame_id",
-      "d2.formation_type",
-      "d2.frame_id"
-    ],
-    "incoming_edges": [
-      {
-        "from": "D3",
-        "to": "V3",
-        "type": "D->V",
-        "fields": [],
-        "evidence": "no_field_evidence"
-      }
-    ],
-    "outgoing_edges": []
-  },
-  "V4": {
-    "in_fields": [],
-    "direct_in_fields": [],
-    "out_fields": [],
-    "predecessors": [
-      "D4"
-    ],
-    "undeclared_predecessors": [],
-    "predecessor_fields": {
-      "D4": []
-    },
     "ancestors": [
       "D3",
-      "D4",
       "d1",
       "d2"
     ],
@@ -736,7 +757,6 @@
         "formation_type",
         "frame_id"
       ],
-      "D4": [],
       "d1": [
         "formation_type",
         "frame_id"
@@ -757,11 +777,89 @@
     ],
     "incoming_edges": [
       {
+        "from": "D3",
+        "to": "V3",
+        "type": "D->V",
+        "fields": [
+          "count",
+          "formation_type",
+          "frame_id"
+        ],
+        "evidence": "vega_lite_spec"
+      }
+    ],
+    "outgoing_edges": []
+  },
+  "V4": {
+    "in_fields": [
+      "D4.Argentina_4-4-2",
+      "D4.Brazil_2-3-5"
+    ],
+    "direct_in_fields": [
+      "D4.Argentina_4-4-2",
+      "D4.Brazil_2-3-5"
+    ],
+    "out_fields": [],
+    "predicted_in_fields": [],
+    "predicted_out_fields": [
+      "Brazil_2-3-5"
+    ],
+    "predecessors": [
+      "D4"
+    ],
+    "undeclared_predecessors": [],
+    "predecessor_fields": {
+      "D4": [
+        "Argentina_4-4-2",
+        "Brazil_2-3-5"
+      ]
+    },
+    "ancestors": [
+      "D3",
+      "D4",
+      "d1",
+      "d2"
+    ],
+    "ancestor_fields": {
+      "D3": [
+        "count",
+        "formation_type",
+        "frame_id"
+      ],
+      "D4": [
+        "Argentina_4-4-2",
+        "Brazil_2-3-5"
+      ],
+      "d1": [
+        "formation_type",
+        "frame_id"
+      ],
+      "d2": [
+        "formation_type",
+        "frame_id"
+      ]
+    },
+    "transitive_in_fields": [
+      "D3.count",
+      "D3.formation_type",
+      "D3.frame_id",
+      "D4.Argentina_4-4-2",
+      "D4.Brazil_2-3-5",
+      "d1.formation_type",
+      "d1.frame_id",
+      "d2.formation_type",
+      "d2.frame_id"
+    ],
+    "incoming_edges": [
+      {
         "from": "D4",
         "to": "V4",
         "type": "D->V",
-        "fields": [],
-        "evidence": "no_field_evidence"
+        "fields": [
+          "Argentina_4-4-2",
+          "Brazil_2-3-5"
+        ],
+        "evidence": "vega_lite_spec"
       }
     ],
     "outgoing_edges": [
@@ -769,23 +867,33 @@
         "from": "V4",
         "to": "I2",
         "type": "V->I",
-        "fields": [],
-        "evidence": "no_field_evidence"
+        "fields": [
+          "Brazil_2-3-5"
+        ],
+        "evidence": "predicted_interaction_shared_field"
       }
     ]
   },
   "V5": {
-    "in_fields": [],
-    "direct_in_fields": [],
+    "in_fields": [
+      "D5.formation_type"
+    ],
+    "direct_in_fields": [
+      "D5.formation_type"
+    ],
     "out_fields": [],
+    "predicted_in_fields": [
+      "I2.Brazil_2-3-5"
+    ],
+    "predicted_out_fields": [],
     "predecessors": [
-      "D5",
-      "I2"
+      "D5"
     ],
     "undeclared_predecessors": [],
     "predecessor_fields": {
-      "D5": [],
-      "I2": []
+      "D5": [
+        "formation_type"
+      ]
     },
     "ancestors": [
       "D3",
@@ -802,10 +910,19 @@
         "formation_type",
         "frame_id"
       ],
-      "D4": [],
-      "D5": [],
-      "I2": [],
-      "V4": [],
+      "D4": [
+        "Argentina_4-4-2",
+        "Brazil_2-3-5"
+      ],
+      "D5": [
+        "formation_type"
+      ],
+      "I2": [
+        "Brazil_2-3-5"
+      ],
+      "V4": [
+        "Brazil_2-3-5"
+      ],
       "d1": [
         "formation_type",
         "frame_id"
@@ -819,6 +936,11 @@
       "D3.count",
       "D3.formation_type",
       "D3.frame_id",
+      "D4.Argentina_4-4-2",
+      "D4.Brazil_2-3-5",
+      "D5.formation_type",
+      "I2.Brazil_2-3-5",
+      "V4.Brazil_2-3-5",
       "d1.formation_type",
       "d1.frame_id",
       "d2.formation_type",
@@ -829,29 +951,44 @@
         "from": "D5",
         "to": "V5",
         "type": "D->V",
-        "fields": [],
-        "evidence": "no_field_evidence"
+        "fields": [
+          "formation_type"
+        ],
+        "evidence": "vega_lite_spec"
       },
       {
         "from": "I2",
         "to": "V5",
         "type": "I->V",
-        "fields": [],
-        "evidence": "no_field_evidence"
+        "fields": [
+          "Brazil_2-3-5"
+        ],
+        "evidence": "predicted_interaction_shared_field"
       }
     ],
     "outgoing_edges": []
   },
   "V6": {
-    "in_fields": [],
-    "direct_in_fields": [],
+    "in_fields": [
+      "D6.formation_consistency_variance",
+      "D6.match_identifier"
+    ],
+    "direct_in_fields": [
+      "D6.formation_consistency_variance",
+      "D6.match_identifier"
+    ],
     "out_fields": [],
+    "predicted_in_fields": [],
+    "predicted_out_fields": [],
     "predecessors": [
       "D6"
     ],
     "undeclared_predecessors": [],
     "predecessor_fields": {
-      "D6": []
+      "D6": [
+        "formation_consistency_variance",
+        "match_identifier"
+      ]
     },
     "ancestors": [
       "D3",
@@ -865,7 +1002,10 @@
         "formation_type",
         "frame_id"
       ],
-      "D6": [],
+      "D6": [
+        "formation_consistency_variance",
+        "match_identifier"
+      ],
       "d1": [
         "formation_type",
         "frame_id"
@@ -879,6 +1019,8 @@
       "D3.count",
       "D3.formation_type",
       "D3.frame_id",
+      "D6.formation_consistency_variance",
+      "D6.match_identifier",
       "d1.formation_type",
       "d1.frame_id",
       "d2.formation_type",
@@ -889,31 +1031,30 @@
         "from": "D6",
         "to": "V6",
         "type": "D->V",
-        "fields": [],
-        "evidence": "no_field_evidence"
+        "fields": [
+          "formation_consistency_variance",
+          "match_identifier"
+        ],
+        "evidence": "vis_metadata.input_fields_by_table+vega_lite_spec"
       }
     ],
     "outgoing_edges": []
   },
   "I1": {
-    "in_fields": [
+    "in_fields": [],
+    "direct_in_fields": [],
+    "out_fields": [],
+    "predicted_in_fields": [
+      "V1.formation_type",
       "V1.frequency"
     ],
-    "direct_in_fields": [
-      "V1.frequency"
-    ],
-    "out_fields": [
+    "predicted_out_fields": [
+      "formation_type",
       "frequency"
     ],
-    "predecessors": [
-      "V1"
-    ],
+    "predecessors": [],
     "undeclared_predecessors": [],
-    "predecessor_fields": {
-      "V1": [
-        "frequency"
-      ]
-    },
+    "predecessor_fields": {},
     "ancestors": [
       "D1",
       "V1",
@@ -925,6 +1066,7 @@
         "frequency"
       ],
       "V1": [
+        "formation_type",
         "frequency"
       ],
       "d1": [
@@ -934,6 +1076,7 @@
     "transitive_in_fields": [
       "D1.formation_type",
       "D1.frequency",
+      "V1.formation_type",
       "V1.frequency",
       "d1.formation_type"
     ],
@@ -943,9 +1086,10 @@
         "to": "I1",
         "type": "V->I",
         "fields": [
+          "formation_type",
           "frequency"
         ],
-        "evidence": "interaction_shared_field_fallback"
+        "evidence": "predicted_interaction_shared_field"
       }
     ],
     "outgoing_edges": [
@@ -954,9 +1098,10 @@
         "to": "V2",
         "type": "I->V",
         "fields": [
+          "formation_type",
           "frequency"
         ],
-        "evidence": "interaction_shared_field_fallback"
+        "evidence": "predicted_interaction_shared_field"
       }
     ]
   },
@@ -964,13 +1109,15 @@
     "in_fields": [],
     "direct_in_fields": [],
     "out_fields": [],
-    "predecessors": [
-      "V4"
+    "predicted_in_fields": [
+      "V4.Brazil_2-3-5"
     ],
+    "predicted_out_fields": [
+      "Brazil_2-3-5"
+    ],
+    "predecessors": [],
     "undeclared_predecessors": [],
-    "predecessor_fields": {
-      "V4": []
-    },
+    "predecessor_fields": {},
     "ancestors": [
       "D3",
       "D4",
@@ -984,8 +1131,13 @@
         "formation_type",
         "frame_id"
       ],
-      "D4": [],
-      "V4": [],
+      "D4": [
+        "Argentina_4-4-2",
+        "Brazil_2-3-5"
+      ],
+      "V4": [
+        "Brazil_2-3-5"
+      ],
       "d1": [
         "formation_type",
         "frame_id"
@@ -999,6 +1151,9 @@
       "D3.count",
       "D3.formation_type",
       "D3.frame_id",
+      "D4.Argentina_4-4-2",
+      "D4.Brazil_2-3-5",
+      "V4.Brazil_2-3-5",
       "d1.formation_type",
       "d1.frame_id",
       "d2.formation_type",
@@ -1009,8 +1164,10 @@
         "from": "V4",
         "to": "I2",
         "type": "V->I",
-        "fields": [],
-        "evidence": "no_field_evidence"
+        "fields": [
+          "Brazil_2-3-5"
+        ],
+        "evidence": "predicted_interaction_shared_field"
       }
     ],
     "outgoing_edges": [
@@ -1018,8 +1175,10 @@
         "from": "I2",
         "to": "V5",
         "type": "I->V",
-        "fields": [],
-        "evidence": "no_field_evidence"
+        "fields": [
+          "Brazil_2-3-5"
+        ],
+        "evidence": "predicted_interaction_shared_field"
       }
     ]
   }

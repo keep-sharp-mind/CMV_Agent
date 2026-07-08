@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-07-07T11:33:16.342833",
+    "timestamp": "2026-07-07T15:13:06.203663",
     "step": "D1",
     "type": "D",
     "label": "Argentina_Formation_Distribution",
@@ -12,7 +12,7 @@
     "details": {}
   },
   {
-    "timestamp": "2026-07-07T11:33:21.812932",
+    "timestamp": "2026-07-07T15:13:11.368694",
     "step": "D2",
     "type": "D",
     "label": "Brazil_Formation_Distribution",
@@ -24,7 +24,7 @@
     "details": {}
   },
   {
-    "timestamp": "2026-07-07T11:33:28.395274",
+    "timestamp": "2026-07-07T15:13:18.552373",
     "step": "D3",
     "type": "D",
     "label": "Formation_Change_Over_Time",
@@ -36,61 +36,19 @@
     "details": {}
   },
   {
-    "timestamp": "2026-07-07T11:33:45.733424",
+    "timestamp": "2026-07-07T15:13:28.407630",
     "step": "D4",
     "type": "D",
     "label": "Formation_Matchup",
     "input": "D3",
-    "output": "D4.csv (3 cols)",
+    "output": "D4.csv (5 cols)",
     "status": "success",
     "is_retry": false,
     "previous_error": null,
     "details": {}
   },
   {
-    "timestamp": "2026-07-07T11:33:45.741337",
-    "step": "error_D4",
-    "type": "Error",
-    "label": "Diagnose Formation_Matchup",
-    "input": "D D4",
-    "output": "diagnosis",
-    "status": "error",
-    "is_retry": false,
-    "previous_error": "execution_error: \"['frequency'] not in index\"",
-    "details": {
-      "source_node": "D4",
-      "source_type": "D",
-      "summary": "execution_error: \"['frequency'] not in index\"",
-      "recovery_status": {}
-    }
-  },
-  {
-    "timestamp": "2026-07-07T11:33:45.748254",
-    "step": "retry_D4_1",
-    "type": "D",
-    "label": "Regenerate Formation_Matchup",
-    "input": "D3",
-    "output": "D4 regenerated",
-    "status": "recovered",
-    "is_retry": true,
-    "previous_error": "execution_error: \"['frequency'] not in index\"",
-    "details": {
-      "source_node": "D4",
-      "attempt": 1,
-      "attempt_status": "recovered",
-      "error": null,
-      "diagnosis_duration_ms": 3769,
-      "regeneration_duration_ms": 3923,
-      "phase_timings": {
-        "diagnosis_ms": 3769,
-        "fix_generation_ms": 3917,
-        "execution_ms": 6,
-        "regeneration_ms": 3923
-      }
-    }
-  },
-  {
-    "timestamp": "2026-07-07T11:34:34.826008",
+    "timestamp": "2026-07-07T15:14:06.560838",
     "step": "D5",
     "type": "D",
     "label": "Formation_Effectiveness",
@@ -102,7 +60,7 @@
     "details": {}
   },
   {
-    "timestamp": "2026-07-07T11:34:34.834526",
+    "timestamp": "2026-07-07T15:14:06.569351",
     "step": "error_D5",
     "type": "Error",
     "label": "Diagnose Formation_Effectiveness",
@@ -119,7 +77,7 @@
     }
   },
   {
-    "timestamp": "2026-07-07T11:34:34.841973",
+    "timestamp": "2026-07-07T15:14:06.576172",
     "step": "retry_D5_1",
     "type": "D",
     "label": "Regenerate Formation_Effectiveness",
@@ -133,18 +91,18 @@
       "attempt": 1,
       "attempt_status": "retry_failed",
       "error": null,
-      "diagnosis_duration_ms": 3537,
-      "regeneration_duration_ms": 2854,
+      "diagnosis_duration_ms": 3508,
+      "regeneration_duration_ms": 2923,
       "phase_timings": {
-        "diagnosis_ms": 3537,
-        "fix_generation_ms": 2853,
+        "diagnosis_ms": 3508,
+        "fix_generation_ms": 2922,
         "execution_ms": 1,
-        "regeneration_ms": 2854
+        "regeneration_ms": 2923
       }
     }
   },
   {
-    "timestamp": "2026-07-07T11:34:34.849573",
+    "timestamp": "2026-07-07T15:14:06.583253",
     "step": "retry_D5_2",
     "type": "D",
     "label": "Regenerate Formation_Effectiveness",
@@ -158,18 +116,18 @@
       "attempt": 2,
       "attempt_status": "retry_failed",
       "error": null,
-      "diagnosis_duration_ms": 3330,
-      "regeneration_duration_ms": 3790,
+      "diagnosis_duration_ms": 4032,
+      "regeneration_duration_ms": 2911,
       "phase_timings": {
-        "diagnosis_ms": 3330,
-        "fix_generation_ms": 3788,
-        "execution_ms": 2,
-        "regeneration_ms": 3790
+        "diagnosis_ms": 4032,
+        "fix_generation_ms": 2910,
+        "execution_ms": 1,
+        "regeneration_ms": 2911
       }
     }
   },
   {
-    "timestamp": "2026-07-07T11:34:34.858154",
+    "timestamp": "2026-07-07T15:14:06.590530",
     "step": "retry_D5_3",
     "type": "D",
     "label": "Regenerate Formation_Effectiveness",
@@ -183,18 +141,18 @@
       "attempt": 3,
       "attempt_status": "retry_failed",
       "error": null,
-      "diagnosis_duration_ms": 3264,
-      "regeneration_duration_ms": 4438,
+      "diagnosis_duration_ms": 4812,
+      "regeneration_duration_ms": 2663,
       "phase_timings": {
-        "diagnosis_ms": 3264,
-        "fix_generation_ms": 4437,
+        "diagnosis_ms": 4812,
+        "fix_generation_ms": 2662,
         "execution_ms": 1,
-        "regeneration_ms": 4438
+        "regeneration_ms": 2663
       }
     }
   },
   {
-    "timestamp": "2026-07-07T11:34:34.865946",
+    "timestamp": "2026-07-07T15:14:06.597301",
     "step": "retry_D5_4",
     "type": "D",
     "label": "Regenerate Formation_Effectiveness",
@@ -208,18 +166,18 @@
       "attempt": 4,
       "attempt_status": "retry_failed",
       "error": null,
-      "diagnosis_duration_ms": 3189,
-      "regeneration_duration_ms": 3002,
+      "diagnosis_duration_ms": 4429,
+      "regeneration_duration_ms": 2827,
       "phase_timings": {
-        "diagnosis_ms": 3189,
-        "fix_generation_ms": 3001,
+        "diagnosis_ms": 4429,
+        "fix_generation_ms": 2826,
         "execution_ms": 1,
-        "regeneration_ms": 3002
+        "regeneration_ms": 2827
       }
     }
   },
   {
-    "timestamp": "2026-07-07T11:34:34.873757",
+    "timestamp": "2026-07-07T15:14:06.605070",
     "step": "retry_D5_5",
     "type": "D",
     "label": "Regenerate Formation_Effectiveness",
@@ -233,171 +191,30 @@
       "attempt": 5,
       "attempt_status": "retry_failed",
       "error": null,
-      "diagnosis_duration_ms": 4318,
-      "regeneration_duration_ms": 2914,
+      "diagnosis_duration_ms": 3594,
+      "regeneration_duration_ms": 3289,
       "phase_timings": {
-        "diagnosis_ms": 4318,
-        "fix_generation_ms": 2912,
-        "execution_ms": 1,
-        "regeneration_ms": 2914
+        "diagnosis_ms": 3594,
+        "fix_generation_ms": 3287,
+        "execution_ms": 2,
+        "regeneration_ms": 3289
       }
     }
   },
   {
-    "timestamp": "2026-07-07T11:35:58.195830",
+    "timestamp": "2026-07-07T15:14:57.410942",
     "step": "D6",
     "type": "D",
     "label": "Formation_Consistency",
     "input": "D3",
-    "output": "D6.csv",
-    "status": "error",
+    "output": "D6.csv (2 cols)",
+    "status": "success",
     "is_retry": false,
     "previous_error": null,
     "details": {}
   },
   {
-    "timestamp": "2026-07-07T11:35:58.204810",
-    "step": "error_D6",
-    "type": "Error",
-    "label": "Diagnose Formation_Consistency",
-    "input": "D D6",
-    "output": "diagnosis",
-    "status": "error",
-    "is_retry": false,
-    "previous_error": "name 'formation_consistency_std' is not defined",
-    "details": {
-      "source_node": "D6",
-      "source_type": "D",
-      "summary": "name 'formation_consistency_std' is not defined",
-      "recovery_status": {}
-    }
-  },
-  {
-    "timestamp": "2026-07-07T11:35:58.213424",
-    "step": "retry_D6_1",
-    "type": "D",
-    "label": "Regenerate Formation_Consistency",
-    "input": "D3",
-    "output": "D6 regenerated",
-    "status": "error",
-    "is_retry": true,
-    "previous_error": "name 'formation_consistency_std' is not defined",
-    "details": {
-      "source_node": "D6",
-      "attempt": 1,
-      "attempt_status": "retry_failed",
-      "error": null,
-      "diagnosis_duration_ms": 3402,
-      "regeneration_duration_ms": 3375,
-      "phase_timings": {
-        "diagnosis_ms": 3402,
-        "fix_generation_ms": 3370,
-        "execution_ms": 4,
-        "regeneration_ms": 3375
-      }
-    }
-  },
-  {
-    "timestamp": "2026-07-07T11:35:58.221038",
-    "step": "retry_D6_2",
-    "type": "D",
-    "label": "Regenerate Formation_Consistency",
-    "input": "D3",
-    "output": "D6 regenerated",
-    "status": "error",
-    "is_retry": true,
-    "previous_error": "name 'formation_consistency_std' is not defined",
-    "details": {
-      "source_node": "D6",
-      "attempt": 2,
-      "attempt_status": "fix_rejected",
-      "error": null,
-      "diagnosis_duration_ms": 3835,
-      "regeneration_duration_ms": 3239,
-      "phase_timings": {
-        "diagnosis_ms": 3835,
-        "fix_generation_ms": 3239,
-        "regeneration_ms": 3239
-      }
-    }
-  },
-  {
-    "timestamp": "2026-07-07T11:35:58.230047",
-    "step": "retry_D6_3",
-    "type": "D",
-    "label": "Regenerate Formation_Consistency",
-    "input": "D3",
-    "output": "D6 regenerated",
-    "status": "error",
-    "is_retry": true,
-    "previous_error": "name 'formation_consistency_std' is not defined",
-    "details": {
-      "source_node": "D6",
-      "attempt": 3,
-      "attempt_status": "retry_failed",
-      "error": null,
-      "diagnosis_duration_ms": 3100,
-      "regeneration_duration_ms": 3967,
-      "phase_timings": {
-        "diagnosis_ms": 3100,
-        "fix_generation_ms": 3963,
-        "execution_ms": 4,
-        "regeneration_ms": 3967
-      }
-    }
-  },
-  {
-    "timestamp": "2026-07-07T11:35:58.237798",
-    "step": "retry_D6_4",
-    "type": "D",
-    "label": "Regenerate Formation_Consistency",
-    "input": "D3",
-    "output": "D6 regenerated",
-    "status": "error",
-    "is_retry": true,
-    "previous_error": "name 'formation_consistency_std' is not defined",
-    "details": {
-      "source_node": "D6",
-      "attempt": 4,
-      "attempt_status": "retry_failed",
-      "error": null,
-      "diagnosis_duration_ms": 8063,
-      "regeneration_duration_ms": 3619,
-      "phase_timings": {
-        "diagnosis_ms": 8063,
-        "fix_generation_ms": 3569,
-        "execution_ms": 49,
-        "regeneration_ms": 3619
-      }
-    }
-  },
-  {
-    "timestamp": "2026-07-07T11:35:58.247065",
-    "step": "retry_D6_5",
-    "type": "D",
-    "label": "Regenerate Formation_Consistency",
-    "input": "D3",
-    "output": "D6 regenerated",
-    "status": "error",
-    "is_retry": true,
-    "previous_error": "name 'formation_consistency_std' is not defined",
-    "details": {
-      "source_node": "D6",
-      "attempt": 5,
-      "attempt_status": "retry_failed",
-      "error": null,
-      "diagnosis_duration_ms": 4701,
-      "regeneration_duration_ms": 3744,
-      "phase_timings": {
-        "diagnosis_ms": 4701,
-        "fix_generation_ms": 3741,
-        "execution_ms": 2,
-        "regeneration_ms": 3744
-      }
-    }
-  },
-  {
-    "timestamp": "2026-07-07T11:36:50.263252",
+    "timestamp": "2026-07-07T15:15:01.245143",
     "step": "V1",
     "type": "V",
     "label": "Argentina_Formation_Distribution_Bar",
@@ -409,157 +226,401 @@
     "details": {}
   },
   {
-    "timestamp": "2026-07-07T11:37:31.460398",
+    "timestamp": "2026-07-07T15:15:05.288617",
     "step": "V2",
     "type": "V",
     "label": "Brazil_Formation_Distribution_Bar",
     "input": "D2",
     "output": "V2.json (Vega-Lite spec)",
+    "status": "success",
+    "is_retry": false,
+    "previous_error": null,
+    "details": {}
+  },
+  {
+    "timestamp": "2026-07-07T15:16:03.650909",
+    "step": "V3",
+    "type": "V",
+    "label": "Formation_Change_Over_Time_Line",
+    "input": "D3",
+    "output": "V3.json (Vega-Lite spec)",
     "status": "error",
     "is_retry": false,
     "previous_error": null,
     "details": {}
   },
   {
-    "timestamp": "2026-07-07T11:37:31.469002",
-    "step": "error_V2",
+    "timestamp": "2026-07-07T15:16:03.659572",
+    "step": "error_V3",
     "type": "Error",
-    "label": "Diagnose Brazil_Formation_Distribution_Bar",
-    "input": "V V2",
+    "label": "Diagnose Formation_Change_Over_Time_Line",
+    "input": "V V3",
     "output": "diagnosis",
     "status": "error",
     "is_retry": false,
-    "previous_error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+    "previous_error": "Metadata lists field '﻿frame_id' but it is not found in the spec encoding",
     "details": {
-      "source_node": "V2",
+      "source_node": "V3",
       "source_type": "V",
-      "summary": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+      "summary": "Metadata lists field '﻿frame_id' but it is not found in the spec encoding",
       "recovery_status": {}
     }
   },
   {
-    "timestamp": "2026-07-07T11:37:31.477932",
-    "step": "retry_V2_1",
+    "timestamp": "2026-07-07T15:16:03.669658",
+    "step": "retry_V3_1",
     "type": "V",
-    "label": "Regenerate Brazil_Formation_Distribution_Bar",
-    "input": "D2",
-    "output": "V2 regenerated",
+    "label": "Regenerate Formation_Change_Over_Time_Line",
+    "input": "D3",
+    "output": "V3 regenerated",
     "status": "error",
     "is_retry": true,
-    "previous_error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+    "previous_error": "Metadata lists field '﻿frame_id' but it is not found in the spec encoding",
     "details": {
-      "source_node": "V2",
+      "source_node": "V3",
       "attempt": 1,
       "attempt_status": "retry_failed",
-      "error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
-      "diagnosis_duration_ms": 3584,
-      "regeneration_duration_ms": 4259,
+      "error": "Metadata lists field '﻿frame_id' but it is not found in the spec encoding",
+      "diagnosis_duration_ms": 4144,
+      "regeneration_duration_ms": 7206,
       "phase_timings": {
-        "diagnosis_ms": 3584,
-        "fix_generation_ms": 4252,
-        "validation_ms": 6,
-        "regeneration_ms": 4259
+        "diagnosis_ms": 4144,
+        "fix_generation_ms": 7203,
+        "validation_ms": 3,
+        "regeneration_ms": 7206
       }
     }
   },
   {
-    "timestamp": "2026-07-07T11:37:31.485687",
-    "step": "retry_V2_2",
+    "timestamp": "2026-07-07T15:16:03.679120",
+    "step": "retry_V3_2",
     "type": "V",
-    "label": "Regenerate Brazil_Formation_Distribution_Bar",
-    "input": "D2",
-    "output": "V2 regenerated",
+    "label": "Regenerate Formation_Change_Over_Time_Line",
+    "input": "D3",
+    "output": "V3 regenerated",
     "status": "error",
     "is_retry": true,
-    "previous_error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+    "previous_error": "Metadata lists field '﻿frame_id' but it is not found in the spec encoding",
     "details": {
-      "source_node": "V2",
+      "source_node": "V3",
       "attempt": 2,
       "attempt_status": "retry_failed",
-      "error": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
-      "diagnosis_duration_ms": 3643,
-      "regeneration_duration_ms": 5014,
+      "error": "Metadata lists field '﻿frame_id' but it is not found in the spec encoding",
+      "diagnosis_duration_ms": 4613,
+      "regeneration_duration_ms": 6167,
       "phase_timings": {
-        "diagnosis_ms": 3643,
-        "fix_generation_ms": 5010,
-        "validation_ms": 3,
-        "regeneration_ms": 5014
+        "diagnosis_ms": 4613,
+        "fix_generation_ms": 6162,
+        "validation_ms": 4,
+        "regeneration_ms": 6167
       }
     }
   },
   {
-    "timestamp": "2026-07-07T11:37:31.494724",
-    "step": "retry_V2_3",
+    "timestamp": "2026-07-07T15:16:03.688954",
+    "step": "retry_V3_3",
     "type": "V",
-    "label": "Regenerate Brazil_Formation_Distribution_Bar",
-    "input": "D2",
-    "output": "V2 regenerated",
+    "label": "Regenerate Formation_Change_Over_Time_Line",
+    "input": "D3",
+    "output": "V3 regenerated",
     "status": "error",
     "is_retry": true,
-    "previous_error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+    "previous_error": "Metadata lists field '﻿frame_id' but it is not found in the spec encoding",
     "details": {
-      "source_node": "V2",
+      "source_node": "V3",
       "attempt": 3,
       "attempt_status": "retry_failed",
-      "error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
-      "diagnosis_duration_ms": 2821,
-      "regeneration_duration_ms": 4538,
+      "error": "Metadata lists field '﻿frame_id' but it is not found in the spec encoding",
+      "diagnosis_duration_ms": 3936,
+      "regeneration_duration_ms": 6535,
       "phase_timings": {
-        "diagnosis_ms": 2821,
-        "fix_generation_ms": 4534,
-        "validation_ms": 4,
-        "regeneration_ms": 4538
+        "diagnosis_ms": 3936,
+        "fix_generation_ms": 6530,
+        "validation_ms": 5,
+        "regeneration_ms": 6535
       }
     }
   },
   {
-    "timestamp": "2026-07-07T11:37:31.502555",
-    "step": "retry_V2_4",
+    "timestamp": "2026-07-07T15:16:03.697813",
+    "step": "retry_V3_4",
     "type": "V",
-    "label": "Regenerate Brazil_Formation_Distribution_Bar",
-    "input": "D2",
-    "output": "V2 regenerated",
+    "label": "Regenerate Formation_Change_Over_Time_Line",
+    "input": "D3",
+    "output": "V3 regenerated",
     "status": "error",
     "is_retry": true,
-    "previous_error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+    "previous_error": "Metadata lists field '﻿frame_id' but it is not found in the spec encoding",
     "details": {
-      "source_node": "V2",
+      "source_node": "V3",
       "attempt": 4,
       "attempt_status": "retry_failed",
-      "error": "V2 uses undeclared input tables: ['d1']",
-      "diagnosis_duration_ms": 3021,
-      "regeneration_duration_ms": 3634,
+      "error": "Quantitative y-axis field 'count' has only 1 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+      "diagnosis_duration_ms": 3058,
+      "regeneration_duration_ms": 6088,
       "phase_timings": {
-        "diagnosis_ms": 3021,
-        "fix_generation_ms": 3630,
-        "validation_ms": 3,
-        "regeneration_ms": 3634
+        "diagnosis_ms": 3058,
+        "fix_generation_ms": 6083,
+        "validation_ms": 5,
+        "regeneration_ms": 6088
       }
     }
   },
   {
-    "timestamp": "2026-07-07T11:37:31.513701",
-    "step": "retry_V2_5",
+    "timestamp": "2026-07-07T15:16:03.707935",
+    "step": "retry_V3_5",
     "type": "V",
-    "label": "Regenerate Brazil_Formation_Distribution_Bar",
-    "input": "D2",
-    "output": "V2 regenerated",
+    "label": "Regenerate Formation_Change_Over_Time_Line",
+    "input": "D3",
+    "output": "V3 regenerated",
     "status": "error",
     "is_retry": true,
-    "previous_error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
+    "previous_error": "Metadata lists field '﻿frame_id' but it is not found in the spec encoding",
     "details": {
-      "source_node": "V2",
+      "source_node": "V3",
       "attempt": 5,
       "attempt_status": "retry_failed",
-      "error": "Field '﻿formation_type' referenced in spec encoding does not exist in the input tables. Available fields: ['Unnamed: 0', 'frequency', 'formation_type', 'formation_3-4-3', 'frame_id', 'count']",
-      "diagnosis_duration_ms": 3330,
-      "regeneration_duration_ms": 4053,
+      "error": "Metadata lists field '﻿frame_id' but it is not found in the spec encoding",
+      "diagnosis_duration_ms": 5529,
+      "regeneration_duration_ms": 6545,
       "phase_timings": {
-        "diagnosis_ms": 3330,
-        "fix_generation_ms": 4047,
+        "diagnosis_ms": 5529,
+        "fix_generation_ms": 6540,
         "validation_ms": 5,
-        "regeneration_ms": 4053
+        "regeneration_ms": 6545
       }
     }
+  },
+  {
+    "timestamp": "2026-07-07T15:17:14.730865",
+    "step": "V4",
+    "type": "V",
+    "label": "Formation_Matchup_Heatmap",
+    "input": "D4",
+    "output": "V4.json (Vega-Lite spec)",
+    "status": "recovered",
+    "is_retry": false,
+    "previous_error": null,
+    "details": {}
+  },
+  {
+    "timestamp": "2026-07-07T15:17:14.740868",
+    "step": "error_V4",
+    "type": "Error",
+    "label": "Diagnose Formation_Matchup_Heatmap",
+    "input": "V V4",
+    "output": "diagnosis",
+    "status": "error",
+    "is_retry": false,
+    "previous_error": "syntax_error: Metadata lists field 'Brazil_2-3-5' but it is not found in the spec encoding; execution_error: Metadata lists field 'Brazil_2-3-5' but it is not found in the spec encoding; metadata_field_not_in_spec: 0 issue(s) in []; metadata_field_not_in_spec: 0 issue(s) in []; metadata_field_not_in_spec: 0 issue(s) in []; metadata_field_not_in_spec: 0 issue(s) in []; field_not_found: 0 issue(s) in []; field_not_found: 0 issue(s) in []",
+    "details": {
+      "source_node": "V4",
+      "source_type": "V",
+      "summary": "syntax_error: Metadata lists field 'Brazil_2-3-5' but it is not found in the spec encoding; execution_error: Metadata lists field 'Brazil_2-3-5' but it is not found in the spec encoding; metadata_field_not_in_spec: 0 issue(s) in []; metadata_field_not_in_spec: 0 issue(s) in []; metadata_field_not_in_spec: 0 issue(s) in []; metadata_field_not_in_spec: 0 issue(s) in []; field_not_found: 0 issue(s) in []; field_not_found: 0 issue(s) in []",
+      "recovery_status": {}
+    }
+  },
+  {
+    "timestamp": "2026-07-07T15:17:14.749187",
+    "step": "retry_V4_1",
+    "type": "V",
+    "label": "Regenerate Formation_Matchup_Heatmap",
+    "input": "D4",
+    "output": "V4 regenerated",
+    "status": "recovered",
+    "is_retry": true,
+    "previous_error": "syntax_error: Metadata lists field 'Brazil_2-3-5' but it is not found in the spec encoding; execution_error: Metadata lists field 'Brazil_2-3-5' but it is not found in the spec encoding; metadata_field_not_in_spec: 0 issue(s) in []; metadata_field_not_in_spec: 0 issue(s) in []; metadata_field_not_in_spec: 0 issue(s) in []; metadata_field_not_in_spec: 0 issue(s) in []; field_not_found: 0 issue(s) in []; field_not_found: 0 issue(s) in []",
+    "details": {
+      "source_node": "V4",
+      "attempt": 1,
+      "attempt_status": "recovered",
+      "error": null,
+      "diagnosis_duration_ms": 4211,
+      "regeneration_duration_ms": 6754,
+      "phase_timings": {
+        "diagnosis_ms": 4211,
+        "fix_generation_ms": 6739,
+        "validation_ms": 4,
+        "regeneration_ms": 6754
+      }
+    }
+  },
+  {
+    "timestamp": "2026-07-07T15:17:14.758257",
+    "step": "re_V4",
+    "type": "V",
+    "label": "retry Formation_Matchup_Heatmap",
+    "input": "D4",
+    "output": "V4.json (recovered spec)",
+    "status": "recovered",
+    "is_retry": true,
+    "previous_error": null,
+    "details": {}
+  },
+  {
+    "timestamp": "2026-07-07T15:18:09.944014",
+    "step": "V5",
+    "type": "V",
+    "label": "Formation_Effectiveness_Scatter",
+    "input": "D5",
+    "output": "V5.json (Vega-Lite spec)",
+    "status": "error",
+    "is_retry": false,
+    "previous_error": null,
+    "details": {}
+  },
+  {
+    "timestamp": "2026-07-07T15:18:09.952742",
+    "step": "error_V5",
+    "type": "Error",
+    "label": "Diagnose Formation_Effectiveness_Scatter",
+    "input": "V V5",
+    "output": "diagnosis",
+    "status": "error",
+    "is_retry": false,
+    "previous_error": "Quantitative y-axis field 'Brazil_2-3-5' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+    "details": {
+      "source_node": "V5",
+      "source_type": "V",
+      "summary": "Quantitative y-axis field 'Brazil_2-3-5' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+      "recovery_status": {}
+    }
+  },
+  {
+    "timestamp": "2026-07-07T15:18:09.961029",
+    "step": "retry_V5_1",
+    "type": "V",
+    "label": "Regenerate Formation_Effectiveness_Scatter",
+    "input": "D5",
+    "output": "V5 regenerated",
+    "status": "error",
+    "is_retry": true,
+    "previous_error": "Quantitative y-axis field 'Brazil_2-3-5' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+    "details": {
+      "source_node": "V5",
+      "attempt": 1,
+      "attempt_status": "retry_failed",
+      "error": "Quantitative y-axis field 'Brazil_2-3-5' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+      "diagnosis_duration_ms": 2913,
+      "regeneration_duration_ms": 5113,
+      "phase_timings": {
+        "diagnosis_ms": 2913,
+        "fix_generation_ms": 5110,
+        "validation_ms": 3,
+        "regeneration_ms": 5113
+      }
+    }
+  },
+  {
+    "timestamp": "2026-07-07T15:18:09.969919",
+    "step": "retry_V5_2",
+    "type": "V",
+    "label": "Regenerate Formation_Effectiveness_Scatter",
+    "input": "D5",
+    "output": "V5 regenerated",
+    "status": "error",
+    "is_retry": true,
+    "previous_error": "Quantitative y-axis field 'Brazil_2-3-5' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+    "details": {
+      "source_node": "V5",
+      "attempt": 2,
+      "attempt_status": "retry_failed",
+      "error": "Field 'average_performance_outcome' referenced in spec encoding does not exist in the input tables. Available fields: ['formation_consistency_variance', 'count', 'frame_id', 'Brazil_2-3-5', 'Argentina_4-4-2', 'Argentina_4-2-4', 'match_identifier', 'frequency', 'Brazil_3-4-3', 'formation_type', 'Unnamed: 0']",
+      "diagnosis_duration_ms": 3197,
+      "regeneration_duration_ms": 4310,
+      "phase_timings": {
+        "diagnosis_ms": 3197,
+        "fix_generation_ms": 4306,
+        "validation_ms": 3,
+        "regeneration_ms": 4310
+      }
+    }
+  },
+  {
+    "timestamp": "2026-07-07T15:18:09.977784",
+    "step": "retry_V5_3",
+    "type": "V",
+    "label": "Regenerate Formation_Effectiveness_Scatter",
+    "input": "D5",
+    "output": "V5 regenerated",
+    "status": "error",
+    "is_retry": true,
+    "previous_error": "Quantitative y-axis field 'Brazil_2-3-5' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+    "details": {
+      "source_node": "V5",
+      "attempt": 3,
+      "attempt_status": "retry_failed",
+      "error": "Quantitative y-axis field 'frequency' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+      "diagnosis_duration_ms": 3480,
+      "regeneration_duration_ms": 3940,
+      "phase_timings": {
+        "diagnosis_ms": 3480,
+        "fix_generation_ms": 3936,
+        "validation_ms": 3,
+        "regeneration_ms": 3940
+      }
+    }
+  },
+  {
+    "timestamp": "2026-07-07T15:18:09.985914",
+    "step": "retry_V5_4",
+    "type": "V",
+    "label": "Regenerate Formation_Effectiveness_Scatter",
+    "input": "D5",
+    "output": "V5 regenerated",
+    "status": "error",
+    "is_retry": true,
+    "previous_error": "Quantitative y-axis field 'Brazil_2-3-5' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+    "details": {
+      "source_node": "V5",
+      "attempt": 4,
+      "attempt_status": "retry_failed",
+      "error": "Quantitative y-axis field 'Brazil_2-3-5' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+      "diagnosis_duration_ms": 2880,
+      "regeneration_duration_ms": 4950,
+      "phase_timings": {
+        "diagnosis_ms": 2880,
+        "fix_generation_ms": 4946,
+        "validation_ms": 3,
+        "regeneration_ms": 4950
+      }
+    }
+  },
+  {
+    "timestamp": "2026-07-07T15:18:09.993857",
+    "step": "retry_V5_5",
+    "type": "V",
+    "label": "Regenerate Formation_Effectiveness_Scatter",
+    "input": "D5",
+    "output": "V5 regenerated",
+    "status": "error",
+    "is_retry": true,
+    "previous_error": "Quantitative y-axis field 'Brazil_2-3-5' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+    "details": {
+      "source_node": "V5",
+      "attempt": 5,
+      "attempt_status": "retry_failed",
+      "error": "Quantitative y-axis field 'Brazil_2-3-5' has only 0 distinct non-null value(s). Choose a genuinely varying metric or a more appropriate chart; do not render a flat plot.",
+      "diagnosis_duration_ms": 3655,
+      "regeneration_duration_ms": 4147,
+      "phase_timings": {
+        "diagnosis_ms": 3655,
+        "fix_generation_ms": 4143,
+        "validation_ms": 4,
+        "regeneration_ms": 4147
+      }
+    }
+  },
+  {
+    "timestamp": "2026-07-07T15:19:00.811534",
+    "step": "V6",
+    "type": "V",
+    "label": "Formation_Consistency_Line",
+    "input": "D6",
+    "output": "V6.json (Vega-Lite spec)",
+    "status": "success",
+    "is_retry": false,
+    "previous_error": null,
+    "details": {}
   }
 ]
